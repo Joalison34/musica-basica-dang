@@ -12,12 +12,11 @@ body {
 }
 
 .container {
-    height: 100%; /* Garante que o contêiner ocupe toda a altura */
+    min-height: 100%; /* Garante que o contêiner ocupe toda a altura */
     display: flex; /* Para alinhar o conteúdo */
     flex-direction: column; /* Alinha verticalmente */
     justify-content: center; /* Centraliza o conteúdo */
     align-items: center; /* Centraliza o conteúdo horizontalmente */
     color: red; /* Garante que o texto no contêiner também seja vermelho */
-}
-
+} 
 
