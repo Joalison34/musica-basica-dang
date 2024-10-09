@@ -1,15 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400&display=swap');
 
-body {
-    font-family: 'Lora', serif;
-    color: red;
-    background-image: url('https://as2.ftcdn.net/v2/jpg/05/84/18/89/1000_F_584188957_9b667BerWvrCbBxWRl206LyIzshTkc8W.jpg'); /* Substitua pela URL da sua imagem de música */
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    margin: 0;
-    padding: 0;
+
     
 
-
+body {
+    margin: 0; /* Remove margens padrão */
+    padding: 0; /* Remove preenchimentos padrão */
+    font-family: Arial, sans-serif; /* Altere para a fonte desejada */
+    color: red; /* Define a cor do texto como vermelho */
+    background-image: url('https://as2.ftcdn.net/v2/jpg/05/84/18/89/1000_F_584188957_9b667BerWvrCbBxWRl206LyIzshTkc8W.jpg'); /* Imagem de fundo */
+    background-size: cover; /* Faz a imagem cobrir todo o fundo */
+    background-position: center; /* Centraliza a imagem */
+    background-repeat: no-repeat; /* Evita repetição da imagem */
+    height: 100vh; /* Define a altura total da janela */
+}
 
