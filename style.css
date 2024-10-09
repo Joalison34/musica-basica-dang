@@ -3,7 +3,7 @@
 body {
     font-family: 'Lora', serif;
     color: red;
-    background-image: url('https://img.freepik.com/fotos-gratis/xicara-de-cafe-e-fones-de-ouvido-perto-de-partituras_23-2147781422.jpg?w=740&t=st=1728432526~exp=1728433126~hmac=241234f7898fc163f8091da9df7b1bda552301d05cfe31373f4d41ee8acbb1d5'); /* Substitua pela URL da sua imagem de música */
+    background-image: url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); /* Substitua pela URL da sua imagem de música */
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
