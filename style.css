@@ -9,10 +9,7 @@ body {
     background-position: center;
     margin: 0;
     padding: 0;
-    img {
-    width: 100;
-    height: auto; /* ou 'height: 100%' se quiser que a imagem preencha toda a altura */
-}
+    
 
 
 
