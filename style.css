@@ -1,14 +1,25 @@
 html, body {
-    height: 100%; /* Faz com que o HTML e o body ocupem toda a altura */
+    height: 100%; /* Garante que html e body ocupem toda a altura */
     margin: 0; /* Remove margens padrão */
 }
 
 body {
-    font-family: Arial, sans-serif; /* Altera a fonte */
-    color: red; /* Define a cor do texto como vermelho */
-    background-image: url('https://as2.ftcdn.net/v2/jpg/05/84/18/89/1000_F_584188957_9b667BerWvrCbBxWRl206LyIzshTkc8W.jpg'); /* Imagem de fundo */
-    background-size: cover; /* Faz a imagem cobrir todo o fundo */
-    background-position: center; /* Centraliza a imagem */
+    background-image: url('https://as2.ftcdn.net/v2/jpg/05/84/18/89/1000_F_584188957_9b667BerWvrCbBxWRl206LyIzshTkc8W.jpg');
+    background-size: cover; /* Ajusta a imagem para cobrir todo o fundo */
     background-repeat: no-repeat; /* Evita repetição da imagem */
+    color: red; /* Define a cor do texto como vermelho */
+    font-family: 'Nome da Fonte', sans-serif; /* Substitua 'Nome da Fonte' pela fonte desejada */
 }
+
+.container {
+    min-height: 100%; /* Garante que o contêiner ocupe toda a altura */
+    display: flex; /* Para alinhar o conteúdo */
+    flex-direction: column; /* Alinha verticalmente */
+    justify-content: center; /* Centraliza o conteúdo */
+    align-items: center; /* Centraliza o conteúdo horizontalmente */
+    color: red; /* Garante que o texto no contêiner também seja vermelho */
+}
+
+
+
 
