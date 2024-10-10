@@ -20,15 +20,46 @@
             align-items: center;
             text-align: center;
             justify-content: flex-start;
-            padding-top: 50px; /* Ajuste a altura do espaço superior conforme necessário */
+            padding-top: 50px;
+        }
+        .search-container {
+            margin-top: 20px;
+        }
+        .music-list {
+            margin-top: 30px;
+            list-style: none;
+            padding: 0;
+        }
+        .music-item {
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <h1>Bem-vindo ao Mundo da Música!</h1>
     <p>Explore suas músicas favoritas e crie sua própria música com p5.js.</p>
+    
+    <div class="search-container">
+        <input type="text" id="music-search" placeholder="Pesquise uma música...">
+        <button onclick="searchMusic()">Pesquisar</button>
+    </div>
+    
+    <ul class="music-list">
+        <li class="music-item">Música 1: <audio controls><source src="URL_DA_MUSICA_1" type="audio/mpeg">Seu navegador não suporta o elemento de áudio.</audio></li>
+        <li class="music-item">Música 2: <audio controls><source src="URL_DA_MUSICA_2" type="audio/mpeg">Seu navegador não suporta o elemento de áudio.</audio></li>
+        <li class="music-item">Música 3: <audio controls><source src="URL_DA_MUSICA_3" type="audio/mpeg">Seu navegador não suporta o elemento de áudio.</audio></li>
+    </ul>
+
+    <script>
+        function searchMusic() {
+            const searchTerm = document.getElementById('music-search').value;
+            alert('Você pesquisou: ' + searchTerm);
+            // Aqui você pode adicionar lógica para filtrar as músicas ou realizar outra ação.
+        }
+    </script>
 </body>
 </html>
+
 
 
 
