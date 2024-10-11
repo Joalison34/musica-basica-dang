@@ -90,6 +90,27 @@
         iframe {
             border-radius: 8px;
         }
+
+        .music-item .song-info {
+            font-size: 10px;
+            color: #cccccc;
+            line-break: anywhere;
+            word-break: normal;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-family: Interstate, Lucida Grande, Lucida Sans Unicode, Lucida Sans, Garuda, Verdana, Tahoma, sans-serif;
+            font-weight: 100;
+        }
+
+        .music-item .song-info a {
+            color: #cccccc;
+            text-decoration: none;
+        }
+
+        .music-item .song-info a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -102,11 +123,15 @@
     </div>
     
     <ul class="music-list">
-        <li class="music-item">Take A Slice (Fan Lyric Video): 
-            <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/YJ8rxReqF5pKLvjK7&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
+        <li class="music-item">Take A Slice (Fan Lyric Video):
+            <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/277882746&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
+            <div class="song-info">
+                <a href="https://soundcloud.com/glassanimals" title="Glass Animals" target="_blank">Glass Animals</a> · 
+                <a href="https://soundcloud.com/glassanimals/take-a-slice" title="Take A Slice" target="_blank">Take A Slice</a>
+            </div>
         </li>
         <li class="music-item">I Will Always Love You - Whitney Houston: 
-            <iframe width="100%" height="166" scrolling="no" src="https%3A//w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/188111291&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false" frameborder="no" allow="autoplay"></iframe>
+            <iframe width="100%" height="166" scrolling="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/188111291&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false" frameborder="no" allow="autoplay"></iframe>
         </li>
         <li class="music-item">Love Me Like You Do - Ellie Goulding: 
             <iframe width="100%" height="166" scrolling="no" src="https%3A//api.soundcloud.com/tracks/123136596&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false" frameborder="no" allow="autoplay"></iframe>
@@ -122,4 +147,5 @@
     </script>
 </body>
 </html>
+
 
