@@ -70,6 +70,21 @@
             margin: 0 auto; /* Centraliza o iframe no container */
         }
 
+        .loop-button {
+            background-color: #ff5500;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 5px 10px;
+            margin-top: 10px;
+        }
+
+        .loop-button.active {
+            background-color: #cc4400;
+        }
+
         input[type="text"] {
             padding: 10px;
             margin-right: 10px;
@@ -109,14 +124,20 @@
     </div>
     
     <ul class="music-list">
-        <li class="music-item">Take A Slice (Glass Animals): 
-            <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/277882746&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
+        <li class="music-item">
+            Take A Slice (Glass Animals): 
+            <iframe id="track1" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/277882746&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
+            <button class="loop-button" onclick="toggleLoop('track1')">Ativar Loop</button>
         </li>
-        <li class="music-item">I Will Always Love You - Whitney Houston: 
-            <iframe width="100%" height="166" scrolling="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/188111291&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false" frameborder="no" allow="autoplay"></iframe>
+        <li class="music-item">
+            I Will Always Love You - Whitney Houston: 
+            <iframe id="track2" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/188111291&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false" ></iframe>
+            <button class="loop-button" onclick="toggleLoop('track2')">Ativar Loop</button>
         </li>
-        <li class="music-item">Love Me Like You Do - Ellie Goulding: 
-            <iframe width="100%" height="166" scrolling="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/123136596&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false" frameborder="no" allow="autoplay"></iframe>
+        <li class="music-item">
+            Love Me Like You Do - Ellie Goulding: 
+            <iframe id="track3" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/123136596&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false"></iframe>
+            <button class="loop-button" onclick="toggleLoop('track3')">Ativar Loop</button>
         </li>
     </ul>
 
@@ -124,6 +145,25 @@
         function searchMusic() {
             const searchTerm = document.getElementById('music-search').value;
             alert('Você pesquisou: ' + searchTerm);
+        }
+
+        function toggleLoop(trackId) {
+            const iframe = document.getElementById(trackId);
+            const button = iframe.nextElementSibling;  // O botão está logo após o iframe no HTML
+            const currentSrc = iframe.src;
+            const isLooping = currentSrc.includes('loop=true');
+
+            if (isLooping) {
+                // Se já estiver no loop, removemos o parâmetro 'loop=true'
+                iframe.src = currentSrc.replace('loop=true', 'loop=false');
+                button.classList.remove('active');
+                button.textContent = 'Ativar Loop';
+            } else {
+                // Se não estiver no loop, adicionamos o parâmetro 'loop=true'
+                iframe.src = currentSrc + '&loop=true';
+                button.classList.add('active');
+                button.textContent = 'Desativar Loop';
+            }
         }
     </script>
 </body>
