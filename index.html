@@ -51,6 +51,9 @@
             list-style: none;
             padding: 0;
             z-index: 1;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         .music-item {
@@ -60,14 +63,15 @@
             border-radius: 5px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             color: white;
+            text-align: left; /* Alinha o texto à esquerda */
         }
 
         .music-item iframe {
             width: 100%;
-            max-width: 600px;
             height: 166px;
             box-sizing: border-box;
-            margin: 0 auto;
+            margin: 10px 0; /* Margem para separar o iframe do texto */
+            border-radius: 8px;
         }
 
         .loop-button {
@@ -126,17 +130,17 @@
     <ul class="music-list">
         <li class="music-item">
             Take A Slice (Glass Animals): 
-            <iframe id="track1" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/277882746&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
+            <iframe id="track1" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/277882746&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
             <button class="loop-button" onclick="toggleLoop('track1')">Ativar Loop</button>
         </li>
         <li class="music-item">
             af1 - lilbubblegum: 
-            <iframe id="track2" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1320607414&color=ff5500"></iframe>
+            <iframe id="track2" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1320607414&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop('track2')">Ativar Loop</button>
         </li>
         <li class="music-item">
             Pure Negga Cnv Sound Vol14 - Delikatessen Music: 
-            <iframe id="track3" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/544497615&color=ff5500"></iframe>
+            <iframe id="track3" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/544497615&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop('track3')">Ativar Loop</button>
             <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate, Lucida Grande, Lucida Sans Unicode, Lucida Sans, Garuda, Verdana, Tahoma, sans-serif; font-weight: 100;">
                 <a href="https://soundcloud.com/delikatessenmusic" title="Delikatessen Music" target="_blank" style="color: #cccccc; text-decoration: none;">Delikatessen Music</a> · 
