@@ -14,14 +14,15 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            height: 100vh;
+            background-attachment: fixed; /* Mantém a imagem fixa enquanto rola */
+            height: 100%; /* Ajustado para 100% */
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
             justify-content: flex-start;
             padding-top: 50px;
-            position: relative;
+            overflow-y: auto; /* Permite rolagem */
         }
 
         body::before {
@@ -166,19 +167,19 @@
         </li>
         <li class="music-item" data-title="Levitating - Dua Lipa">
             Levitating - Dua Lipa: 
-            <iframe id="track5" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1112018552&color=ff5500"></iframe>
+            <iframe id="track5" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1112018552&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop('track5')">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="Stay - The Kid LAROI & Justin Bieber">
             Stay - The Kid LAROI & Justin Bieber: 
-            <iframe id="track6" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1218301905&color=ff5500"></iframe>
+            <iframe id="track6" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1218301905&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop('track6')">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="Peaches - Justin Bieber">
             Peaches - Justin Bieber: 
-            <iframe id="track7" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1218001250&color=ff5500"></iframe>
+            <iframe id="track7" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1218001250&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop('track7')">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="Bad Habits - Ed Sheeran">
             Bad Habits - Ed Sheeran: 
-            <iframe id="track8" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3
+            <iframe id="track8" scrolling="no"
