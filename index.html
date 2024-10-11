@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mundo da Música</title>
     <style>
-        /* Estilos inalterados */
         body {
             font-family: Arial, sans-serif;
             color: white;
@@ -57,7 +56,7 @@
             border-radius: 20px 0 0 20px;
             background-color: rgba(255, 255, 255, 0.8);
             color: black;
-            width: 300px; /* Largura fixa para o campo */
+            width: 300px;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
@@ -72,7 +71,7 @@
             background-color: #ff5500;
             color: white;
             border: none;
-            border-radius: 0 20px 20px 0; /* Canto arredondado apenas à direita */
+            border-radius: 0 20px 20px 0;
             cursor: pointer;
             font-weight: bold;
             transition: background-color 0.3s, transform 0.2s;
@@ -80,7 +79,7 @@
 
         button:hover {
             background-color: #cc4400;
-            transform: scale(1.05); /* Efeito de aumento ao passar o mouse */
+            transform: scale(1.05);
         }
 
         .music-list {
@@ -160,35 +159,26 @@
                 <a href="https://soundcloud.com/delikatessenmusic/pure-negga-cnv-sound-vol14" title="Pure Negga Cnv Sound Vol14" target="_blank" style="color: #cccccc; text-decoration: none;">Pure Negga Cnv Sound Vol14</a>
             </div>
         </li>
-    </ul>
-
-    <script>
-        const musicItems = Array.from(document.querySelectorAll('.music-item'));
-
-        function searchMusic() {
-            const searchTerm = document.getElementById('music-search').value.toLowerCase();
-            musicItems.forEach(item => {
-                const title = item.getAttribute('data-title').toLowerCase();
-                item.style.display = title.includes(searchTerm) ? '' : 'none';
-            });
-        }
-
-        function toggleLoop(trackId) {
-            const iframe = document.getElementById(trackId);
-            const button = iframe.nextElementSibling;
-            const currentSrc = iframe.src;
-            const isLooping = currentSrc.includes('loop=true');
-
-            if (isLooping) {
-                iframe.src = currentSrc.replace('loop=true', 'loop=false');
-                button.classList.remove('active');
-                button.textContent = 'Ativar Loop';
-            } else {
-                iframe.src = currentSrc + '&loop=true';
-                button.classList.add('active');
-                button.textContent = 'Desativar Loop';
-            }
-        }
-    </script>
-</body>
-</html>
+        <li class="music-item" data-title="Blinding Lights - The Weeknd">
+            Blinding Lights - The Weeknd: 
+            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1132528766&color=ff5500"></iframe>
+            <button class="loop-button" onclick="toggleLoop('track4')">Ativar Loop</button>
+        </li>
+        <li class="music-item" data-title="Levitating - Dua Lipa">
+            Levitating - Dua Lipa: 
+            <iframe id="track5" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1112018552&color=ff5500"></iframe>
+            <button class="loop-button" onclick="toggleLoop('track5')">Ativar Loop</button>
+        </li>
+        <li class="music-item" data-title="Stay - The Kid LAROI & Justin Bieber">
+            Stay - The Kid LAROI & Justin Bieber: 
+            <iframe id="track6" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1218301905&color=ff5500"></iframe>
+            <button class="loop-button" onclick="toggleLoop('track6')">Ativar Loop</button>
+        </li>
+        <li class="music-item" data-title="Peaches - Justin Bieber">
+            Peaches - Justin Bieber: 
+            <iframe id="track7" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1218001250&color=ff5500"></iframe>
+            <button class="loop-button" onclick="toggleLoop('track7')">Ativar Loop</button>
+        </li>
+        <li class="music-item" data-title="Bad Habits - Ed Sheeran">
+            Bad Habits - Ed Sheeran: 
+            <iframe id="track8" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3
