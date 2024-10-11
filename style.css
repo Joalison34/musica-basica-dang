@@ -14,6 +14,7 @@ body {
     text-align: center;
     justify-content: flex-start;
     padding-top: 50px;
+    box-sizing: border-box; /* Para garantir que o padding não ultrapasse o tamanho da tela */
 }
 
 .search-container {
@@ -24,8 +25,23 @@ body {
     margin-top: 30px;
     list-style: none;
     padding: 0;
+    width: 100%; /* Garantir que a lista ocupe toda a largura */
+    max-width: 800px; /* Limitar a largura máxima para evitar que a lista fique muito larga */
 }
 
 .music-item {
     margin: 10px 0;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+}
+
+iframe {
+    width: 100%;
+    max-width: 600px; /* Define um limite máximo para a largura dos players */
+    height: 166px;
+    border: none;
+    margin: 10px 0; /* Espaçamento entre os players */
+    border-radius: 8px; /* Bordas arredondadas */
+    box-sizing: border-box; /* Para garantir que o padding não interfira na largura definida */
 }
