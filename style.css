@@ -13,8 +13,18 @@ body {
     align-items: center;
     text-align: center;
     justify-content: flex-start;
-    padding-top: 50px;
+    padding-top: 30px; /* Menor espaço no topo */
     box-sizing: border-box; /* Para garantir que o padding não ultrapasse o tamanho da tela */
+}
+
+h1 {
+    font-size: 3rem; /* Aumenta o tamanho do título para melhorar a visibilidade */
+    margin-bottom: 10px; /* Espaçamento menor abaixo do título */
+}
+
+p {
+    font-size: 1.2rem;
+    margin-bottom: 20px; /* Menor espaçamento entre o parágrafo e os players */
 }
 
 .search-container {
@@ -25,8 +35,8 @@ body {
     margin-top: 30px;
     list-style: none;
     padding: 0;
-    width: 100%; /* Garantir que a lista ocupe toda a largura */
-    max-width: 800px; /* Limitar a largura máxima para evitar que a lista fique muito larga */
+    width: 100%; /* Garante que a lista ocupe toda a largura */
+    max-width: 800px; /* Limita a largura máxima para evitar que a lista fique muito larga */
 }
 
 .music-item {
@@ -45,3 +55,4 @@ iframe {
     border-radius: 8px; /* Bordas arredondadas */
     box-sizing: border-box; /* Para garantir que o padding não interfira na largura definida */
 }
+
