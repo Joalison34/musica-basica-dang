@@ -10,125 +10,66 @@
             color: white;
             margin: 0;
             padding: 0;
-            background-image: url('https://as2.ftcdn.net/v2/jpg/05/84/18/89/1000_F_584188957_9b667BerWvrCbBxWRl206LyIzshTkc8W.jpg');
+            background: url('https://as2.ftcdn.net/v2/jpg/05/84/18/89/1000_F_584188957_9b667BerWvrCbBxWRl206LyIzshTkc8W.jpg') no-repeat center fixed;
             background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
             justify-content: flex-start;
             padding-top: 50px;
+            height: 100%;
             overflow-y: auto;
         }
-
         body::before {
             content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.5);
             z-index: -1;
         }
-
         h1, p {
-            z-index: 1;
-            margin: 0;
-            padding: 10px;
+            margin: 0; padding: 10px; z-index: 1;
         }
-
         .search-container {
-            margin-top: 20px;
-            z-index: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin-top: 20px; z-index: 1;
+            display: flex; justify-content: center; align-items: center;
         }
-
         input[type="text"] {
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #ff5500;
-            border-radius: 20px 0 0 20px;
-            background-color: rgba(255, 255, 255, 0.8);
-            color: black;
-            width: 300px;
+            padding: 12px; font-size: 16px;
+            border: 2px solid #ff5500; border-radius: 20px 0 0 20px;
+            background-color: rgba(255, 255, 255, 0.8); color: black; width: 300px;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-
         input[type="text"]:focus {
-            outline: none;
-            border-color: #cc4400;
+            outline: none; border-color: #cc4400;
             box-shadow: 0 0 5px rgba(255, 85, 0, 0.5);
         }
-
         button {
-            padding: 12px 20px;
-            background-color: #ff5500;
-            color: white;
-            border: none;
-            border-radius: 0 20px 20px 0;
-            cursor: pointer;
-            font-weight: bold;
+            padding: 12px 20px; background-color: #ff5500;
+            color: white; border: none; border-radius: 0 20px 20px 0;
+            cursor: pointer; font-weight: bold;
             transition: background-color 0.3s, transform 0.2s;
         }
-
         button:hover {
-            background-color: #cc4400;
-            transform: scale(1.05);
+            background-color: #cc4400; transform: scale(1.05);
         }
-
         .music-list {
-            margin-top: 30px;
-            list-style: none;
-            padding: 0;
-            z-index: 1;
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
+            margin-top: 30px; list-style: none; padding: 0; z-index: 1;
+            width: 100%; max-width: 600px; margin: 0 auto;
         }
-
         .music-item {
-            margin: 10px 0;
-            background: rgba(255, 85, 0, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            color: white;
-            text-align: left;
+            margin: 10px 0; background: rgba(255, 85, 0, 0.8);
+            padding: 10px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            color: white; text-align: left;
         }
-
         .music-item iframe {
-            width: 100%;
-            height: 166px;
-            box-sizing: border-box;
-            margin: 10px 0;
-            border-radius: 8px;
+            width: 100%; height: 166px; margin: 10px 0; border-radius: 8px;
         }
-
         .loop-button {
-            background-color: #ff5500;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            padding: 5px 10px;
-            margin-top: 10px;
+            background-color: #ff5500; color: white; border: none; border-radius: 4px;
+            cursor: pointer; font-weight: bold; padding: 5px 10px; margin-top: 10px;
         }
-
-        .loop-button.active {
-            background-color: #cc4400;
-        }
-
-        iframe {
-            border-radius: 8px;
-        }
+        .loop-button.active { background-color: #cc4400; }
     </style>
 </head>
 <body>
@@ -142,36 +83,54 @@
     
     <ul class="music-list" id="music-list">
         <li class="music-item" data-title="Take A Slice (Glass Animals)">
-            Take A Slice (Glass Animals): 
+            Take A Slice (Glass Animals):
             <iframe id="track1" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/726925900&color=ff5500"></iframe>
-            <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate, Lucida Grande, Lucida Sans Unicode, Lucida Sans, Garuda, Verdana, Tahoma, sans-serif; font-weight: 100;">
-                <a href="https://soundcloud.com/cest_le_nerd" title="₦ᴇʀᴅ" target="_blank" style="color: #cccccc; text-decoration: none;">₦ᴇʀᴅ</a> · 
-                <a href="https://soundcloud.com/cest_le_nerd/glass-animals-take-a-slice-slowed-reverb" title="Glass Animals - Take A Slice {Slowed + Reverb}" target="_blank" style="color: #cccccc; text-decoration: none;">Glass Animals - Take A Slice {Slowed + Reverb}</a>
+            <div style="font-size: 10px; color: #cccccc;">
+                <a href="https://soundcloud.com/cest_le_nerd" title="₦ᴇʀᴅ" target="_blank" style="color: #cccccc;">₦ᴇʀᴅ</a> · 
+                <a href="https://soundcloud.com/cest_le_nerd/glass-animals-take-a-slice-slowed-reverb" title="Glass Animals - Take A Slice {Slowed + Reverb}" target="_blank" style="color: #cccccc;">Glass Animals - Take A Slice {Slowed + Reverb}</a>
             </div>
             <button class="loop-button" onclick="toggleLoop('track1')">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="af2 - lilbubblegum">
-            af2 - lilbubblegum: 
+            af2 - lilbubblegum:
             <iframe id="track2" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/642292458&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop('track2')">Ativar Loop</button>
-            <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate, Lucida Grande, Lucida Sans Unicode, Lucida Sans, Garuda, Verdana, Tahoma, sans-serif; font-weight: 100;">
-                <a href="https://soundcloud.com/lil_bubblegum" title="lilbubblegum" target="_blank" style="color: #cccccc; text-decoration: none;">lilbubblegum</a> · 
-                <a href="https://soundcloud.com/lil_bubblegum/af1" title="af1 (OUT NOW ON SPOTIFY AND APPLE MUSIC)" target="_blank" style="color: #cccccc; text-decoration: none;">af1 (OUT NOW ON SPOTIFY AND APPLE MUSIC)</a>
+            <div style="font-size: 10px; color: #cccccc;">
+                <a href="https://soundcloud.com/lil_bubblegum" title="lilbubblegum" target="_blank" style="color: #cccccc;">lilbubblegum</a> · 
+                <a href="https://soundcloud.com/lil_bubblegum/af1" title="af1 (OUT NOW ON SPOTIFY AND APPLE MUSIC)" target="_blank" style="color: #cccccc;">af1 (OUT NOW ON SPOTIFY AND APPLE MUSIC)</a>
             </div>
         </li>
         <li class="music-item" data-title="Pure Negga Cnv Sound Vol14 - Delikatessen Music">
-            Pure Negga Cnv Sound Vol14 - Delikatessen Music: 
+            Pure Negga Cnv Sound Vol14 - Delikatessen Music:
             <iframe id="track3" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/544497615&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop('track3')">Ativar Loop</button>
             <div style="font-size: 10px; color: #cccccc;">
-                <a href="https://soundcloud.com/delikatessenmusic" title="Delikatessen Music" target="_blank" style="color: #cccccc; text-decoration: none;">Delikatessen Music</a> · 
-                <a href="https://soundcloud.com/delikatessenmusic/pure-negga-cnv-sound-vol14" title="Pure Negga Cnv Sound Vol14" target="_blank" style="color: #cccccc; text-decoration: none;">Pure Negga Cnv Sound Vol14</a>
+                <a href="https://soundcloud.com/delikatessenmusic" title="Delikatessen Music" target="_blank" style="color: #cccccc;">Delikatessen Music</a> · 
+                <a href="https://soundcloud.com/delikatessenmusic/pure-negga-cnv-sound-vol14" title="Pure Negga Cnv Sound Vol14" target="_blank" style="color: #cccccc;">Pure Negga Cnv Sound Vol14</a>
             </div>
         </li>
         <li class="music-item" data-title="Blinding Lights - The Weeknd">
-            Blinding Lights - The Weeknd: 
+            Blinding Lights - The Weeknd:
             <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1132528766&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop('track4')">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="Levitating - Dua Lipa">
-            Levit
+            Levitating - Dua Lipa:
+            <iframe id="track5" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1332208293&color=ff5500"></iframe>
+            <button class="loop-button" onclick="toggleLoop('track5')">Ativar Loop</button>
+        </li>
+    </ul>
+
+    <script>
+        function searchMusic() {
+            const query = document.getElementById('music-search').value.toLowerCase();
+            const items = document.querySelectorAll('.music-item');
+            items.forEach(item => {
+                const title = item.getAttribute('data-title').toLowerCase();
+                item.style.display = title.includes(query) ? 'block' : 'none';
+            });
+        }
+
+        function toggleLoop(trackId) {
+            const iframe = document.getElementById(trackId);
+            const loopButton = iframe.parentNode.query
