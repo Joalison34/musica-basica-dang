@@ -130,6 +130,8 @@
                 iframe.src = src.replace(/&loop=true/, '');
                 button.textContent = 'Ativar Loop';
             }
+            // Recarregar o iframe para aplicar a mudança de loop
+            iframe.src = iframe.src; // Força o reload do iframe
         }
     </script>
 </body>
