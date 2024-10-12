@@ -146,10 +146,14 @@
             <iframe id="track1" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/277882746&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
             <button class="loop-button" onclick="toggleLoop('track1')">Ativar Loop</button>
         </li>
-        <li class="music-item" data-title="af1 - lilbubblegum">
-            af1 - lilbubblegum: 
-            <iframe id="track2" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1320607414&color=ff5500"></iframe>
+        <li class="music-item" data-title="af2 - lilbubblegum">
+            af2 - lilbubblegum: 
+            <iframe id="track2" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/642292458&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop('track2')">Ativar Loop</button>
+            <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate, Lucida Grande, Lucida Sans Unicode, Lucida Sans, Garuda, Verdana, Tahoma, sans-serif; font-weight: 100;">
+                <a href="https://soundcloud.com/lil_bubblegum" title="lilbubblegum" target="_blank" style="color: #cccccc; text-decoration: none;">lilbubblegum</a> · 
+                <a href="https://soundcloud.com/lil_bubblegum/af1" title="af1 (OUT NOW ON SPOTIFY AND APPLE MUSIC)" target="_blank" style="color: #cccccc; text-decoration: none;">af1 (OUT NOW ON SPOTIFY AND APPLE MUSIC)</a>
+            </div>
         </li>
         <li class="music-item" data-title="Pure Negga Cnv Sound Vol14 - Delikatessen Music">
             Pure Negga Cnv Sound Vol14 - Delikatessen Music: 
@@ -173,22 +177,4 @@
         <li class="music-item" data-title="Stay - The Kid LAROI & Justin Bieber">
             Stay - The Kid LAROI & Justin Bieber: 
             <iframe id="track6" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1218301905&color=ff5500"></iframe>
-            <button class="loop-button" onclick="toggleLoop('track6')">Ativar Loop</button>
-        </li>
-        <li class="music-item" data-title="Peaches - Justin Bieber">
-            Peaches - Justin Bieber: 
-            <iframe id="track7" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1218001250&color=ff5500"></iframe>
-            <button class="loop-button" onclick="toggleLoop('track7')">Ativar Loop</button>
-        </li>
-    </ul>
-
-    <script>
-        // Função para pesquisar músicas
-        function searchMusic() {
-            const input = document.getElementById('music-search').value.toLowerCase();
-            const musicItems = document.querySelectorAll('.music-item');
-
-            musicItems.forEach(item => {
-                const title = item.getAttribute('data-title').toLowerCase();
-                if (title.includes(input)) {
-                    item.style.display = '';
+            <button class="loop-button" onclick="toggleLoop('track6')">Ativar Loop</button
