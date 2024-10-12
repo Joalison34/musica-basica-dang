@@ -85,28 +85,16 @@
         <li class="music-item" data-title="Take A Slice (Glass Animals)">
             Take A Slice (Glass Animals):
             <iframe id="track1" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/726925900&color=ff5500&show_user=false&show_comments=false"></iframe>
-            <div style="font-size: 10px; color: #cccccc;">
-                <a href="https://soundcloud.com/cest_le_nerd" target="_blank" style="color: #cccccc;">₦ᴇʀᴅ</a> · 
-                <a href="https://soundcloud.com/cest_le_nerd/glass-animals-take-a-slice-slowed-reverb" target="_blank" style="color: #cccccc;">Glass Animals - Take A Slice {Slowed + Reverb}</a>
-            </div>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="af2 - lilbubblegum">
             af2 - lilbubblegum:
             <iframe id="track2" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/642292458&color=ff5500&show_user=false&show_comments=false"></iframe>
-            <div style="font-size: 10px; color: #cccccc;">
-                <a href="https://soundcloud.com/lil_bubblegum" target="_blank" style="color: #cccccc;">lilbubblegum</a> · 
-                <a href="https://soundcloud.com/lil_bubblegum/af1" target="_blank" style="color: #cccccc;">af1 (OUT NOW ON SPOTIFY AND APPLE MUSIC)</a>
-            </div>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="Pure Negga Cnv Sound Vol14 - Delikatessen Music">
             Pure Negga Cnv Sound Vol14 - Delikatessen Music:
             <iframe id="track3" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/544497615&color=ff5500&show_user=false&show_comments=false"></iframe>
-            <div style="font-size: 10px; color: #cccccc;">
-                <a href="https://soundcloud.com/delikatessenmusic" target="_blank" style="color: #cccccc;">Delikatessen Music</a> · 
-                <a href="https://soundcloud.com/delikatessenmusic/pure-negga-cnv-sound-vol14" target="_blank" style="color: #cccccc;">Pure Negga Cnv Sound Vol14</a>
-            </div>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="Blinding Lights - The Weeknd">
@@ -140,4 +128,9 @@
                 button.textContent = 'Desativar Loop';
             } else {
                 iframe.src = src.replace(/&loop=true/, '');
-                button.textContent = '
+                button.textContent = 'Ativar Loop';
+            }
+        }
+    </script>
+</body>
+</html>
