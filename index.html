@@ -132,12 +132,16 @@
         }
 
         function toggleLoop(button) {
-            const trackId = button.previousElementSibling.id;
-            const iframe = document.getElementById(trackId);
+            const iframe = button.previousElementSibling;
+            const src = iframe.src;
             button.classList.toggle('active');
-            iframe.src = button.classList.contains('active') 
-                ? iframe.src + '&loop=true' 
-                : iframe.src.replace('&loop=true', '');
+            if (button.classList.contains('active')) {
+                iframe.src = src + '&loop=true';
+                button.textContent = 'Desativar Loop';
+            } else {
+                iframe.src = src.replace(/&loop=true/, '');
+                button.textContent = 'Ativar Loop';
+            }
         }
     </script>
 </body>
