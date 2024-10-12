@@ -137,4 +137,7 @@
             button.classList.toggle('active');
             if (button.classList.contains('active')) {
                 iframe.src = src + '&loop=true';
-                button.textContent
+                button.textContent = 'Desativar Loop';
+            } else {
+                iframe.src = src.replace(/&loop=true/, '');
+                button.textContent = '
