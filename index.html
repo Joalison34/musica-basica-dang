@@ -70,9 +70,52 @@
             cursor: pointer; font-weight: bold; padding: 5px 10px; margin-top: 10px;
         }
         .loop-button.active { background-color: #cc4400; }
+
+        /* Estilos do modal */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0, 0, 0, 0.7); 
+            justify-content: center; 
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff; 
+            margin: auto; 
+            padding: 20px; 
+            border: 1px solid #888; 
+            width: 300px; 
+            text-align: center; 
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa; 
+            float: right; 
+            font-size: 28px; 
+            font-weight: bold; 
+        }
+        .close:hover, .close:focus {
+            color: black; 
+            text-decoration: none; 
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div id="update-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>UPDATE 0.5</h2>
+            <p>Novidades e melhorias na sua experiência musical!</p>
+        </div>
+    </div>
+    
     <h1>Bem-vindo ao Mundo da Música!</h1>
     <p>Explore suas músicas favoritas e crie sua própria música com p5.js.</p>
     
@@ -110,6 +153,15 @@
     </ul>
 
     <script>
+        // Mostrar o modal ao carregar a página
+        window.onload = function() {
+            document.getElementById('update-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('update-modal').style.display = 'none';
+        }
+
         function searchMusic() {
             const query = document.getElementById('music-search').value.toLowerCase();
             const items = document.querySelectorAll('.music-item');
@@ -124,15 +176,4 @@
             const src = iframe.src;
             button.classList.toggle('active');
             if (button.classList.contains('active')) {
-                iframe.src = src + '&loop=true';
-                button.textContent = 'Desativar Loop';
-            } else {
-                iframe.src = src.replace(/&loop=true/, '');
-                button.textContent = 'Ativar Loop';
-            }
-            // Recarregar o iframe para aplicar a mudança de loop
-            iframe.src = iframe.src; // Força o reload do iframe
-        }
-    </script>
-</body>
-</html>
+                iframe.src = src + '&
