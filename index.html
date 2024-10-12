@@ -137,17 +137,17 @@
         </li>
         <li class="music-item" data-title="Pure Negga Cnv Sound Vol14 - Delikatessen Music">
             Pure Negga Cnv Sound Vol14 - Delikatessen Music:
-            <iframe id="track3" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/544497615&color=ff5500&show_user=false&show_comments=false"></iframe>
+            <iframe id="track3" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/544497615&color=ff5500&show_user=false&show_comments=false"></iframe>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="Blinding Lights - The Weeknd">
             Blinding Lights - The Weeknd:
-            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1132528766&color=ff5500&show_user=false&show_comments=false"></iframe>
+            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1132528766&color=ff5500&show_user=false&show_comments=false"></iframe>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="Levitating - Dua Lipa">
             Levitating - Dua Lipa:
-            <iframe id="track5" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1332208293&color=ff5500&show_user=false&show_comments=false"></iframe>
+            <iframe id="track5" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1332208293&color=ff5500&show_user=false&show_comments=false"></iframe>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
     </ul>
@@ -173,10 +173,6 @@
 
         function toggleLoop(button) {
             const iframe = button.previousElementSibling;
-            const src = iframe.src;
+            const src = iframe.src.split('&loop=')[0]; // Remover a parte do loop, se existir
             button.classList.toggle('active');
-            if (button.classList.contains('active')) {
-                iframe.src = src + '&loop=true';
-                button.textContent = 'Desativar Loop';
-            } else {
-                iframe.src =
+            if (button.class
