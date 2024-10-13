@@ -140,39 +140,16 @@
             <iframe id="track3" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/544497615&color=ff5500&show_user=false&show_comments=false"></iframe>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
-        <li class="music-item" data-title="Blinding Lights - The Weeknd">
-            Blinding Lights - The Weeknd:
-            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1132528766&color=ff5500&show_user=false&show_comments=false"></iframe>
+        <li class="music-item" data-title="UGOVHB - WTF 2 ( PROD.EF )">
+            UGOVHB - WTF 2 ( PROD.EF ):
+            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1717856679&color=ff5500"></iframe>
+            <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate, Lucida Grande, Lucida Sans Unicode, Lucida Sans, Garuda, Verdana, Tahoma, sans-serif; font-weight: 100;">
+                <a href="https://soundcloud.com/patricio-b-m" title="Patricio B.M" target="_blank" style="color: #cccccc; text-decoration: none;">Patricio B.M</a> · 
+                <a href="https://soundcloud.com/patricio-b-m/ugovhb-wtf-2-prod-ef-mp3_320k" title="UGOVHB - WTF 2 ( PROD.EF )" target="_blank" style="color: #cccccc; text-decoration: none;">UGOVHB - WTF 2 ( PROD.EF )</a>
+            </div>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="Levitating - Dua Lipa">
             Levitating - Dua Lipa:
             <iframe id="track5" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1332208293&color=ff5500&show_user=false&show_comments=false"></iframe>
-            <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
-        </li>
-    </ul>
-
-    <script>
-        // Mostrar o modal ao carregar a página
-        window.onload = function() {
-            document.getElementById('update-modal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('update-modal').style.display = 'none';
-        }
-
-        function searchMusic() {
-            const query = document.getElementById('music-search').value.toLowerCase();
-            const items = document.querySelectorAll('.music-item');
-            items.forEach(item => {
-                const title = item.getAttribute('data-title').toLowerCase();
-                item.style.display = title.includes(query) ? 'block' : 'none';
-            });
-        }
-
-        function toggleLoop(button) {
-            const iframe = button.previousElementSibling;
-            const src = iframe.src.split('&loop=')[0]; // Remover a parte do loop, se existir
-            button.classList.toggle('active');
-            if (button.class
+            <button class="loop-button" onclick="toggleLoop(this)">At
