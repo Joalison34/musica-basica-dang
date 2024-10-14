@@ -53,6 +53,14 @@
         button:hover {
             background-color: #cc4400; transform: scale(1.05);
         }
+        .random-button {
+            margin-left: 10px; background-color: #0055ff;
+            border-radius: 20px; font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .random-button:hover {
+            background-color: #0044cc; transform: scale(1.05);
+        }
         .music-list {
             margin-top: 30px; list-style: none; padding: 0; z-index: 1;
             width: 100%; max-width: 600px; margin: 0 auto;
@@ -79,6 +87,7 @@
     <div class="search-container">
         <input type="text" id="music-search" placeholder="Pesquise uma música..." oninput="searchMusic()">
         <button onclick="searchMusic()">Pesquisar</button>
+        <button class="random-button" onclick="playRandomMusic()">Tocar Aleatório</button>
     </div>
     <ul class="music-list" id="music-list">
         <li class="music-item" data-title="Take A Slice (Glass Animals)">
@@ -126,7 +135,13 @@
 
         function toggleLoop(button) {
             button.classList.toggle('active');
-            // Implement loop functionality here if needed
+        }
+
+        function playRandomMusic() {
+            const musicItems = document.querySelectorAll('.music-item iframe');
+            const randomIndex = Math.floor(Math.random() * musicItems.length);
+            const randomTrack = musicItems[randomIndex];
+            randomTrack.contentWindow.postMessage({ method: 'play' }, '*');
         }
     </script>
 </body>
