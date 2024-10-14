@@ -54,75 +54,111 @@
             background-color: #cc4400; transform: scale(1.05);
         }
         .music-list {
-            list-style-type: none;
-            padding: 0;
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin-top: 30px; list-style: none; padding: 0; z-index: 1;
+            width: 100%; max-width: 600px; margin: 0 auto;
         }
         .music-item {
-            margin: 10px 0;
-            text-align: center;
-            max-width: 500px; /* Limitar largura dos itens */
+            margin: 10px 0; background: rgba(255, 85, 0, 0.8);
+            padding: 10px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            color: white; text-align: left;
+        }
+        .music-item iframe {
+            width: 100%; height: 166px; margin: 10px 0; border-radius: 8px;
+        }
+        .loop-button {
+            background-color: #ff5500; color: white; border: none; border-radius: 4px;
+            cursor: pointer; font-weight: bold; padding: 5px 10px; margin-top: 10px;
+        }
+        .loop-button.active { background-color: #cc4400; }
+        
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0, 0, 0, 0.8); 
+            justify-content: center; 
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff; 
+            margin: auto; 
+            padding: 20px; 
+            border: 1px solid #888; 
+            width: 300px; 
+            text-align: center; 
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa; 
+            float: right; 
+            font-size: 28px; 
+            font-weight: bold; 
+        }
+        .close:hover, .close:focus {
+            color: black; 
+            text-decoration: none; 
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
+    <div id="update-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>UPDATE 0.5</h2>
+            <p>Novidades e melhorias na sua experiência musical!</p>
+        </div>
+    </div>
+    
     <h1>Bem-vindo ao Mundo da Música!</h1>
     <p>Explore suas músicas favoritas e crie sua própria música com p5.js.</p>
-
+    
     <div class="search-container">
         <input type="text" id="music-search" placeholder="Pesquise uma música..." oninput="searchMusic()">
         <button onclick="searchMusic()">Pesquisar</button>
     </div>
-    <ul class="music-list" id="music-list">
-        <li class="music-item" data-title="Take A Slice (Glass Animals)">
-            Take A Slice (Glass Animals):
-            <iframe id="track1" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/726925900&color=ff5500&show_user=false&show_comments=false"></iframe>
-            <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
-        </li>
-        <li class="music-item" data-title="af2 - lilbubblegum">
-            af2 - lilbubblegum:
-            <iframe id="track2" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/642292458&color=ff5500&show_user=false&show_comments=false"></iframe>
-            <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
-        </li>
-        <li class="music-item" data-title="Pure Negga Cnv Sound Vol14 - Delikatessen Music">
-            Pure Negga Cnv Sound Vol14 - Delikatessen Music:
-            <iframe id="track3" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/544497615&color=ff5500&show_user=false&show_comments=false"></iframe>
-            <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
-        </li>
-        <li class="music-item" data-title="UGOVHB - WTF 2 ( PROD.EF )">
-            UGOVHB - WTF 2 ( PROD.EF ):
-            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1717856679&color=ff5500"></iframe>
-            <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
-        </li>
-        <li class="music-item" data-title="AViVA - GRRRLS">
-            AViVA - GRRRLS:
-            <iframe id="track5" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/475579581&color=ff5500"></iframe>
-        </li>
-        <li class="music-item" data-title="Pay Phone - Liyana Amrani">
-            Pay Phone - Liyana Amrani:
-            <iframe scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/60880379&color=ff5500"></iframe>
-            <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
-        </li>
-    </ul>
-
-    <script>
-        function toggleLoop(button) {
-            const isActive = button.classList.toggle('active');
-            button.textContent = isActive ? 'Desativar Loop' : 'Ativar Loop';
-        }
-
-        function searchMusic() {
-            const query = document.getElementById('music-search').value.toLowerCase();
-            const items = document.querySelectorAll('.music-item');
-
-            items.forEach(item => {
-                const title = item.getAttribute('data-title').toLowerCase();
-                item.style.display = title.includes(query) ? '' : 'none';
-            });
-        }
-    </script>
-</body>
-</html>
+<ul class="music-list" id="music-list">
+    <li class="music-item" data-title="Take A Slice (Glass Animals)">
+        Take A Slice (Glass Animals):
+        <iframe id="track1" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/726925900&color=ff5500&show_user=false&show_comments=false"></iframe>
+        <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
+    </li>
+    <li class="music-item" data-title="af2 - lilbubblegum">
+        af2 - lilbubblegum:
+        <iframe id="track2" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/642292458&color=ff5500&show_user=false&show_comments=false"></iframe>
+        <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
+    </li>
+    <li class="music-item" data-title="Pure Negga Cnv Sound Vol14 - Delikatessen Music">
+        Pure Negga Cnv Sound Vol14 - Delikatessen Music:
+        <iframe id="track3" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/544497615&color=ff5500&show_user=false&show_comments=false"></iframe>
+        <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
+    </li>
+    <li class="music-item" data-title="UGOVHB - WTF 2 ( PROD.EF )">
+        UGOVHB - WTF 2 ( PROD.EF ):
+        <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1717856679&color=ff5500"></iframe>
+        <div style="font-size: 10px; color: #cccccc;">
+            <a href="https://soundcloud.com/patricio-b-m" title="Patricio B.M" target="_blank" style="color: #cccccc; text-decoration: none;">Patricio B.M</a> · 
+            <a href="https://soundcloud.com/patricio-b-m/ugovhb-wtf-2-prod-ef-mp3_320k" title="UGOVHB - WTF 2 ( PROD.EF )" target="_blank" style="color: #cccccc; text-decoration: none;">UGOVHB - WTF 2 ( PROD.EF )</a>
+        </div>
+        <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
+    </li>
+    <li class="music-item" data-title="AViVA - GRRRLS">
+        AViVA - GRRRLS:
+        <iframe id="track5" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/475579581&color=ff5500"></iframe>
+    </li>
+    <li class="music-item" data-title="Pay Phone - Liyana Amrani">
+        Pay Phone - Liyana Amrani:
+        <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/60880379&color=ff5500"></iframe>
+        <div style="font-size: 10px; color: #cccccc;">
+            <a href="https://soundcloud.com/liyana-amrani" title="Liyana Amrani" target="_blank" style="color: #cccccc; text-decoration: none;">Liyana Amrani</a> · 
+            <a href="https://soundcloud.com/liyana-amrani/pay-phone" title="Pay Phone" target="_blank" style="color: #cccccc; text-decoration: none;">Pay Phone</a>
+        </div>
+        <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
+    </li>
+        </ul>
+        
