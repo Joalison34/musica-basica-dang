@@ -53,17 +53,22 @@
         button:hover {
             background-color: #cc4400; transform: scale(1.05);
         }
+        .music-list {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .music-item {
+            margin: 10px 0;
+            text-align: center;
+            max-width: 500px; /* Limitar largura dos itens */
+        }
     </style>
 </head>
 <body>
-    <div id="update-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>UPDATE 0.5</h2>
-            <p>Novidades e melhorias na sua experiência musical!</p>
-        </div>
-    </div>
-
     <h1>Bem-vindo ao Mundo da Música!</h1>
     <p>Explore suas músicas favoritas e crie sua própria música com p5.js.</p>
 
@@ -89,7 +94,7 @@
         </li>
         <li class="music-item" data-title="UGOVHB - WTF 2 ( PROD.EF )">
             UGOVHB - WTF 2 ( PROD.EF ):
-            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1717856679&color=ff5500"></iframe>
+            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1717856679&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="AViVA - GRRRLS">
