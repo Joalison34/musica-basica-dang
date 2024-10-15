@@ -135,15 +135,23 @@
 
         function toggleLoop(button) {
             button.classList.toggle('active');
-        }
+        } 
+   
+    <div id="random-music-player" style="margin-top: 30px; width: 100%; max-width: 600px;">
+        <iframe id="random-track" scrolling="no" frameborder="no" allow="autoplay" style="width: 100%; height: 166px; border-radius: 8px;" src=""></iframe>
+    </div>
 
+    <script>
         function playRandomMusic() {
             const musicItems = document.querySelectorAll('.music-item iframe');
             const randomIndex = Math.floor(Math.random() * musicItems.length);
             const randomTrackUrl = musicItems[randomIndex].src;
 
-            window.open(randomTrackUrl, '_blank');
+            // Atualiza o iframe existente para tocar a música aleatória
+            const randomPlayer = document.getElementById('random-track');
+            randomPlayer.src = randomTrackUrl;
         }
     </script>
 </body>
 </html>
+
