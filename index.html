@@ -92,7 +92,7 @@
     <ul class="music-list" id="music-list">
         <li class="music-item" data-title="Take A Slice (Glass Animals)">
             Take A Slice (Glass Animals):
-            <iframe id="track" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/726925900&color=ff5500&show_user=false&show_comments=false"></iframe>
+            <iframe id="track1" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/726925900&color=ff5500&show_user=false&show_comments=false"></iframe>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="af2 - lilbubblegum">
@@ -107,7 +107,7 @@
         </li>
         <li class="music-item" data-title="UGOVHB - WTF 2 ( PROD.EF )">
             UGOVHB - WTF 2 ( PROD.EF ):
-            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https%3A//api.soundcloud.com/tracks/1717856679&color=ff5500"></iframe>
+            <iframe id="track4" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1717856679&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
         <li class="music-item" data-title="AViVA - GRRRLS">
@@ -117,7 +117,7 @@
         </li>
         <li class="music-item" data-title="Pay Phone - Liyana Amrani">
             Pay Phone - Liyana Amrani:
-            <iframe id="track6" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/60880379&color=ff5500"></iframe>
+            <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/60880379&color=ff5500"></iframe>
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
     </ul>
@@ -141,11 +141,8 @@
             const randomIndex = Math.floor(Math.random() * musicItems.length);
             const randomTrackUrl = musicItems[randomIndex].src;
 
-            const currentTrack = document.getElementById('track');
-            currentTrack.src = randomTrackUrl;  // Altera o src do iframe atual
-            currentTrack.onload = function() {
-                currentTrack.contentWindow.postMessage('{"method":"play"}', '*'); // Toca a música
-            };
+            // Abre a URL do iframe em uma nova aba para tocar a música aleatoriamente
+            window.open(randomTrackUrl, '_blank');
         }
     </script>
 </body>
