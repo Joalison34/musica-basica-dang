@@ -121,7 +121,6 @@
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
     </ul>
-    </ul>
     <script>
         function searchMusic() {
             const input = document.getElementById('music-search').value.toLowerCase();
@@ -135,20 +134,16 @@
 
         function toggleLoop(button) {
             button.classList.toggle('active');
-        } 
-   
-    <div id="random-music-player" style="margin-top: 30px; width: 100%; max-width: 600px;">
-        <iframe id="random-track" scrolling="no" frameborder="no" allow="autoplay" style="width: 100%; height: 166px; border-radius: 8px;" src=""></iframe>
-    </div>
+        }
 
         function playRandomMusic() {
             const musicItems = document.querySelectorAll('.music-item iframe');
             const randomIndex = Math.floor(Math.random() * musicItems.length);
             const randomTrackUrl = musicItems[randomIndex].src;
 
+            // Abre a URL do iframe em uma nova aba para tocar a música aleatoriamente
             window.open(randomTrackUrl, '_blank');
         }
     </script>
 </body>
 </html>
-
