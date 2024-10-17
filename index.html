@@ -78,6 +78,26 @@
             cursor: pointer; font-weight: bold; padding: 5px 10px; margin-top: 10px;
         }
         .loop-button.active { background-color: #cc4400; }
+
+        footer {
+            margin-top: 30px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            width: 100%;
+            text-align: center;
+            color: white;
+            z-index: 1;
+        }
+
+        footer a {
+            color: #ff5500;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer a:hover {
+            color: #cc4400;
+        }
     </style>
 </head>
 <body>
@@ -121,6 +141,11 @@
             <button class="loop-button" onclick="toggleLoop(this)">Ativar Loop</button>
         </li>
     </ul>
+
+    <footer>
+        <p>Quer baixar músicas? <a href="https://seudominio.com/baixar" target="_blank">Clique aqui para baixar músicas!</a></p>
+    </footer>
+
     <script>
         function searchMusic() {
             const input = document.getElementById('music-search').value.toLowerCase();
@@ -139,11 +164,4 @@
         function playRandomMusic() {
             const musicItems = document.querySelectorAll('.music-item iframe');
             const randomIndex = Math.floor(Math.random() * musicItems.length);
-            const randomTrackUrl = musicItems[randomIndex].src;
-
-            // Abre a URL do iframe em uma nova aba para tocar a música aleatoriamente
-            window.open(randomTrackUrl, '_blank');
-        }
-    </script>
-</body>
-</html>
+            const randomTrackUrl = musicItems
