@@ -146,16 +146,28 @@
         <p>Quer baixar músicas? <a href="https://seudominio.com/baixar" target="_blank">Clique aqui para baixar músicas!</a></p>
     </footer>
 
-    <script>
-        function searchMusic() {
-            const input = document.getElementById('music-search').value.toLowerCase();
-            const musicItems = document.querySelectorAll('.music-item');
+  <script>
+    function searchMusic() {
+        const input = document.getElementById('music-search').value.toLowerCase().trim();
+        const musicItems = document.querySelectorAll('.music-item');
 
-            musicItems.forEach(item => {
-                const title = item.getAttribute('data-title').toLowerCase();
-                item.style.display = title.includes(input) ? '' : 'none';
-            });
+        let hasResults = false;
+
+        musicItems.forEach(item => {
+            const title = item.getAttribute('data-title').toLowerCase();
+            if (title.includes(input)) {
+                item.style.display = '';
+                hasResults = true; // Indica que houve correspondência
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        if (!hasResults && input !== '') {
+            alert('Nenhuma música encontrada para a pesquisa: ' + input);
         }
+    }
+</script>
 
         function toggleLoop(button) {
             button.classList.toggle('active');
