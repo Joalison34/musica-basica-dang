@@ -142,29 +142,23 @@
         </li>
     </ul>
 
+    <!-- Adicionando o link para a segunda página aqui -->
+    <div style="margin: 20px 0;">
+        <p><a href="pagina2.html">Ir para Página 2</a></p>
+    </div>
+
     <footer>
         <p>Quer baixar essas músicas? <a href="https://joalison-fake.github.io/Baixar-as-musicas/" target="_blank">Clique aqui para baixar as músicas!</a></p>
     </footer>
 
-  <script>
-    function searchMusic() {
-        const input = document.getElementById('music-search').value.toLowerCase().trim();
-        const musicItems = document.querySelectorAll('.music-item');
+    <script>
+        function searchMusic() {
+            const input = document.getElementById('music-search').value.toLowerCase().trim();
+            const musicItems = document.querySelectorAll('.music-item');
 
-        let hasResults = false;
+            let hasResults = false;
 
-        musicItems.forEach(item => {
-            const title = item.getAttribute('data-title').toLowerCase();
-            if (title.includes(input)) {
-                item.style.display = '';
-                hasResults = true; // Indica que houve correspondência
-            } else {
-                item.style.display = 'none';
-            }
-        });
-
-        if (!hasResults && input !== '') {
-            alert('Nenhuma música encontrada para a pesquisa: ' + input);
-        }
-    }
-</script> 
+            musicItems.forEach(item => {
+                const title = item.getAttribute('data-title').toLowerCase();
+                if (title.includes(input)) {
+                   
