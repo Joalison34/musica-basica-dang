@@ -10,7 +10,8 @@
             color: white;
             margin: 0;
             padding: 0;
-            background: url('https://as2.ftcdn.net/v2/jpg/05/84/18/89/1000_F_584188957_9b667BerWvrCbBxWRl206LyIzshTkc8W.jpg') no-repeat center fixed;
+            background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), 
+                        url('https://as2.ftcdn.net/v2/jpg/05/84/18/89/1000_F_584188957_9b667BerWvrCbBxWRl206LyIzshTkc8W.jpg') no-repeat center fixed;
             background-size: cover;
             display: flex;
             flex-direction: column;
@@ -18,13 +19,7 @@
             justify-content: center;
             min-height: 100vh;
             overflow-y: auto;
-        }
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: -1;
+            text-align: center;
         }
         h1, p {
             margin: 0; padding: 10px; z-index: 1;
@@ -32,24 +27,34 @@
         .access-container {
             text-align: center;
             z-index: 1;
-            background: rgba(255, 85, 0, 0.8);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            max-width: 800px; /* Aumenta a largura máxima para desktops */
+            background: rgba(255, 85, 0, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+            max-width: 800px; /* Largura máxima para desktops */
             width: 90%; /* Largura responsiva */
+            transition: transform 0.3s;
+        }
+        .access-container:hover {
+            transform: scale(1.02);
         }
         input[type="text"] {
-            padding: 12px; font-size: 16px;
+            padding: 15px; font-size: 18px;
             border: 2px solid #ff5500; border-radius: 5px;
             background-color: rgba(255, 255, 255, 0.9); color: black; width: 100%; /* Largura total do contêiner */
             margin-top: 20px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: #ff8800; /* Cor da borda ao focar */
+            outline: none; /* Remove o contorno padrão */
         }
         button {
-            padding: 12px 20px; background-color: #ff5500;
+            padding: 15px 25px; background-color: #ff5500;
             color: white; border: none; border-radius: 5px;
             cursor: pointer; font-weight: bold; margin-top: 10px;
             transition: background-color 0.3s, transform 0.2s;
+            font-size: 18px;
         }
         button:hover {
             background-color: #cc4400; transform: scale(1.05);
@@ -60,7 +65,7 @@
         }
         .options a {
             display: inline-block;
-            padding: 12px 20px;
+            padding: 15px 25px;
             background-color: white;
             color: black;
             text-decoration: none;
@@ -69,6 +74,7 @@
             border: 2px solid #ff5500;
             margin: 0 10px; /* Margem lateral reduzida */
             transition: background-color 0.3s, color 0.3s, transform 0.2s;
+            font-size: 16px;
         }
         .options a:hover {
             background-color: #ff5500;
@@ -86,9 +92,9 @@
         }
         .exclusive-message {
             margin-top: 30px;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
             text-align: center; /* Centraliza a mensagem */
         }
 
@@ -98,13 +104,13 @@
                 padding: 50px; /* Aumenta o padding para telas maiores */
             }
             h1 {
-                font-size: 3em; /* Tamanho maior para o título em desktops */
+                font-size: 3.5em; /* Tamanho maior para o título em desktops */
             }
             p {
                 font-size: 1.5em; /* Tamanho maior para os parágrafos em desktops */
             }
             .exclusive-message {
-                font-size: 2em; /* Tamanho maior para a mensagem em desktops */
+                font-size: 2.5em; /* Tamanho maior para a mensagem em desktops */
             }
         }
     </style>
