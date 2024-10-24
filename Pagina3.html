@@ -97,30 +97,35 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
             text-align: center; /* Centraliza a mensagem */
         }
-
-        /* Estilos para telas grandes */
-        @media (min-width: 768px) {
-            .access-container {
-                padding: 50px; /* Aumenta o padding para telas maiores */
-            }
-            h1 {
-                font-size: 3.5em; /* Tamanho maior para o título em desktops */
-            }
-            p {
-                font-size: 1.5em; /* Tamanho maior para os parágrafos em desktops */
-            }
-            .exclusive-message {
-                font-size: 2.5em; /* Tamanho maior para a mensagem em desktops */
-            }
-        }
     </style>
     <script>
+        let attempts = 0;
+        const lockoutDuration = 3 * 60 * 1000; // 3 minutos em milissegundos
+        let lockoutTimer;
+
         function checkAccess() {
             const code = document.getElementById("access-code").value;
+
+            if (lockoutTimer) {
+                alert("Você está temporariamente bloqueado. Tente novamente mais tarde.");
+                return;
+            }
+
             if (code === "ABACATE") {
                 window.location.href = "Pagina_secreta.html"; // Redireciona para a página secreta
             } else {
-                alert("Código incorreto. Você não tem acesso à página restrita.");
+                attempts++;
+                if (attempts === 1) {
+                    alert("Pare de tentar burlar o sistema.");
+                } else if (attempts === 2) {
+                    alert("Se continuar a tentar burlar este sistema, você poderá ser banido temporariamente ou permanentemente.");
+                } else if (attempts >= 3) {
+                    alert("Você foi bloqueado por 3 minutos. Tente novamente mais tarde.");
+                    lockoutTimer = setTimeout(() => {
+                        attempts = 0;
+                        lockoutTimer = null;
+                    }, lockoutDuration);
+                }
             }
         }
     </script>
