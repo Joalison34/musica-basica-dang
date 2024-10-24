@@ -82,7 +82,7 @@
         function checkAccess() {
             const code = document.getElementById("access-code").value;
             if (code === "ABACATE") {
-                window.location.href = "pagina3.html"; // Redireciona para a página restrita
+                window.location.href = "Pagina_secreta.html"; // Redireciona para a página secreta
             } else {
                 alert("Código incorreto. Você não tem acesso à página restrita.");
             }
@@ -93,7 +93,7 @@
     <div class="access-container">
         <h1>Acesso Restrito</h1>
         <p>Apenas a staff e o fundador podem acessar esta página.</p>
-        <input type="text" id="access-code" placeholder="Digite o código de acesso">
+        <input type="text" id="access-code" placeholder="ABACATE">
         <button onclick="checkAccess()">Acessar</button>
     </div>
     
