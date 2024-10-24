@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acesso Restrito - Mundo da Música</title>
+    <title>Acesso Exclusivo - Mundo da Música</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             color: white;
             margin: 0;
             padding: 0;
@@ -23,7 +23,7 @@
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             z-index: -1;
         }
         h1, p {
@@ -32,11 +32,15 @@
         .access-container {
             text-align: center;
             z-index: 1;
+            background: rgba(255, 85, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
         input[type="text"] {
             padding: 12px; font-size: 16px;
             border: 2px solid #ff5500; border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.8); color: black; width: 300px;
+            background-color: rgba(255, 255, 255, 0.9); color: black; width: 300px;
             margin-top: 20px;
         }
         button {
@@ -60,7 +64,7 @@
             font-weight: bold;
             border-radius: 5px;
             border: 2px solid #ff5500;
-            margin: 0 20px; /* Aumentei a margem lateral para separar os botões */
+            margin: 0 20px;
             transition: background-color 0.3s, color 0.3s, transform 0.2s;
         }
         .options a:hover {
@@ -77,6 +81,12 @@
             color: white;
             z-index: 1;
         }
+        .exclusive-message {
+            margin-top: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
     </style>
     <script>
         function checkAccess() {
@@ -91,12 +101,17 @@
 </head>
 <body>
     <div class="access-container">
-        <h1>Acesso Restrito</h1>
+        <h1>Acesso Exclusivo</h1>
         <p>Apenas a staff e o fundador podem acessar esta página.</p>
-        <input type="text" id="access-code" placeholder="Coloque seu codigo">
+        <input type="text" id="access-code" placeholder="Coloque seu código">
         <button onclick="checkAccess()">Acessar</button>
     </div>
     
+    <div class="exclusive-message">
+        <p>Vocês são a alma do nosso projeto!</p>
+        <p>Obrigado por fazer parte desta jornada incrível!</p>
+    </div>
+
     <div class="options">
         <p>Se você é um usuário comum, clique em uma das opções:</p>
         <a href="pagina2.html">Voltar à Página Anterior</a>
