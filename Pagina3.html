@@ -97,17 +97,47 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
             text-align: center; /* Centraliza a mensagem */
         }
+        .feedback {
+            margin-top: 20px;
+            font-size: 18px;
+            color: lightgreen; /* Cor verde clara */
+            font-weight: bold;
+        }
+        .timer {
+            margin-top: 10px;
+            font-size: 16px;
+            color: yellow; /* Cor para o temporizador */
+        }
     </style>
     <script>
         let attempts = 0;
         const lockoutDuration = 3 * 60 * 1000; // 3 minutos em milissegundos
         let lockoutTimer;
+        let countdown;
+
+        window.onload = function() {
+            const remainingTime = localStorage.getItem("remainingTime");
+            const feedback = document.getElementById("feedback");
+            const timerDisplay = document.getElementById("timer");
+
+            if (remainingTime) {
+                const timeLeft = parseInt(remainingTime, 10);
+                if (timeLeft > 0) {
+                    attempts = 3; // Simula que o usuário já tentou 3 vezes
+                    startLockout(timerDisplay, timeLeft);
+                } else {
+                    localStorage.removeItem("remainingTime"); // Limpa o tempo se já passou
+                }
+            }
+        };
 
         function checkAccess() {
             const code = document.getElementById("access-code").value;
+            const feedback = document.getElementById("feedback");
+            const timerDisplay = document.getElementById("timer");
 
             if (lockoutTimer) {
-                alert("Você está temporariamente bloqueado. Tente novamente mais tarde.");
+                feedback.textContent = "Você está temporariamente bloqueado. Tente novamente mais tarde.";
                 return;
             }
 
@@ -116,17 +146,31 @@
             } else {
                 attempts++;
                 if (attempts === 1) {
-                    alert("Pare de tentar burlar o sistema.");
+                    feedback.textContent = "Pare de tentar burlar o sistema.";
                 } else if (attempts === 2) {
-                    alert("Se continuar a tentar burlar este sistema, você poderá ser banido temporariamente ou permanentemente.");
+                    feedback.textContent = "Se continuar a tentar burlar este sistema, você poderá ser banido temporariamente ou permanentemente.";
                 } else if (attempts >= 3) {
-                    alert("Você foi bloqueado por 3 minutos. Tente novamente mais tarde.");
-                    lockoutTimer = setTimeout(() => {
-                        attempts = 0;
-                        lockoutTimer = null;
-                    }, lockoutDuration);
+                    feedback.textContent = "Você foi bloqueado por 3 minutos. Tente novamente mais tarde.";
+                    startLockout(timerDisplay);
                 }
             }
+        }
+
+        function startLockout(timerDisplay, initialTime = lockoutDuration) {
+            let remainingTime = initialTime / 1000; // Tempo restante em segundos
+            lockoutTimer = setInterval(() => {
+                remainingTime--;
+                timerDisplay.textContent = `Tempo restante: ${remainingTime} segundos`;
+                localStorage.setItem("remainingTime", remainingTime * 1000); // Armazena o tempo restante
+
+                if (remainingTime <= 0) {
+                    clearInterval(lockoutTimer);
+                    lockoutTimer = null;
+                    attempts = 0;
+                    timerDisplay.textContent = ""; // Limpa o temporizador
+                    localStorage.removeItem("remainingTime"); // Limpa o armazenamento quando o tempo acabar
+                }
+            }, 1000);
         }
     </script>
 </head>
@@ -136,6 +180,8 @@
         <p><strong>Acesso Restrito:</strong> Apenas o <strong>FUNDADOR</strong>, a força criativa e visionária por trás deste projeto, e a equipe de desenvolvimento têm autorização para acessar esta área restrita. O FUNDADOR é a chave para a inovação e a excelência que definem nossa trajetória na música, garantindo que cada passo dado seja repleto de qualidade e originalidade.</p>
         <input type="text" id="access-code" placeholder="Coloque sua senha de acesso">
         <button onclick="checkAccess()">Acessar</button>
+        <div id="feedback" class="feedback"></div> <!-- Div para feedback -->
+        <div id="timer" class="timer"></div> <!-- Div para o temporizador -->
     </div>
     
     <div class="exclusive-message">
