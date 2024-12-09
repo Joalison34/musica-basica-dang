@@ -78,16 +78,19 @@
     </style>
 </head>
 <body>
-    <button class="botao-iniciar" onclick="iniciar()">Iniciar</button>
-    <div id="barraVida">
-        <div id="vida"></div>
-    </div>
-    <div class="creditos">
-        <p>Data de criação: 9/12/2024</p>
-        <p>Criador: Joalison | Colaboração: Carlos</p>
+    <div id="inicio">
+        <button class="botao-iniciar" onclick="iniciar()">Iniciar</button>
+        <div class="creditos">
+            <p>Data de criação: 9/12/2024</p>
+            <p>Criador: Joalison | Colaboração: Carlos</p>
+        </div>
     </div>
 
-    <div id="oneko"></div>
+    <div id="barraVida" style="display: none;">
+        <div id="vida"></div>
+    </div>
+
+    <div id="oneko" style="display: none;"></div>
 
     <script>
         let nekoEl;
@@ -126,13 +129,11 @@
         };
 
         function iniciar() {
-            if (!nekoEl) {
-                create();
-            }
-        }
-
-        function create() {
+            // Oculta o botão de iniciar e os créditos
+            document.getElementById("inicio").style.display = "none";
+            document.getElementById("barraVida").style.display = "block";
             nekoEl = document.querySelector("#oneko");
+            nekoEl.style.display = "block";
             nekoEl.style.left = `${nekoPosX - 16}px`;
             nekoEl.style.top = `${nekoPosY - 16}px`;
 
@@ -141,8 +142,16 @@
                 mousePosY = event.clientY;
             };
 
+            resetGame();
             window.onekoInterval = setInterval(frame, 100);
             setInterval(spawnObstacle, obstacleSpawnInterval);
+        }
+
+        function resetGame() {
+            hp = 100; // Reinicia o HP
+            updateHPBar();
+            obstacles.forEach(obs => obs.remove()); // Remove obstáculos existentes
+            obstacles.length = 0; // Limpa a lista de obstáculos
         }
 
         function setSprite(name, frame) {
@@ -202,9 +211,7 @@
 
                     if (hp <= 0) {
                         alert("Game Over! Você perdeu todos os HP.");
-                        clearInterval(window.onekoInterval);
-                        obstacles.forEach(obs => obs.remove());
-                        obstacles.length = 0; // Limpa a lista de obstáculos
+                        resetToStart(); // Volta para a tela inicial
                     }
                 }
             }
@@ -252,6 +259,13 @@
 
             nekoEl.style.left = `${nekoPosX - 16}px`;
             nekoEl.style.top = `${nekoPosY - 16}px`;
+        }
+
+        function resetToStart() {
+            clearInterval(window.onekoInterval);
+            document.getElementById("inicio").style.display = "block"; // Mostra a tela inicial
+            document.getElementById("barraVida").style.display = "none"; // Oculta a barra de vida
+            nekoEl.style.display = "none"; // Oculta o gatinho
         }
     </script>
 </body>
