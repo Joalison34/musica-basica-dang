@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo do Gatinho</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        #oneko {
+            width: 32px;
+            height: 32px;
+            position: fixed;
+            pointer-events: none;
+            background-image: url('https://i.imgur.com/ok5b9Sz.gif');
+            filter: invert(1);
+            image-rendering: pixelated;
+            z-index: 9999;
+        }
+
+        .botao-iniciar {
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            padding: 15px 30px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .botao-iniciar:hover {
+            background-color: #333333;
+        }
+
+        .creditos {
+            font-size: 16px;
+            margin-top: 10px;
+            color: #cccccc;
+        }
+
+        .obstaculo {
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            background-color: red; /* Cor do obstáculo */
+            z-index: 9998;
+        }
+
+        #barraVida {
+            width: 100%;
+            height: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        #vida {
+            height: 100%;
+            background-color: green;
+            width: 100%; /* Inicia com 100% */
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <button class="botao-iniciar" onclick="iniciar()">Iniciar</button>
+    <div id="barraVida">
+        <div id="vida"></div>
+    </div>
+    <div class="creditos">
+        <p>Data de criação: 9/12/2024</p>
+        <p>Criador: Joalison | Colaboração: Carlos</p>
+    </div>
+
+    <div id="oneko"></div>
+
+    <script>
+        let nekoEl;
+        let nekoPosX = -16;
+        let nekoPosY = -16;
+        let mousePosX = 0;
+        let mousePosY = 0;
+        let frameCount = 0;
+        let idleTime = 0;
+        let idleAnimation = null;
+        let idleAnimationFrame = 0;
+        const nekoSpeed = 10;
+        const obstacles = [];
+        const obstacleSpeed = 2; // Velocidade dos obstáculos
+        const obstacleSpawnInterval = 2000; // Intervalo de spawn dos obstáculos (em ms)
+        let hp = 100; // HP inicial do gatinho
+
+        const spriteSets = {
+            idle: [[-3, -3]],
+            alert: [[-7, -3]],
+            scratchSelf: [[-5, 0], [-6, 0], [-7, 0]],
+            scratchWallN: [[0, 0], [0, -1]],
+            scratchWallS: [[-7, -1], [-6, -2]],
+            scratchWallE: [[-2, -2], [-2, -3]],
+            scratchWallW: [[-4, 0], [-4, -1]],
+            tired: [[-3, -2]],
+            sleeping: [[-2, 0], [-2, -1]],
+            N: [[-1, -2], [-1, -3]],
+            NE: [[0, -2], [0, -3]],
+            E: [[-3, 0], [-3, -1]],
+            SE: [[-5, -1], [-5, -2]],
+            S: [[-6, -3], [-7, -2]],
+            SW: [[-5, -3], [-6, -1]],
+            W: [[-4, -2], [-4, -3]],
+            NW: [[-1, 0], [-1, -1]],
+        };
+
+        function iniciar() {
+            if (!nekoEl) {
+                create();
+            }
+        }
+
+        function create() {
+            nekoEl = document.querySelector("#oneko");
+            nekoEl.style.left = `${nekoPosX - 16}px`;
+            nekoEl.style.top = `${nekoPosY - 16}px`;
+
+            document.onmousemove = (event) => {
+                mousePosX = event.clientX;
+                mousePosY = event.clientY;
+            };
+
+            window.onekoInterval = setInterval(frame, 100);
+            setInterval(spawnObstacle, obstacleSpawnInterval);
+        }
+
+        function setSprite(name, frame) {
+            const sprite = spriteSets[name][frame % spriteSets[name].length];
+            nekoEl.style.backgroundPosition = `${sprite[0] * 32}px ${sprite[1] * 32}px`;
+        }
+
+        function idle() {
+            idleTime += 1;
+
+            if (idleTime > 10 && Math.floor(Math.random() * 200) === 0 && idleAnimation === null) {
+                const availableIdleAnimations = ["sleeping", "scratchSelf"];
+                idleAnimation = availableIdleAnimations[Math.floor(Math.random() * availableIdleAnimations.length)];
+            }
+
+            switch (idleAnimation) {
+                case "sleeping":
+                    setSprite("tired", 0);
+                    if (++idleAnimationFrame > 192) idleAnimation = null;
+                    break;
+                case "scratchSelf":
+                    setSprite(idleAnimation, idleAnimationFrame);
+                    if (++idleAnimationFrame > 9) idleAnimation = null;
+                    break;
+                default:
+                    setSprite("idle", 0);
+            }
+        }
+
+        function spawnObstacle() {
+            const obstaculo = document.createElement("div");
+            obstaculo.classList.add("obstaculo");
+            obstaculo.style.left = `${Math.random() * (window.innerWidth - 32)}px`;
+            obstaculo.style.top = `0px`; // Começa no topo da tela
+            document.body.appendChild(obstaculo);
+            obstacles.push(obstaculo);
+        }
+
+        function moveObstacles() {
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstaculo = obstacles[i];
+                const obstaculoPosY = parseFloat(obstaculo.style.top);
+                obstaculo.style.top = `${obstaculoPosY + obstacleSpeed}px`; // Move o obstáculo para baixo
+
+                // Verifica se o obstáculo saiu da tela
+                if (obstaculoPosY > window.innerHeight) {
+                    obstaculo.remove();
+                    obstacles.splice(i, 1);
+                }
+
+                // Verifica colisão com o gatinho
+                if (detectCollision(nekoEl, obstaculo)) {
+                    hp -= 20; // Perde 20% de HP
+                    updateHPBar();
+                    obstaculo.remove(); // Remove o obstáculo após a colisão
+                    obstacles.splice(i, 1);
+
+                    if (hp <= 0) {
+                        alert("Game Over! Você perdeu todos os HP.");
+                        clearInterval(window.onekoInterval);
+                        obstacles.forEach(obs => obs.remove());
+                        obstacles.length = 0; // Limpa a lista de obstáculos
+                    }
+                }
+            }
+        }
+
+        function updateHPBar() {
+            const vidaEl = document.getElementById("vida");
+            vidaEl.style.width = `${hp}%`;
+        }
+
+        function detectCollision(neko, obstaculo) {
+            const nekoRect = neko.getBoundingClientRect();
+            const obstaculoRect = obstaculo.getBoundingClientRect();
+            return !(nekoRect.right < obstaculoRect.left || 
+                     nekoRect.left > obstaculoRect.right || 
+                     nekoRect.bottom < obstaculoRect.top || 
+                     nekoRect.top > obstaculoRect.bottom);
+        }
+
+        function frame() {
+            moveObstacles(); // Move os obstáculos a cada frame
+            frameCount += 1;
+            const targetX = Math.min(Math.max(0, mousePosX), window.innerWidth);
+            const targetY = Math.min(Math.max(1, mousePosY - 32), window.innerHeight - 1);
+            const diffX = nekoPosX - targetX;
+            const diffY = nekoPosY - targetY;
+            const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
+
+            if (distance < nekoSpeed || (distance < 48 && Math.abs(diffY) < 16)) {
+                idle();
+                return;
+            }
+
+            idleAnimation = null;
+            idleAnimationFrame = 0;
+            const direction = (diffY / distance > 0.5 ? "N" : "") + (diffY / distance < -0.5 ? "S" : "") +
+                (diffX / distance > 0.5 ? "W" : "") + (diffX / distance < -0.5 ? "E" : "");
+            setSprite(direction, frameCount);
+
+            nekoPosX -= (diffX / distance) * nekoSpeed;
+            nekoPosY -= (diffY / distance) * nekoSpeed;
+
+            nekoPosX = Math.min(Math.max(16, nekoPosX), window.innerWidth - 16);
+            nekoPosY = Math.min(Math.max(16, nekoPosY), window.innerHeight - 16);
+
+            nekoEl.style.left = `${nekoPosX - 16}px`;
+            nekoEl.style.top = `${nekoPosY - 16}px`;
+        }
+    </script>
+</body>
+</html>
