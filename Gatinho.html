@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #gatinho {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url('https://i.imgur.com/YJk8r8E.png'); /* Substitua pela URL da imagem do gatinho */
+            background-size: cover;
+            display: none;
+            transition: transform 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste</h1>
+    <div id="gatinho"></div>
+
+    <script>
+        document.addEventListener('mousemove', function(e) {
+            const gatinho = document.getElementById('gatinho');
+            gatinho.style.display = 'block'; // Mostra o gatinho
+            gatinho.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+        });
+    </script>
+</body>
+</html>
