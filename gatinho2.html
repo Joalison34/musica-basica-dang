@@ -75,6 +75,11 @@
             width: 100%; /* Inicia com 100% */
             transition: width 0.3s;
         }
+
+        #timer {
+            font-size: 24px;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -90,6 +95,8 @@
         <div id="vida"></div>
     </div>
 
+    <div id="timer" style="display: none;">Tempo: 75</div>
+
     <div id="oneko" style="display: none;"></div>
 
     <script>
@@ -104,9 +111,11 @@
         let idleAnimationFrame = 0;
         const nekoSpeed = 10;
         const obstacles = [];
-        const obstacleSpeed = 2; // Velocidade dos obstáculos
+        const obstacleSpeed = 4; // Aumentando a velocidade dos obstáculos
         const obstacleSpawnInterval = 2000; // Intervalo de spawn dos obstáculos (em ms)
         let hp = 100; // HP inicial do gatinho
+        let timeLeft = 75; // Tempo total para ganhar
+        let timerInterval;
 
         const spriteSets = {
             idle: [[-3, -3]],
@@ -132,6 +141,7 @@
             // Oculta o botão de iniciar e os créditos
             document.getElementById("inicio").style.display = "none";
             document.getElementById("barraVida").style.display = "block";
+            document.getElementById("timer").style.display = "block"; // Exibe o timer
             nekoEl = document.querySelector("#oneko");
             nekoEl.style.display = "block";
             nekoEl.style.left = `${nekoPosX - 16}px`;
@@ -145,11 +155,14 @@
             resetGame();
             window.onekoInterval = setInterval(frame, 100);
             setInterval(spawnObstacle, obstacleSpawnInterval);
+            startTimer(); // Inicia o timer
         }
 
         function resetGame() {
             hp = 100; // Reinicia o HP
+            timeLeft = 75; // Reinicia o tempo
             updateHPBar();
+            updateTimer();
             obstacles.forEach(obs => obs.remove()); // Remove obstáculos existentes
             obstacles.length = 0; // Limpa a lista de obstáculos
         }
@@ -222,6 +235,23 @@
             vidaEl.style.width = `${hp}%`;
         }
 
+        function updateTimer() {
+            document.getElementById("timer").innerText = `Tempo: ${timeLeft}`;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Parabéns! Você sobreviveu por 75 segundos!");
+                    resetToStart(); // Volta para a tela inicial
+                }
+            }, 1000); // Atualiza a cada segundo
+        }
+
         function detectCollision(neko, obstaculo) {
             const nekoRect = neko.getBoundingClientRect();
             const obstaculoRect = obstaculo.getBoundingClientRect();
@@ -263,8 +293,10 @@
 
         function resetToStart() {
             clearInterval(window.onekoInterval);
+            clearInterval(timerInterval); // Para o timer
             document.getElementById("inicio").style.display = "block"; // Mostra a tela inicial
             document.getElementById("barraVida").style.display = "none"; // Oculta a barra de vida
+            document.getElementById("timer").style.display = "none"; // Oculta o timer
             nekoEl.style.display = "none"; // Oculta o gatinho
         }
     </script>
