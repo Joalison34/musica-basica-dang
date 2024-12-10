@@ -80,7 +80,11 @@
 
         #timer {
             font-size: 24px;
-            margin: 20px 0;
+            position: absolute; /* Muda para posição absoluta */
+            top: 20px; /* Distância do topo */
+            left: 50%; /* Centraliza horizontalmente */
+            transform: translateX(-50%); /* Ajusta para centralizar */
+            z-index: 10000; /* Garante que fique acima de outros elementos */
         }
 
         #vitoria {
