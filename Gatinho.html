@@ -30,7 +30,7 @@
             z-index: 9999;
         }
 
-        .botao-iniciar {
+        .botao-iniciar, .botao-vitoria {
             background-color: #000000;
             color: #ffffff;
             border: none;
@@ -42,7 +42,7 @@
             margin-bottom: 20px;
         }
 
-        .botao-iniciar:hover {
+        .botao-iniciar:hover, .botao-vitoria:hover {
             background-color: #333333;
         }
 
@@ -80,6 +80,10 @@
             font-size: 24px;
             margin: 20px 0;
         }
+
+        #vitoria {
+            display: none; /* Escondido inicialmente */
+        }
     </style>
 </head>
 <body>
@@ -98,6 +102,12 @@
     <div id="timer" style="display: none;">Tempo: 75</div>
 
     <div id="oneko" style="display: none;"></div>
+
+    <div id="vitoria">
+        <p>Você ganhou! O que deseja fazer?</p>
+        <button class="botao-vitoria" onclick="reiniciar()">Reiniciar o Jogo</button>
+        <button class="botao-vitoria" onclick="irParaSegundoJogo()">Ir para o Segundo Cat Game</button>
+    </div>
 
     <script>
         let nekoEl;
@@ -164,6 +174,7 @@
             updateTimer();
             obstacles.forEach(obs => obs.remove()); // Remove obstáculos existentes
             obstacles.length = 0; // Limpa a lista de obstáculos
+            document.getElementById("vitoria").style.display = "none"; // Esconde opções de vitória
         }
 
         function setSprite(name, frame) {
@@ -245,7 +256,7 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    window.location.href = "gatinho2.html"; // Redireciona para a segunda página
+                    showVictoryOptions(); // Exibe opções de vitória
                 }
             }, 1000); // Atualiza a cada segundo
         }
@@ -257,6 +268,24 @@
                      nekoRect.left > obstaculoRect.right || 
                      nekoRect.bottom < obstaculoRect.top || 
                      nekoRect.top > obstaculoRect.bottom);
+        }
+
+        function showVictoryOptions() {
+            clearInterval(window.onekoInterval);
+            clearInterval(timerInterval); // Para o timer
+            document.getElementById("vitoria").style.display = "block"; // Mostra opções de vitória
+            document.getElementById("barraVida").style.display = "none"; // Oculta a barra de vida
+            document.getElementById("timer").style.display = "none"; // Oculta o timer
+            nekoEl.style.display = "none"; // Oculta o gatinho
+        }
+
+        function reiniciar() {
+            document.getElementById("vitoria").style.display = "none"; // Esconde opções de vitória
+            iniciar(); // Reinicia o jogo
+        }
+
+        function irParaSegundoJogo() {
+            window.location.href = "gatinho2.html"; // Redireciona para a segunda página
         }
 
         function frame() {
