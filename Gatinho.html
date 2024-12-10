@@ -1,3 +1,6 @@
+Claro! Aqui está o código completo do seu jogo com a modificação para redirecionar para `gatinho2.html` ao vencer:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -138,7 +141,6 @@
         };
 
         function iniciar() {
-            // Oculta o botão de iniciar e os créditos
             document.getElementById("inicio").style.display = "none";
             document.getElementById("barraVida").style.display = "block";
             document.getElementById("timer").style.display = "block"; // Exibe o timer
@@ -246,8 +248,7 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    alert("Parabéns! Você sobreviveu por 75 segundos!");
-                    resetToStart(); // Volta para a tela inicial
+                    window.location.href = "gatinho2.html"; // Redireciona para a segunda página
                 }
             }, 1000); // Atualiza a cada segundo
         }
@@ -302,3 +303,6 @@
     </script>
 </body>
 </html>
+```
+
+Agora, ao final do tempo de 75 segundos, o jogador será redirecionado automaticamente para `gatinho2.html`. Se precisar de mais alguma coisa, é só avisar!
