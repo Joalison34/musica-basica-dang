@@ -31,19 +31,21 @@
         }
 
         .botao-iniciar, .botao-vitoria {
-            background-color: #000000;
+            background-color: #2c3e50;
             color: #ffffff;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             padding: 15px 30px;
             font-size: 24px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.2s;
             margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
 
         .botao-iniciar:hover, .botao-vitoria:hover {
-            background-color: #333333;
+            background-color: #34495e;
+            transform: translateY(-2px);
         }
 
         .creditos {
@@ -56,7 +58,7 @@
             width: 32px;
             height: 32px;
             position: absolute;
-            background-color: red; /* Cor do obstáculo */
+            background-color: red;
             z-index: 9998;
         }
 
@@ -72,7 +74,7 @@
         #vida {
             height: 100%;
             background-color: green;
-            width: 100%; /* Inicia com 100% */
+            width: 100%;
             transition: width 0.3s;
         }
 
@@ -82,7 +84,54 @@
         }
 
         #vitoria {
-            display: none; /* Escondido inicialmente */
+            display: none;
+        }
+
+        /* Estilos dos botões de controle */
+        .controle {
+            position: fixed;
+            bottom: 20px;
+            display: none; /* Oculta os controles inicialmente */
+            justify-content: center;
+            width: 100%;
+        }
+
+        .botao-controle {
+            background-color: #2980b9;
+            color: #ffffff;
+            border: none;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-size: 24px;
+            margin: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .botao-controle:hover {
+            background-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .botao-controle:active {
+            transform: translateY(0);
+        }
+
+        .botao-controle:focus {
+            outline: none; /* Remove o contorno ao focar no botão */
+        }
+
+        .direcao-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 5px;
+        }
+
+        .direcao-container > button {
+            margin: 5px 0;
         }
     </style>
 </head>
@@ -107,6 +156,18 @@
         <p>Você ganhou! O que deseja fazer?</p>
         <button class="botao-vitoria" onclick="reiniciar()">Reiniciar o Jogo</button>
         <button class="botao-vitoria" onclick="irParaSegundoJogo()">Ir para o Segundo Cat Game</button>
+    </div>
+
+    <!-- Controles para mobile -->
+    <div class="controle" id="controles">
+        <div class="direcao-container">
+            <button class="botao-controle" onclick="mover('up')">↑</button>
+            <div>
+                <button class="botao-controle" onclick="mover('left')">←</button>
+                <button class="botao-controle" onclick="mover('right')">→</button>
+            </div>
+            <button class="botao-controle" onclick="mover('down')">↓</button>
+        </div>
     </div>
 
     <script>
@@ -151,6 +212,7 @@
             document.getElementById("inicio").style.display = "none";
             document.getElementById("barraVida").style.display = "block";
             document.getElementById("timer").style.display = "block"; // Exibe o timer
+            document.getElementById("controles").style.display = "flex"; // Mostra os controles
             nekoEl = document.querySelector("#oneko");
             nekoEl.style.display = "block";
             nekoEl.style.left = `${nekoPosX - 16}px`;
@@ -277,6 +339,7 @@
             document.getElementById("barraVida").style.display = "none"; // Oculta a barra de vida
             document.getElementById("timer").style.display = "none"; // Oculta o timer
             nekoEl.style.display = "none"; // Oculta o gatinho
+            document.getElementById("controles").style.display = "none"; // Oculta os controles
         }
 
         function reiniciar() {
@@ -286,6 +349,30 @@
 
         function irParaSegundoJogo() {
             window.location.href = "gatinho2.html"; // Redireciona para a segunda página
+        }
+
+        function mover(direcao) {
+            switch (direcao) {
+                case 'up':
+                    nekoPosY -= nekoSpeed;
+                    break;
+                case 'down':
+                    nekoPosY += nekoSpeed;
+                    break;
+                case 'left':
+                    nekoPosX -= nekoSpeed;
+                    break;
+                case 'right':
+                    nekoPosX += nekoSpeed;
+                    break;
+            }
+
+            // Limita a posição do gatinho dentro da tela
+            nekoPosX = Math.min(Math.max(16, nekoPosX), window.innerWidth - 16);
+            nekoPosY = Math.min(Math.max(16, nekoPosY), window.innerHeight - 16);
+
+            nekoEl.style.left = `${nekoPosX - 16}px`;
+            nekoEl.style.top = `${nekoPosY - 16}px`;
         }
 
         function frame() {
@@ -325,6 +412,7 @@
             document.getElementById("barraVida").style.display = "none"; // Oculta a barra de vida
             document.getElementById("timer").style.display = "none"; // Oculta o timer
             nekoEl.style.display = "none"; // Oculta o gatinho
+            document.getElementById("controles").style.display = "none"; // Oculta os controles
         }
     </script>
 </body>
