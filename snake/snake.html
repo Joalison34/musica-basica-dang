@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake Game</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <link rel="stylesheet" href="./src/styles/global.css" />
+  </head>
+  <body>
+    <div class="initial-menu">
+      <h1>Bem vindo ao Snake!</h1>
+      <input type="text" id="nickname" placeholder="Digite seu nome..." required />
+      <p class="error_text">Este campo não pode ficar em branco</p>
+      <select name="" id="" class="difficulty-game" required>
+        <option value="not" disabled selected>Selecione a Dificuldade</option>
+        <option value="easy">Fácil</option>
+        <option value="normal">Médio</option>
+        <option value="hard">Díficil</option>
+      </select>
+      <p class="error_text">Este campo não pode ficar em branco</p>
+
+      <button class="init_game">Jogar</button>
+    </div>
+
+    <header>
+      <h1>Nome: <span class="nickname_player"></span></h1>
+      <div class="score"><span class="score__value">00</span></div>
+    </header>
+
+    <div class="menu-screen">
+      <span class="game-over">game over</span>
+      <span class="final-score"
+        >score <span class="score_game_over">00</span></span
+      >
+
+      <button class="btn-play">
+        <span class="material-symbols-outlined"> play_circle </span>
+
+        Jogar novamente
+      </button>
+    </div>
+
+    <canvas></canvas>
+    <script src="./src/scripts/main.js" defer></script>
+  </body>
+</html>
