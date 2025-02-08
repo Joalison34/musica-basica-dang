@@ -21,8 +21,16 @@
             overflow-y: auto;
             text-align: center;
         }
-        h1, p {
-            margin: 0; padding: 10px; z-index: 1;
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        p {
+            margin: 0; 
+            padding: 10px; 
+            z-index: 1;
+            line-height: 1.6;
         }
         .access-container {
             text-align: center;
@@ -31,48 +39,58 @@
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-            max-width: 800px; /* Largura máxima para desktops */
-            width: 90%; /* Largura responsiva */
+            max-width: 800px; 
+            width: 90%; 
             transition: transform 0.3s;
         }
         .access-container:hover {
             transform: scale(1.02);
         }
         input[type="text"] {
-            padding: 15px; font-size: 18px;
-            border: 2px solid #ff5500; border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.9); color: black; width: 100%; /* Largura total do contêiner */
+            padding: 15px; 
+            font-size: 18px;
+            border: 2px solid #ff5500; 
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.9); 
+            color: black; 
+            width: 100%; 
             margin-top: 20px;
             transition: border-color 0.3s;
         }
         input[type="text"]:focus {
-            border-color: #ff8800; /* Cor da borda ao focar */
-            outline: none; /* Remove o contorno padrão */
+            border-color: #ff8800; 
+            outline: none; 
         }
         button {
-            padding: 15px 25px; background-color: #ff5500;
-            color: white; border: none; border-radius: 5px;
-            cursor: pointer; font-weight: bold; margin-top: 10px;
+            padding: 15px 25px; 
+            background-color: #ff5500;
+            color: white; 
+            border: none; 
+            border-radius: 5px;
+            cursor: pointer; 
+            font-weight: bold; 
+            margin-top: 10px;
             transition: background-color 0.3s, transform 0.2s;
             font-size: 18px;
         }
         button:hover {
-            background-color: #cc4400; transform: scale(1.05);
+            background-color: #cc4400; 
+            transform: scale(1.05);
         }
         .options {
             margin-top: 20px;
-            text-align: center; /* Centraliza os links */
+            text-align: center; 
         }
         .options a {
             display: inline-block;
-            padding: 15px 25px;
+            padding: 10px 20px;
             background-color: white;
             color: black;
             text-decoration: none;
             font-weight: bold;
             border-radius: 5px;
             border: 2px solid #ff5500;
-            margin: 0 10px; /* Margem lateral reduzida */
+            margin: 0 10px; 
             transition: background-color 0.3s, color 0.3s, transform 0.2s;
             font-size: 16px;
         }
@@ -95,23 +113,23 @@
             font-size: 24px;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-            text-align: center; /* Centraliza a mensagem */
+            text-align: center; 
         }
         .feedback {
             margin-top: 20px;
             font-size: 18px;
-            color: lightgreen; /* Cor verde clara */
+            color: lightgreen; 
             font-weight: bold;
         }
         .timer {
             margin-top: 10px;
             font-size: 16px;
-            color: yellow; /* Cor para o temporizador */
+            color: yellow; 
         }
     </style>
     <script>
         let attempts = 0;
-        const lockoutDuration = 3 * 60 * 1000; // 3 minutos em milissegundos
+        const lockoutDuration = 3 * 60 * 1000; 
         let lockoutTimer;
         let countdown;
 
@@ -123,10 +141,10 @@
             if (remainingTime) {
                 const timeLeft = parseInt(remainingTime, 10);
                 if (timeLeft > 0) {
-                    attempts = 3; // Simula que o usuário já tentou 3 vezes
+                    attempts = 3; 
                     startLockout(timerDisplay, timeLeft);
                 } else {
-                    localStorage.removeItem("remainingTime"); // Limpa o tempo se já passou
+                    localStorage.removeItem("remainingTime"); 
                 }
             }
         };
@@ -142,7 +160,7 @@
             }
 
             if (code === "ABACATE") {
-                window.location.href = "Pagina_secreta.html"; // Redireciona para a página secreta
+                window.location.href = "Pagina_secreta.html"; 
             } else {
                 attempts++;
                 if (attempts === 1) {
@@ -157,18 +175,18 @@
         }
 
         function startLockout(timerDisplay, initialTime = lockoutDuration) {
-            let remainingTime = initialTime / 1000; // Tempo restante em segundos
+            let remainingTime = initialTime / 1000; 
             lockoutTimer = setInterval(() => {
                 remainingTime--;
                 timerDisplay.textContent = `Tempo restante: ${remainingTime} segundos`;
-                localStorage.setItem("remainingTime", remainingTime * 1000); // Armazena o tempo restante
+                localStorage.setItem("remainingTime", remainingTime * 1000); 
 
                 if (remainingTime <= 0) {
                     clearInterval(lockoutTimer);
                     lockoutTimer = null;
                     attempts = 0;
-                    timerDisplay.textContent = ""; // Limpa o temporizador
-                    localStorage.removeItem("remainingTime"); // Limpa o armazenamento quando o tempo acabar
+                    timerDisplay.textContent = ""; 
+                    localStorage.removeItem("remainingTime"); 
                 }
             }, 1000);
         }
@@ -180,8 +198,8 @@
         <p><strong>Acesso Restrito:</strong> Apenas o <strong>FUNDADOR</strong>, a força criativa e visionária por trás deste projeto, e a equipe de desenvolvimento têm autorização para acessar esta área restrita. O FUNDADOR é a chave para a inovação e a excelência que definem nossa trajetória na música, garantindo que cada passo dado seja repleto de qualidade e originalidade.</p>
         <input type="text" id="access-code" placeholder="Coloque sua senha de acesso">
         <button onclick="checkAccess()">Acessar</button>
-        <div id="feedback" class="feedback"></div> <!-- Div para feedback -->
-        <div id="timer" class="timer"></div> <!-- Div para o temporizador -->
+        <div id="feedback" class="feedback"></div> 
+        <div id="timer" class="timer"></div> 
     </div>
     
     <div class="exclusive-message">
