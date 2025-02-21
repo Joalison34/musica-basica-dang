@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Desvio de Carros</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        #game {
+            position: relative;
+            width: 300px;
+            height: 600px;
+            background-color: #444;
+            overflow: hidden;
+            border: 2px solid #fff;
+            display: none; /* Esconde o jogo inicialmente */
+        }
+
+        .carro {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background-color: red;
+            bottom: 0;
+            left: 125px;
+            border-radius: 10px;
+        }
+
+        .obstaculo {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background-color: blue;
+            border-radius: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+        }
+
+        #pix {
+            color: white;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        #timer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 20px;
+        }
+
+        audio {
+            display: none; /* Esconde os elementos de áudio */
+        }
+    </style>
+</head>
+<body>
+    <button id="startButton">Começar Jogo</button>
+    <div id="game">
+        <div class="carro" id="carro"></div>
+        <div id="score">Pontuação: 0</div>
+        <div id="timer">Tempo: 0</div>
+    </div>
+    <div id="pixContainer" style="margin-top: 20px;">
+        <div id="pix">Pix Acumulado: R$ 0,00</div>
+        <button id="adButton">Assistir Anúncio para ganhar Pix</button>
+    </div>
+
+    <audio id="collisionSound" src="collision.mp3" preload="auto"></audio>
+    <audio id="scoreSound" src="score.mp3" preload="auto"></audio>
+
+    <script>
+        const carro = document.getElementById('carro');
+        const game = document.getElementById('game');
+        const startButton = document.getElementById('startButton');
+        const scoreDisplay = document.getElementById('score');
+        const pixDisplay = document.getElementById('pix');
+        const adButton = document.getElementById('adButton');
+        const timerDisplay = document.getElementById('timer');
+
+        let posicaoCarro = 125;
+        let pontos = 0;
+        let pixAcumulado = 0;
+        let gameOver = false;
+        let tempo = 0;
+        let timerInterval;
+
+        startButton.addEventListener('click', () => {
+            startButton.style.display = 'none';
+            game.style.display = 'block';
+            criarObstaculo();
+            iniciarTemporizador();
+        });
+
+        adButton.addEventListener('click', assistirAnuncio);
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft' && posicaoCarro > 0) {
+                posicaoCarro -= 25;
+                carro.style.left = posicaoCarro + 'px';
+            }
+
+            if (event.key === 'ArrowRight' && posicaoCarro < 250) {
+                posicaoCarro += 25;
+                carro.style.left = posicaoCarro + 'px';
+            }
+        });
+
+        function criarObstaculo() {
+            if (gameOver) return;
+
+            const obstaculo = document.createElement('div');
+            obstaculo.classList.add('obstaculo');
+            obstaculo.style.left = Math.floor(Math.random() * 6) * 50 + 'px';
+            obstaculo.style.top = '0px';
+            game.appendChild(obstaculo);
+
+            let movimentoObstaculo = setInterval(() => {
+                if (gameOver) {
+                    clearInterval(movimentoObstaculo);
+                    return;
+                }
+
+                let posicaoObstaculo = parseInt(obstaculo.style.top);
+                posicaoObstaculo += 5;
+                obstaculo.style.top = posicaoObstaculo + 'px';
+
+                if (posicaoObstaculo > 500) {
+                    clearInterval(movimentoObstaculo);
+                    pontos++;
+                    document.getElementById('scoreSound').play();
+                    scoreDisplay.textContent = 'Pontuação: ' + pontos;
+                    obstaculo.remove();
+                } else if (checkColisao(carro, obstaculo)) {
+                    clearInterval(movimentoObstaculo);
+                    gameOver = true;
+                    document.getElementById('collisionSound').play();
+                    alert('Game Over! Pontos: ' + pontos);
+                    window.location.reload();
+                }
+            }, 20);
+            setTimeout(criarObstaculo, 2000);
+        }
+
+        function checkColisao(carro, obstaculo) {
+            const carroRect = carro.getBoundingClientRect();
+            const obstaculoRect = obstaculo.getBoundingClientRect();
+
+            return !(carroRect.right < obstaculoRect.left ||
+                     carroRect.left > obstaculoRect.right ||
+                     carroRect.bottom < obstaculoRect.top ||
+                     carroRect.top > obstaculoRect.bottom);
+        }
+
+        function iniciarTemporizador() {
+            tempo = 0;
+            timerInterval = setInterval(() => {
+                tempo++;
+                timerDisplay.textContent = 'Tempo: ' + tempo;
+            }, 1000);
+        }
+
+        function assistirAnuncio() {
+            const recompensa = 0.01; // Ganho fixo de 1 centavo
+            pixAcumulado += recompensa;
+            pixDisplay.textContent = 'Pix Acumulado: R$ ' + pixAcumulado.toFixed(2);
+
+            alert('Você ganhou R$ ' + recompensa.toFixed(2) + ' ao assistir um anúncio!');
+        }
+    </script>
+</body>
+</html>
