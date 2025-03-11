@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         .light-mode {
             background-color: #ffffff;
@@ -29,26 +29,41 @@
         h1 {
             font-size: 2.5em;
             margin: 0;
-            animation: slideIn 0.5s ease-in-out;
+            animation: slideIn 0.5s ease-in-out, shake 1s ease infinite; /* Adicionando animação de tremor */
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
         }
         section {
             padding: 20px;
             margin: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             opacity: 0;
             transform: translateY(20px);
             animation: appear 0.8s forwards;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.1) 100%); /* Gradiente sutil */
+            transition: background-color 0.3s; /* Adicione transição ao fundo */
+        }
+        section:hover {
+            background-color: rgba(255, 255, 255, 0.1); /* Efeito de leve brilho ao passar o mouse */
+            transform: translateY(-5px); /* Leve efeito de levitação ao passar o mouse */
         }
         img {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
             margin-top: 10px;
-            transition: transform 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s; /* Adicione o box-shadow à transição */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra suave */
         }
         img:hover {
             transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5); /* Sombra maior ao hover */
         }
         button {
             padding: 10px;
@@ -59,6 +74,11 @@
             background-color: #c62828;
             color: white;
             font-weight: bold;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        button:hover {
+            background-color: #b71c1c; /* Cor mais escura ao passar o mouse */
+            transform: scale(1.05); /* Levitar leve */
         }
         @keyframes fadeIn {
             from { opacity: 0; }
