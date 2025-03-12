@@ -12,6 +12,7 @@
             padding: 0;
             color: #333;
             animation: fadeIn 1s; /* Animação de fade-in */
+            line-height: 1.8;
         }
 
         @keyframes fadeIn {
@@ -24,35 +25,48 @@
             color: white;
             padding: 20px;
             text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
+
         main {
             padding: 20px;
             max-width: 800px;
             margin: auto;
-            background: #d9b6b6; /* Cinza avermelhado escurecido */
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: #f9d5d5; /* Fundo suave */
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
+
         h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
         }
+
         h2 {
             color: #FF5733; /* Vermelho */
             margin-top: 20px;
             border-bottom: 2px solid #FF5733;
             padding-bottom: 5px;
             cursor: pointer; /* Muda o cursor para indicar que é clicável */
+            transition: color 0.3s; /* Transição suave na cor */
         }
+
+        h2:hover {
+            color: #c74b2b; /* Cor mais escura ao passar o mouse */
+        }
+
         .content {
             display: none; /* Inicia como oculto */
             line-height: 1.6;
-            margin: 10px 0;
-            padding: 10px;
+            margin: 15px 0;
+            padding: 15px;
             background-color: #ffe5e5; /* Fundo claro para o texto */
             border-left: 5px solid #FF5733; /* Bordas à esquerda */
             border-radius: 4px;
+            font-size: 1.1em; /* Aumenta levemente o tamanho da fonte */
+            transition: max-height 0.2s ease-out; /* Transição suave ao expandir */
         }
+
         footer {
             text-align: center;
             margin-top: 20px;
@@ -69,37 +83,44 @@
     <main>
         <h2 onclick="toggleContent('introContent')">Introdução</h2>
         <div class="content" id="introContent">
-            <p>A polarização política e a disseminação de notícias falsas (fake news) têm se tornado temas centrais na discussão sobre a confiança da sociedade nos veículos jornalísticos. A era digital, com sua vasta capacidade de disseminação de informações, trouxe não apenas conveniência, mas também grandes desafios, tornando a informação frequentemente subjetiva e tendenciosa.</p>
+            <p>A polarização política e a disseminação de notícias falsas (fake news) têm se tornado temas centrais na discussão sobre a confiança da sociedade nos veículos jornalísticos. Na era digital, onde a informação circula rapidamente e em volumes sem precedentes, questões de veracidade estão mais em evidência do que nunca. A facilidade de compartilhar e consumir conteúdo nas redes sociais, combinada com algoritmos que priorizam interações em vez de precisão, contribui para a formação de bolhas informativas que distorcem a realidade.</p>
+            <p>Este seminário aborda como a falta de diversidade nos conteúdos consumidos e as preferências informativas influenciam diretamente a desconfiança nos jornais e outros meios de comunicação. A implicação é clara: quando o público começa a ver a informação como uma extensão de sua própria ideologia, perdemos não apenas a confiança, mas também a capacidade de diálogo e entendimento mútuo.</p>
         </div>
         
         <h2 onclick="toggleContent('pesquisaContent')">Pesquisa do Instituto Reuters</h2>
         <div class="content" id="pesquisaContent">
-            <p>O Relatório de Notícias Digitais 2019, elaborado pelo Instituto Reuters, revela que 85% dos brasileiros expressam preocupação sobre a veracidade das notícias. Esse número alarmante coloca o Brasil na vanguarda da desconfiança em relação à informação, enquanto países como Reino Unido (70%) e Estados Unidos (67%) também apresentam altos índices de preocupação. Essa pesquisa, realizada com leitores em 38 países, demonstra o impacto da desinformação na percepção pública sobre a mídia.</p>
+            <p>O Relatório de Notícias Digitais 2019, elaborado pelo Instituto Reuters, revela que 85% dos brasileiros expressam preocupação sobre a veracidade das notícias. Esse número alarmante coloca o Brasil na vanguarda da desconfiança em relação à informação. Comparativamente, países como Reino Unido (70%) e Estados Unidos (67%) também apresentam altos índices de preocupação. Essa pesquisa foi baseada na análise de leitores em 38 países e destaca como a desinformação molda a percepção pública sobre a mídia.</p>
+            <p>Além disso, é interessante notar que o aumento das fake news coincide com uma maior expectativa de transparência e responsabilidade dos meios de comunicação. Os cidadãos se tornaram mais críticos e questionadores, exigindo não apenas que as informações sejam apresentadas, mas que sejam acompanhadas de fontes claras e precisas. O estudo do Instituto Reuters também sugere que jovens são mais propensos a confiar em influenciadores digitais do que em veículos tradicionais de notícia, o que indica uma mudança nas fontes de credibilidade.</p>
         </div>
         
         <h2 onclick="toggleContent('confiancaContent')">Redução da Confiança</h2>
         <div class="content" id="confiancaContent">
-            <p>A confiança nas informações obtidas por meio de mecanismos de busca, como o Google, é apenas de 33%, demonstrando a fragilidade da credibilidade nas plataformas digitais. Comparativamente, a França é o país com a menor confiança na mídia, com apenas 24%. A crescente desconfiança resulta na evasão de conteúdo jornalístico, com 32% dos indivíduos optando por evitar esse tipo de informação, influenciados pela sensação de impotência frente aos eventos retratados nas notícias.</p>
+            <p>A confiança nas informações obtidas por meio de mecanismos de busca, como o Google, é apenas de 33%, demonstrando a fragilidade da credibilidade nas plataformas digitais. Comparativamente, a França é o país com a menor confiança na mídia, com apenas 24%. A crescente desconfiança desencadeia a evasão de conteúdo jornalístico, levando 32% dos indivíduos a evitarem esse tipo de informação. Essa fuga é exacerbada pela sensação de impotência frente aos eventos retratados nas notícias, que muitas vezes parecem fora do controle do cidadão comum.</p>
+            <p>Outra questão preocupante é o papel de algoritmos que priorizam cliques e visualizações em detrimento de informações precisas. Esses algoritmos podem reforçar a polarização, criando um ciclo vicioso onde os usuários são bombardeados apenas com informações que já concordam, enquanto são expostos a pouca diversidade de opiniões. Essa situação complica ainda mais o cenário, tornando essencial a discussão sobre a ética na curadoria de conteúdo digital.</p>
         </div>
         
         <h2 onclick="toggleContent('conteudoPagoContent')">Conteúdo Pago</h2>
         <div class="content" id="conteudoPagoContent">
-            <p>Apesar do surgimento de serviços de conteúdo pago, como assinaturas digitais, o crescimento é tímido, atingindo apenas 16% nos Estados Unidos. Os dados indicam uma concentração nas assinaturas de um único serviço, um fenômeno conhecido como "vencedor-leva-tudo". Além disso, a preferência por conteúdos de entretenimento, como streaming de vídeo e música, está superando o interesse por notícias, o que levanta questões sobre o futuro do jornalismo.</p>
+            <p>Apesar do surgimento de serviços de conteúdo pago, como assinaturas digitais, o crescimento é tímido, atingindo apenas 16% nos Estados Unidos. Os dados indicam uma concentração nas assinaturas de um único serviço, um fenômeno conhecido como "vencedor-leva-tudo". O aumento das assinaturas, embora positivo, levanta questões sobre a sustentabilidade do jornalismo de qualidade. Muitos jornalistas enfrentam dilemas éticos ao tentar equilibrar a necessidade de gerar lucro e a responsabilidade de fornecer uma cobertura justa e precisa.</p>
+            <p>A preferência por conteúdos de entretenimento, como streaming de vídeo e música, está superando o interesse por notícias. Para muitos, a informação é vista como uma carga, ao contrário da busca por entretenimento que proporciona prazer e relaxamento. Esse desafio exige que as organizações de mídia repensem suas estratégias para engajar o público, talvez baixando barreiras de pagamento ou oferecendo conteúdo gratuito de alta qualidade como isca para atrair novos leitores.</p>
         </div>
 
         <h2 onclick="toggleContent('redesSociaisContent')">O Papel das Redes Sociais</h2>
         <div class="content" id="redesSociaisContent">
-            <p>O Whatsapp emerge como uma das principais fontes de informação, utilizado por 53% dos brasileiros para se manter atualizados. Esse dado ressalta uma mudança significativa de paradigma, onde as informações fluem em redes sociais e mensagens diretas, tornando o consumo de notícias mais privado. O risco, no entanto, é ainda maior, visto que a desinformação pode se propagar rapidamente nesses ambientes, afetando a percepção pública.</p>
+            <p>O WhatsApp emerge como uma das principais fontes de informação, utilizado por 53% dos brasileiros para se manter atualizados. Essa mudança destaca uma transição significativa no consumo de notícias, onde as informações fluem através de redes sociais e mensagens diretas, criando um ambiente de consumo mais privado e personalizado. Essa nova dinâmica pode ser extremamente benéfica, pois facilita a disseminação rápida de informações, mas também aumenta o risco de desinformação, já que nem todos os veículos ou usuários são responsáveis na disseminação de conteúdo.</p>
+            <p>As redes sociais, portanto, atuam como uma faca de dois gumes: por um lado, facilitam o acesso à informação; por outro, amplificam a desinformação. A agilidade com que as notícias se espalham significa que as fake news podem rapidamente obter a mesma visibilidade que fatos verificados. Assim, a alfabetização midiática torna-se essencial, capacitando os usuários a distinguir informações confiáveis de narrativas enganosas.</p>
         </div>
 
         <h2 onclick="toggleContent('polarizacaoContent')">O Impacto da Polarização Política</h2>
         <div class="content" id="polarizacaoContent">
-            <p>A polarização política tem encorajado o crescimento de agendas partidárias online, onde cada grupo valoriza informações que corroboram suas crenças e ideologias. Isso resulta na formação de bolhas informativas, onde a diversidade de opiniões é sufocada e a confiança em veículos tradicionais diminui. A análise de Nic Newman, um dos autores do estudo, destaca que a combinação de desinformação, caça-cliques e agendas políticas está minando a vitalidade do jornalismo independente.</p>
+            <p>A polarização política tem encorajado o crescimento de agendas partidárias online, onde cada grupo valoriza informações que corroboram suas crenças e ideologias. Essa situação leva à formação de bolhas informativas, onde a diversidade de opiniões é sufocada. A análise de Nic Newman, um dos autores do estudo, destaca que a combinação de desinformação, caça-cliques e agendas políticas está minando a vitalidade do jornalismo independente. Quando as informações são moldadas mais por cliques do que por fact-checking rigoroso, a qualidade do debate público é prejudicada.</p>
+            <p>Além disso, essa polarização pode incitar conflitos, tornando cada vez mais difícil o diálogo civil entre diferentes grupos. Estudos mostram que a exposição a opiniões divergentes pode reduzir a polarização, mas com as mídias sociais muitas vezes fornecendo apenas conteúdo alinhado às crenças do usuário, essa exposição necessária torna-se cada vez mais rara. Trabalhar na reconstrução da confiança no jornalismo, portanto, se torna uma prioridade crítica.</p>
         </div>
 
         <h2 onclick="toggleContent('conclusaoContent')">Conclusão</h2>
         <div class="content" id="conclusaoContent">
-            <p>O cenário atual da mídia é complexo e desafiador. A polarização política e a proliferação de fake news demandam uma reflexão profunda sobre como os meios de comunicação podem reaprender a conquistar a confiança do público. Buscar uma entrega de informações equilibradas e justas é necessário para reverter essa tendência, promovendo a alfabetização midiática e a responsabilidade na disseminação de informações.</p>
+            <p>O cenário atual da mídia é complexo e desafiador. A polarização política e a proliferação de fake news demandam uma reflexão profunda sobre como os meios de comunicação podem reaprender a conquistar a confiança do público. Neste contexto, é essencial que as organizações de notícias se comprometam com a transparência, oferecendo aos leitores informações claras sobre suas fontes e metodologias de reportagem.</p>
+            <p>Buscar uma entrega de informações equilibradas e justas, combinada com iniciativas de alfabetização midiática, pode ajudar a reverter essa tendência. Ao educar o público sobre como consumir informações de maneira crítica e responsável, podemos promover um ambiente informativo saudável onde a pluralidade de opiniões é não apenas respeitada, mas celebrada. Essa abordagem é fundamental para restaurar a confiança entre os cidadãos e os meios de comunicação, fundamentais para a saúde de uma democracia vibrante.</p>
         </div>
     </main>
     <footer>
