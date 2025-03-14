@@ -13,7 +13,7 @@
             color: #333;
             animation: fadeIn 1s;
             line-height: 1.8;
-            overflow: hidden; /* Impede a barra de rolagem */
+            overflow: auto; /* Permite rolagem */
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -33,8 +33,8 @@
             background: #f9d5d5;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            position: relative; /* Para posicionar os elementos de animação */
-            z-index: 1; /* Garante que o texto fique acima das animações */
+            position: relative;
+            z-index: 1; 
         }
         h1 {
             font-size: 2.5em;
@@ -74,18 +74,18 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Impede a interação com a chuva */
+            pointer-events: none; 
             overflow: hidden;
-            z-index: 0; /* Abaixo do conteúdo principal */
+            z-index: 0; 
         }
         .rain {
             position: absolute;
-            color: black; /* Cor preta */
-            font-weight: bold; /* Manter a fonte em negrito */
-            font-size: 2em; /* Aumentar o tamanho das letras */
+            color: black; 
+            font-weight: bold; 
+            font-size: 2em; 
             white-space: nowrap;
-            opacity: 0; /* Começa invisível */
-            animation: rain-fall 3s infinite; /* Espera para a animação */
+            opacity: 0; 
+            animation: rain-fall 3s infinite; 
         }
 
         @keyframes rain-fall {
@@ -99,11 +99,11 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 5em; /* Tamanho grande */
-            color: red; /* Cor destacada */
+            font-size: 5em; 
+            color: red; 
             opacity: 1;
             animation: jump 0.5s forwards, fade 0.5s forwards 0.5s;
-            z-index: 10; /* Acima de tudo */
+            z-index: 10; 
         }
 
         @keyframes jump {
