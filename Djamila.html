@@ -41,7 +41,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             opacity: 0; /* Inicia invisível */
             transform: translateY(20px); /* Deslocada para baixo */
-            animation: slideInUp 0.8s forwards;
+            animation: slideInUp 0.8s forwards, fadeIn 0.5s forwards; /* Nova animação de fade-in */
             position: relative;
             transition: transform 0.3s, box-shadow 0.3s;
             font-size: 1.3em; /* Aumenta o tamanho da fonte para 30% maior */
@@ -68,7 +68,7 @@
             transition: transform 0.3s, opacity 0.3s; /* Opacidade */
         }
         img:hover {
-            transform: scale(1.05);
+            transform: scale(1.05) rotate(2deg); /* Adicionando rotação */
             opacity: 0.8;
         }
         button {
