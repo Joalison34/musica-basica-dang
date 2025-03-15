@@ -116,6 +116,10 @@
             from { opacity: 1; }
             to { opacity: 0; }
         }
+        
+        audio {
+            display: none; /* Ocultar o player de áudio */
+        }
     </style>
 </head>
 <body>
@@ -165,6 +169,11 @@
     <footer>
         <p>&copy; 2025 - Seminário sobre Jornalismo e Desinformação</p>
     </footer>
+
+    <audio id="backgroundMusic" loop autoplay>
+        <source src="URL_DA_MUSICA" type="audio/mpeg">
+        Seu navegador não suporta o elemento de áudio.
+    </audio>
 
     <script>
         function toggleContent(contentId) {
