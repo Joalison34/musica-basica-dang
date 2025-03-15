@@ -116,10 +116,6 @@
             from { opacity: 1; }
             to { opacity: 0; }
         }
-        
-        audio {
-            display: none; /* Ocultar o player de áudio */
-        }
     </style>
 </head>
 <body>
@@ -170,10 +166,12 @@
         <p>&copy; 2025 - Seminário sobre Jornalismo e Desinformação</p>
     </footer>
 
-    <audio id="backgroundMusic" loop autoplay>
-        <source src="URL_DA_MUSICA" type="audio/mpeg">
-        Seu navegador não suporta o elemento de áudio.
-    </audio>
+    <!-- Iframe do SoundCloud -->
+    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1990205463&color=ff5500"></iframe>
+    <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif; font-weight: 100;">
+        <a href="https://soundcloud.com/lucas-mendonca-lemos" title="LUCAS MENDONCA LEMOS" target="_blank" style="color: #cccccc; text-decoration: none;">LUCAS MENDONCA LEMOS</a> · 
+        <a href="https://soundcloud.com/lucas-mendonca-lemos/e-o-gordinho-entao-pega-a-visao" title="é o gordinho então pega a visão" target="_blank" style="color: #cccccc; text-decoration: none;">é o gordinho então pega a visão</a>
+    </div>
 
     <script>
         function toggleContent(contentId) {
