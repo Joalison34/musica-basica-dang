@@ -107,23 +107,6 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
-        
-        /* Estilo da flor */
-        .flower {
-            position: absolute;
-            top: -50px; /* Começa fora da tela */
-            animation: fall linear forwards;
-            opacity: 0.8;
-            width: 50px; /* Tamanho da flor (largura) */
-            height: auto; /* Altura automática para manter a proporção */
-        }
-
-        @keyframes fall {
-            to {
-                transform: translateY(100vh);
-                opacity: 0; /* Desaparece ao cair */
-            }
-        }
 
         section:nth-child(1) { animation-delay: 0.1s; }
         section:nth-child(2) { animation-delay: 0.2s; }
@@ -168,26 +151,6 @@
         body.classList.toggle('dark-mode');
         body.classList.toggle('light-mode');
     }
-
-    function createFlower() {
-        const flower = document.createElement('img');
-        flower.src = 'Todos/flor sex.png'; // Substitua pelo caminho da imagem da flor
-        flower.classList.add('flower');
-
-        // Posição aleatória
-        flower.style.left = Math.random() * 100 + 'vw'; // 100vw para largura da tela
-        flower.style.animationDuration = Math.random() * 3 + 2 + 's'; // Duração aleatória
-
-        document.body.appendChild(flower);
-
-        // Remover a flor após a animação
-        flower.addEventListener('animationend', () => {
-            flower.remove();
-        });
-    }
-
-    // Criar flores a cada 500ms
-    setInterval(createFlower, 500);
 </script>
 
 </body>
