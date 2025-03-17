@@ -1,0 +1,236 @@
+<?php
+// Função para redimensionar a imagem PNG
+function redimensionarImagem($caminhoImagem, $novaLargura, $novaAltura) {
+    // Carregar a imagem PNG
+    $imagemOriginal = imagecreatefrompng($caminhoImagem);
+
+    // Criar uma nova imagem verdadeira
+    $novaImagem = imagecreatetruecolor($novaLargura, $novaAltura);
+
+    // Habilitar a mesclagem de alfa e salvar a informação de alpha
+    imagealphablending($novaImagem, false);
+    imagesavealpha($novaImagem, true);
+
+    // Redimensionar e copiar a imagem original para a nova imagem
+    imagecopyresampled($novaImagem, $imagemOriginal, 0, 0, 0, 0, $novaLargura, $novaAltura, imagesx($imagemOriginal), imagesy($imagemOriginal));
+
+    // Salvar a nova imagem
+    $caminhoNovaImagem = 'caminho_para_guardar/' . basename($caminhoImagem); // Atualize conforme necessário
+    imagepng($novaImagem, $caminhoNovaImagem);
+
+    // Liberar a memória
+    imagedestroy($imagemOriginal);
+    imagedestroy($novaImagem);
+
+    return $caminhoNovaImagem; // Retorna o caminho da nova imagem
+}
+
+// Exemplo de uso
+$caminhoImagemOriginal1 = 'Todos/djamila1.png'; // Certifique-se de que a imagem tenha extensão PNG
+$caminhoImagemOriginal2 = 'Todos/djamilia2.png'; // Para manipulação de outras imagens
+$caminhoImagemOriginal3 = 'Todos/djamila3.png';
+$caminhoImagemOriginal4 = 'Todos/djamila4.png';
+
+$novaLargura = 500; // Defina a nova largura desejada
+$novaAltura = 300;  // Defina a nova altura desejada
+
+$caminhoNovaImagem1 = redimensionarImagem($caminhoImagemOriginal1, $novaLargura, $novaAltura);
+$caminhoNovaImagem2 = redimensionarImagem($caminhoImagemOriginal2, $novaLargura, $novaAltura);
+$caminhoNovaImagem3 = redimensionarImagem($caminhoImagemOriginal3, $novaLargura, $novaAltura);
+$caminhoNovaImagem4 = redimensionarImagem($caminhoImagemOriginal4, $novaLargura, $novaAltura);
+?>
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Djamila Ribeiro: A Voz do Feminismo Negro ✨</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f8bbd0 0%, #c5cae9 100%);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .light-mode {
+            color: #000000;
+        }
+        .dark-mode {
+            background-color: #2C2C2C;
+            color: #ffffff;
+        }
+        header {
+            padding: 40px;
+            text-align: center;
+            background: #c62828;
+            color: white;
+            animation: fadeIn 1s ease-in;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin: 0;
+            animation: slideIn 0.5s ease-in-out;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        section {
+            padding: 20px;
+            margin: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0; /* Inicia invisível */
+            transform: translateY(20px); /* Deslocada para baixo */
+            animation: slideInUp 0.8s forwards, fadeIn 0.5s forwards; /* Nova animação de fade-in */
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-size: 1.3em; /* Aumenta o tamanho da fonte para 30% maior */
+        }
+        section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: #c62828;
+            border-radius: 8px 8px 0 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+            transition: transform 0.3s, opacity 0.3s; /* Opacidade */
+        }
+        img:hover {
+            transform: scale(1.05) rotate(2deg); /* Adicionando rotação */
+            opacity: 0.8;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #c62828;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+        }
+        button:hover {
+            background-color: #b71c1c;
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            animation: pulse 0.6s infinite; /* Efeito de pulsar */
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Estilo da flor */
+        .flower {
+            position: absolute;
+            top: -50px; /* Começa fora da tela */
+            animation: fall linear forwards;
+            opacity: 0.8;
+            width: 50px; /* Tamanho da flor (largura) */
+            height: auto; /* Altura automática para manter a proporção */
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+                opacity: 0; /* Desaparece ao cair */
+            }
+        }
+
+        section:nth-child(1) { animation-delay: 0.1s; }
+        section:nth-child(2) { animation-delay: 0.2s; }
+        section:nth-child(3) { animation-delay: 0.3s; }
+        section:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body class="light-mode">
+
+<header>
+    <h1>✨ Djamila Ribeiro: A Voz do Feminismo Negro ✨</h1>
+    <button onclick="toggleMode()">Alternar Modo</button>
+</header>
+
+<section>
+    <h2>1. Formação Acadêmica</h2>
+    <p>Djamila Ribeiro é graduada em Filosofia pela Universidade Federal de São Paulo (UNIFESP). Durante sua trajetória acadêmica, ela se destacou ao aprofundar seus estudos na Filosofia Política, focando especialmente na teoria feminista e na negritude. Em 2015, completou seu mestrado, onde analisou as estruturas de poder e as experiências vividas por mulheres negras na sociedade brasileira. Sua pesquisa oferece uma crítica incisiva sobre as formas de opressão, e suas contribuições acadêmicas têm sido fundamentais para o entendimento da intersecionalidade nas discussões contemporâneas sobre raça e gênero.</p>
+    <img src="<?php echo $caminhoNovaImagem1; ?>" alt="Djamila Ribeiro - Formação Acadêmica">
+</section>
+
+<section>
+    <h2>2. Atuação como Autora</h2>
+    <p>Djamila é autora de várias obras impactantes, entre elas "O que é lugar de fala?", que se tornou um marco na discussão sobre representatividade e reconhecimento das vozes silenciadas na sociedade. Este livro, acessível e profundo, convida leitores a refletir sobre os poderes e as limitações que diferentes perspectivas sociais impõem. Em 2020, seu livro "Pequeno Manual Antirracista" foi o mais vendido no Brasil, refletindo o crescente interesse e urgência nas questões raciais e de justiça social. Além disso, Djamila contribui regularmente com artigos e ensaios para diversas publicações, expandindo o debate sobre os direitos das mulheres e a luta antirracista.</p>
+    <img src="<?php echo $caminhoNovaImagem2; ?>" alt="Djamila Ribeiro - Atuação como Autora">
+</section>
+
+<section>
+    <h2>3. Contribuições para o Feminismo Negro</h2>
+    <p>Como uma das principais vozes do feminismo negro no Brasil, Djamila Ribeiro tem sido essencial para fortalecer a intersecionalidade dentro das pautas feministas. Seu trabalho no ativismo e na escrita tem ajudado a visibilizar as lutas enfrentadas por mulheres que sofrem múltiplas formas de discriminação. Djamila utiliza suas plataformas para destacar as experiências e as narrativas de mulheres negras, que muitas vezes são invisibilizadas em discussões feministas tradicionais, enfatizando que a luta pela igualdade deve considerar a diversidade das vozes femininas. Ela também promove diálogos sobre como as diferentes identidades de gênero e raça interagem nas lutas sociais contemporâneas.</p>
+    <img src="<?php echo $caminhoNovaImagem3; ?>" alt="Djamila Ribeiro - Feminismo Negro">
+</section>
+
+<section>
+    <h2>4. Engajamento Político</h2>
+    <p>Djamila Ribeiro foi nomeada secretária-adjunta de Direitos Humanos e Cidadania na cidade de São Paulo em 2016, onde trabalhou ativamente em políticas voltadas para a promoção dos direitos de grupos marginalizados e pela inclusão social. Sua atuação política vai além das instituições, estendendo-se à sua presença nas redes sociais, onde frequentemente aborda temas controversos e desafiadores. Djamila defende a importância da participação ativa da sociedade civil na construção de políticas públicas, e seu trabalho é um exemplo de como a teoria pode se transformar em ação efetiva em prol dos direitos humanos e sociais. Por meio de sua voz, ela inspira novas gerações a continuarem a luta pela justiça e igualdade.</p>
+    <img src="<?php echo $caminhoNovaImagem4; ?>" alt="Djamila Ribeiro - Engajamento Político">
+</section>
+
+<script>
+    function toggleMode() {
+        const body = document.body;
+        body.classList.toggle('dark-mode');
+        body.classList.toggle('light-mode');
+    }
+
+    function createFlower() {
+        const flower = document.createElement('img');
+        flower.src = 'Todos/flor sex.png'; // Substitua pelo caminho da imagem da flor
+        flower.classList.add('flower');
+
+        // Posição aleatória
+        flower.style.left = Math.random() * 100 + 'vw'; // 100vw para largura da tela
+        flower.style.animationDuration = Math.random() * 3 + 2 + 's'; // Duração aleatória
+
+        document.body.appendChild(flower);
+
+        // Remover a flor após a animação
+        flower.addEventListener('animationend', () => {
+            flower.remove();
+        });
+    }
+
+    // Criar flores a cada 500ms
+    setInterval(createFlower, 500);
+</script>
+
+</body>
+</html>
