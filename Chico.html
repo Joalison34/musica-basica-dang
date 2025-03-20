@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seminário: Polarização Política e Fake News</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            animation: fadeIn 1s;
+            line-height: 1.8;
+            overflow: auto; /* Permite rolagem */
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        header {
+            background-color: #FF5733;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+            background: #f9d5d5;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1; 
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            color: #FF5733;
+            margin-top: 20px;
+            border-bottom: 2px solid #FF5733;
+            padding-bottom: 5px;
+            cursor: pointer;
+            transition: color 0.3s, transform 0.2s;
+        }
+        
+        h2:hover {
+            color: #c74b2b;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(1px, 0); }
+            25% { transform: translate(-1px, 0); }
+            50% { transform: translate(1px, 0); }
+            75% { transform: translate(-1px, 0); }
+        }
+
+        .content {
+            display: none;
+            line-height: 1.6;
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #ffe5e5;
+            border-left: 5px solid #FF5733;
+            border-radius: 4px;
+            font-size: 1.1em;
+            overflow: hidden; /* Para animações de slide */
+            max-height: 0; /* Para controlar a animação de deslizar */
+            opacity: 0; /* Para animação de aparecer */
+            transition: max-height 0.2s ease-out, padding 0.2s ease-out, opacity 0.2s ease-out;
+        }
+
+        .content.show {
+            display: block;
+            max-height: 500px; /* Altura máxima para permitir a animação de deslizamento */
+            padding: 15px; /* Padding normal quando visível */
+            opacity: 1; /* Visível com animação de aparecer */
+        }
+    
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 0.9em;
+        }
+
+        .rain-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; 
+            overflow: hidden;
+            z-index: 0; 
+        }
+        
+        .rain {
+            position: absolute;
+            color: black; 
+            font-weight: bold; 
+            font-size: 2em; 
+            white-space: nowrap;
+            opacity: 0; 
+            animation: rain-fall 3s infinite; 
+        }
+
+        @keyframes rain-fall {
+            0% { top: -10%; opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .jump-scare {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5em; 
+            color: red; 
+            opacity: 1;
+            animation: jump 0.5s forwards, fade 0.5s forwards 0.5s;
+            z-index: 10; 
+        }
+
+        @keyframes jump {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes fade {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .zoom-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #FF5733;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .zoom-button:hover {
+            transform: scale(1.1);
+            animation: bounce 0.5s;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-5px);
+            }
+            60% {
+                transform: translateY(-3px);
+            }
+        }
+
+        /* Estilos para o overlay do vídeo */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8); /* Fundo escuro com opacidade */
+            display: none; /* Inicialmente escondido */
+            justify-content: center; /* Centraliza o vídeo */
+            align-items: center; /* Centraliza o vídeo */
+            z-index: 10; /* Deve estar acima do conteúdo */
+        }
+
+        .overlay video {
+            max-width: 90%; /* Limita a largura do vídeo */
+            max-height: 90%; /* Limita a altura do vídeo */
+            border-radius: 10px; /* Bordas arredondadas */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Sombra para destaque */
+        }
+
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Seminário: Polarização Política e Fake News</h1>
+        <p>Impacto na Confiança no Jornalismo</p>
+    </header>
+
+    <div class="rain-container" id="rainContainer"></div>
+
+    <main>
+        <h2 onclick="toggleContent('introContent')">Introdução</h2>
+        <div class="content" id="introContent">
+            <p>A polarização política e a disseminação de fake news estão afetando gravemente a confiança nos veículos jornalísticos. Este fenômeno se reflete em como as pessoas consomem informações, especialmente nas redes sociais. A polarização pode influenciar o endosso a notícias falsas, aumentando a desinformação. Indivíduos tendem a acreditar em notícias que reforçam suas crenças, criando bolhas informativas. Esse cenário demandará novos métodos de engajamento e reconquista de credibilidade da mídia.</p>
+        </div>
+
+        <h2 onclick="toggleContent('pesquisaContent')">Pesquisa do Instituto Reuters</h2>
+        <div class="content" id="pesquisaContent">
+            <p>O Relatório de Notícias Digitais 2019 revela que 85% dos brasileiros se preocupam com a veracidade das notícias. Este estudo, realizado em 38 países, mostra que a desconfiança nas informações é um fenômeno global. O Brasil destaca-se como a nação mais preocupada com fake news, seguida por países como Reino Unido e EUA. O relatório sugere que a polarização política contribui para essa desconfiança. A pesquisa revela também que muitas pessoas evitam veículos de notícias com reputação questionável.</p>
+        </div>
+
+        <h2 onclick="toggleContent('confiancaContent')">Redução da Confiança</h2>
+        <div class="content" id="confiancaContent">
+            <p>A confiança nos veículos de comunicação caiu para 42%, com apenas 33% confiando em mecanismos de busca, como Google. A polarização exacerba essa desconfiança, refletindo uma crise de credibilidade nas informações online. Uma pesquisa indicou que 32% dos entrevistados evitam notícias, impactados pela sensação de impotência em relação aos fatos. A comparação entre países mostra uma confiança ainda menor em lugares como a França. Esses dados revelam a necessidade urgente de restaurar a confiança na mídia.</p>
+        </div>
+
+        <h2 onclick="toggleContent('conteudoPagoContent')">Conteúdo Pago</h2>
+        <div class="content" id="conteudoPagoContent">
+            <p>O consumo pago de serviços noticiosos aumentou modestamente, com a maioria das assinaturas direcionadas ao entretenimento. Em países nórdicos como Noruega e Suécia, a adesão a serviços noticiosos pagos é maior. No entanto, a concentração em poucos serviços mostra um comportamento econômico de "vencedor-leva-tudo". Essa tendência tem implicações sobre a forma como as notícias são consumidas e a confiança atribuída ao conteúdo. A preferência por entretenimento evidencia um desafio para as organizações de mídia.</p>
+        </div>
+
+        <h2 onclick="toggleContent('redesSociaisContent')">O Papel das Redes Sociais</h2>
+        <div class="content" id="redesSociaisContent">
+            <p>O WhatsApp se tornou a principal fonte de notícias para 53% dos brasileiros, transformando o consumo informativo em algo mais particular. Essa mudança levanta questões sobre a disseminação de fake news em um espaço menos regulado. A prática de se informar em grandes grupos de redes sociais também se faz presente, impactando a qualidade da informação. Essa centralização no WhatsApp exacerba o risco de desinformação nas eleições e outros eventos críticos. O cenário enfatiza a necessidade de alfabetização midiática.</p>
+        </div>
+
+        <h2 onclick="toggleContent('polarizacaoContent')">O Impacto da Polarização Política</h2>
+        <div class="content" id="polarizacaoContent">
+            <p>A polarização política causa um afastamento significativo entre grupos ideológicos e influencia a crença em fake news. Um estudo revelou que indivíduos tendem a acreditar em notícias falsas que corroboram suas crenças partidárias. Participantes com orientações políticas mais extremas demonstraram maior tendência a endossar fake news, especialmente entre os de direita. Essa dinâmica prejudica o debate público e requer esforços para restaurar a confiança no jornalismo. As implicações para o combate às fake news são fundamentais nesse contexto.</p>
+        </div>
+
+        <h2 onclick="toggleContent('conclusaoContent')">Conclusão</h2>
+        <div class="content" id="conclusaoContent">
+            <p>É essencial que as organizações de mídia adotem práticas transparentes e reflitam sobre como reconquistar a confiança do público. A pluralidade de opiniões e o compromisso com a verdade são cruciais. Este seminário destaca a urgência de promover a alfabetização midiática para combater a desinformação. Restaurações de confiança dependem do engajamento e da inovação no jornalismo. O futuro informativo saudável exige um esforço conjunto para enfrentar a polarização e as fake news.</p>
+        </div>
+
+        <button class="zoom-button" onclick="showVideo()">Clique Aqui para Assistir o Vídeo!</button>
+
+        <!-- Overlay do vídeo -->
+        <div class="overlay" id="overlay">
+            <button class="close-button" onclick="hideVideo()">X</button>
+            <video controls>
+                <source src="URL_DO_SEU_VIDEO_AQUI.mp4" type="video/mp4">
+                Seu navegador não suporta o elemento de vídeo.
+            </video>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 - Seminário sobre Jornalismo e Desinformação</p>
+    </footer>
+
+    <!-- Iframe do SoundCloud com a música desejada -->
+    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1990205463&color=ff5500"></iframe>
+    <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif; font-weight: 100;">
+        <a href="https://soundcloud.com/lucas-mendonca-lemos" title="LUCAS MENDONCA LEMOS" target="_blank" style="color: #cccccc; text-decoration: none;">LUCAS MENDONCA LEMOS</a> · 
+        <a href="https://soundcloud.com/lucas-mendonca-lemos/e-o-gordinho-entao-pega-a-visao" title="é o gordinho então pega a visão" target="_blank" style="color: #cccccc; text-decoration: none;">é o gordinho então pega a visão</a>
+    </div>
+
+    <script>
+        function toggleContent(contentId) {
+            const content = document.getElementById(contentId);
+            const isVisible = content.classList.contains('show');
+            content.classList.toggle('show');
+
+            if (!isVisible) {
+                content.style.display = 'block';
+                setTimeout(() => {
+                    content.style.opacity = '1';
+                }, 20);
+            } else {
+                content.style.opacity = '0';
+                setTimeout(() => {
+                    content.style.display = 'none';
+                }, 200);
+            }
+        }
+
+        function createRain() {
+            const rainContainer = document.getElementById('rainContainer');
+            const words = ["FAKE NEWS", "FAKE NEWS", "FAKE NEWS", "FAKE NEWS", "FAKE NEWS"];
+            for (let i = 0; i < 50; i++) {
+                const word = document.createElement('div');
+                word.className = 'rain';
+                word.innerText = words[Math.floor(Math.random() * words.length)];
+                word.style.left = Math.random() * 100 + 'vw';
+                word.style.animationDuration = Math.random() * 3 + 2 + 's';
+                word.style.animationDelay = Math.random() * 5 + 's';
+                rainContainer.appendChild(word);
+            }
+        }
+
+        function showJumpScare() {
+            const jumpScare = document.createElement('div');
+            jumpScare.className = 'jump-scare';
+            jumpScare.innerText = 'POLÍTICA';
+            document.body.appendChild(jumpScare);
+            setTimeout(() => {
+                jumpScare.remove();
+            }, 1000);
+        }
+
+        // Função para mostrar o vídeo
+        function showVideo() {
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'flex'; // Exibe o overlay
+        }
+
+        // Função para esconder o vídeo
+        function hideVideo() {
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'none'; // Esconde o overlay
+        }
+
+        // Iniciar a chuva de palavras
+        createRain();
+        setInterval(showJumpScare, 5000);
+    </script>
+</body>
+  </html>
+  
