@@ -13,7 +13,7 @@
             color: #333;
             animation: fadeIn 1s;
             line-height: 1.8;
-            overflow: auto; /* Permite rolagem */
+            overflow: auto;
         }
         
         @keyframes fadeIn {
@@ -39,7 +39,7 @@
             position: relative;
             z-index: 1; 
         }
-        
+
         h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
@@ -75,17 +75,17 @@
             border-left: 5px solid #FF5733;
             border-radius: 4px;
             font-size: 1.1em;
-            overflow: hidden; /* Para animações de slide */
-            max-height: 0; /* Para controlar a animação de deslizar */
-            opacity: 0; /* Para animação de aparecer */
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
             transition: max-height 0.2s ease-out, padding 0.2s ease-out, opacity 0.2s ease-out;
         }
 
         .content.show {
             display: block;
-            max-height: 500px; /* Altura máxima para permitir a animação de deslizamento */
-            padding: 15px; /* Padding normal quando visível */
-            opacity: 1; /* Visível com animação de aparecer */
+            max-height: 500px;
+            padding: 15px;
+            opacity: 1;
         }
     
         footer {
@@ -163,15 +163,9 @@
         }
 
         @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-5px);
-            }
-            60% {
-                transform: translateY(-3px);
-            }
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+            60% { transform: translateY(-3px); }
         }
 
         /* Estilos para o overlay do vídeo */
@@ -181,18 +175,21 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8); /* Fundo escuro com opacidade */
-            display: none; /* Inicialmente escondido */
-            justify-content: center; /* Centraliza o vídeo */
-            align-items: center; /* Centraliza o vídeo */
-            z-index: 10; /* Deve estar acima do conteúdo */
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
         }
 
         .overlay video {
-            max-width: 90%; /* Limita a largura do vídeo */
-            max-height: 90%; /* Limita a altura do vídeo */
-            border-radius: 10px; /* Bordas arredondadas */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Sombra para destaque */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Faz o vídeo cobrir toda a área, mantendo a proporção */
+            border: none; /* Remove bordas se houver */
         }
 
         .close-button {
@@ -206,6 +203,7 @@
             padding: 10px;
             font-size: 1.5em;
             cursor: pointer;
+            z-index: 15; /* Deve estar acima do vídeo */
         }
     </style>
 </head>
@@ -268,7 +266,6 @@
         <p>&copy; 2025 - Seminário sobre Jornalismo e Desinformação</p>
     </footer>
 
-    <!-- Iframe do SoundCloud com a música desejada -->
     <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1990205463&color=ff5500"></iframe>
     <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif; font-weight: 100;">
         <a href="https://soundcloud.com/lucas-mendonca-lemos" title="LUCAS MENDONCA LEMOS" target="_blank" style="color: #cccccc; text-decoration: none;">LUCAS MENDONCA LEMOS</a> · 
@@ -335,5 +332,5 @@
         setInterval(showJumpScare, 5000);
     </script>
 </body>
-  </html>
-  
+            </html>
+            
