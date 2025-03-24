@@ -1,50 +1,262 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Snake Game</title>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-    />
-    <link rel="stylesheet" href="./src/styles/global.css" />
-  </head>
-  <body>
-    <div class="initial-menu">
-      <h1>Bem vindo ao Snake!</h1>
-      <input type="text" id="nickname" placeholder="Digite seu nome..." required />
-      <p class="error_text">Este campo não pode ficar em branco</p>
-      <select name="" id="" class="difficulty-game" required>
-        <option value="not" disabled selected>Selecione a Dificuldade</option>
-        <option value="easy">Fácil</option>
-        <option value="normal">Médio</option>
-        <option value="hard">Díficil</option>
-      </select>
-      <p class="error_text">Este campo não pode ficar em branco</p>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Cobrinha Incrível</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #202020;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            border: 2px solid #fff;
+            background-color: #000;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #score {
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        #gameOver {
+            display: none;
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            font-size: 32px;
+        }
+        .foodEffect {
+            position: absolute;
+            background-color: rgba(255, 0, 0, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: burst 0.5s forwards;
+        }
+        @keyframes burst {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
 
-      <button class="init_game">Jogar</button>
-    </div>
+<div id="score">Pontuação: 0 | Nível: 1</div>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+<button id="startButton">Start</button>
+<div id="gameOver">Game Over!<br><button id="restartButton">Tentar Novamente</button></div>
 
-    <header>
-      <h1>Nome: <span class="nickname_player"></span></h1>
-      <div class="score"><span class="score__value">00</span></div>
-    </header>
+<audio id="eatSound" src="https://www.soundjay.com/button/sounds/button-3.mp3" preload="auto"></audio>
+<audio id="gameOverSound" src="https://www.soundjay.com/button/sounds/button-10.mp3" preload="auto"></audio>
 
-    <div class="menu-screen">
-      <span class="game-over">game over</span>
-      <span class="final-score"
-        >score <span class="score_game_over">00</span></span
-      >
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-      <button class="btn-play">
-        <span class="material-symbols-outlined"> play_circle </span>
+    const box = 20;
+    let snake = [{ x: 9 * box, y: 9 * box }];
+    let direction = 'RIGHT';
+    let nextDirection = direction; // Direção futura para suavizar as mudanças
+    let food = spawnFood();
+    let score = 0;
+    let level = 1;
+    let foodsEaten = 0;
+    let game;
+    const maxLevel = 3;
 
-        Jogar novamente
-      </button>
-    </div>
+    const eatSound = document.getElementById('eatSound');
+    const gameOverSound = document.getElementById('gameOverSound');
 
-    <canvas></canvas>
-    <script src="./src/scripts/main.js" defer></script>
-  </body>
+    let lastTime;
+    const fps = 15; // FPS para animação
+    const frameInterval = 1000 / fps; 
+
+    document.addEventListener('keydown', documentKeyDown);
+    document.getElementById('startButton').addEventListener('click', startGame);
+    document.getElementById('restartButton').addEventListener('click', startGame);
+
+    function documentKeyDown(event) {
+        if (event.key === 'ArrowUp' && direction !== 'DOWN') {
+            nextDirection = 'UP';
+        } else if (event.key === 'ArrowDown' && direction !== 'UP') {
+            nextDirection = 'DOWN';
+        } else if (event.key === 'ArrowLeft' && direction !== 'RIGHT') {
+            nextDirection = 'LEFT';
+        } else if (event.key === 'ArrowRight' && direction !== 'LEFT') {
+            nextDirection = 'RIGHT';
+        }
+    }
+
+    function startGame() {
+        snake = [{ x: 9 * box, y: 9 * box }];
+        direction = 'RIGHT';
+        nextDirection = direction; // Inicializa a próxima direção
+        food = spawnFood();
+        score = 0;
+        level = 1;
+        foodsEaten = 0;
+        document.getElementById('score').innerText = `Pontuação: ${score} | Nível: ${level}`;
+        hideGameOver();
+        if (game) cancelAnimationFrame(game);
+        lastTime = Date.now();
+        game = requestAnimationFrame(draw);
+    }
+
+    function hideGameOver() {
+        document.getElementById('gameOver').style.display = 'none';
+    }
+
+    function showGameOver() {
+        document.getElementById('gameOver').style.display = 'block';
+        document.getElementById('gameOver').innerHTML = `Game Over!<br>Pontuação Final: ${score}<br><button id="restartButton">Tentar Novamente</button>`;
+    }
+
+    function spawnFood() {
+        return {
+            x: Math.floor(Math.random() * 20) * box,
+            y: Math.floor(Math.random() * 20) * box
+        };
+    }
+
+    function createFoodEffect(x, y) {
+        const foodEffect = document.createElement('div');
+        foodEffect.classList.add('foodEffect');
+        document.body.appendChild(foodEffect);
+        foodEffect.style.left = `${x}px`;
+        foodEffect.style.top = `${y}px`;
+        setTimeout(() => {
+            document.body.removeChild(foodEffect);
+        }, 500);
+    }
+
+    function draw() {
+        const now = Date.now();
+        const delta = now - lastTime;
+
+        if (delta < frameInterval) {
+            game = requestAnimationFrame(draw);
+            return;
+        }
+
+        lastTime = now;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBackground();
+        drawSnake();
+        drawFood();
+
+        let snakeX = snake[0].x;
+        let snakeY = snake[0].y;
+
+        // Atualizando a direção suavemente
+        direction = nextDirection;
+
+        if (direction === 'LEFT') snakeX -= box;
+        if (direction === 'UP') snakeY -= box;
+        if (direction === 'RIGHT') snakeX += box;
+        if (direction === 'DOWN') snakeY += box;
+
+        if (snakeX === food.x && snakeY === food.y) {
+            score += 20;
+            foodsEaten++;
+            eatSound.play();
+            createFoodEffect(food.x, food.y); // Efeito visual ao comer
+            food = spawnFood();
+
+            if (foodsEaten === 5) {
+                level++;
+                foodsEaten = 0; // Resetando o contador de alimentos
+                if (level > maxLevel) {
+                    cancelAnimationFrame(game);
+                    setTimeout(() => {
+                        alert('Você ganhou! Parabéns!');
+                    }, 100);
+                    return;
+                }
+            }
+        } else {
+            snake.pop(); // Remove a cauda da cobrinha
+        }
+
+        const newHead = { x: snakeX, y: snakeY };
+
+        if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
+            cancelAnimationFrame(game);
+            gameOverSound.play();
+            showGameOver();
+            return;
+        }
+
+        snake.unshift(newHead); // Adiciona a nova cabeça
+        document.getElementById('score').innerText = `Pontuação: ${score} | Nível: ${level}`;
+        game = requestAnimationFrame(draw); // Solicita a próxima animação
+    }
+
+    function drawBackground() {
+        switch (level) {
+            case 1:
+                ctx.fillStyle = '#1E1E1E';
+                break;
+            case 2:
+                ctx.fillStyle = '#3E3E3E';
+                break;
+            case 3:
+                ctx.fillStyle = '#5E5E5E';
+                break;
+        }
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawSnake() {
+        for (let i = 0; i < snake.length; i++) {
+            ctx.fillStyle = (i === 0) ? '#00FF00' : '#FFFFFF';
+            ctx.fillRect(snake[i].x, snake[i].y, box, box);
+        }
+    }
+
+    function drawFood() {
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(food.x, food.y, box, box);
+    }
+
+    function collision(head, array) {
+        for (let i = 0; i < array.length; i++) {
+            if (head.x === array[i].x && head.y === array[i].y) {
+                return true;
+            }
+        }
+        return false;
+    }
+</script>
+
+</body>
 </html>
