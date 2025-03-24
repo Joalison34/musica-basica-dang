@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Cobrinha Incrível</title>
+    <title>Jogo da Cobrinha</title>
     <style>
         body {
             display: flex;
@@ -16,10 +17,12 @@
             color: white;
             font-family: 'Arial', sans-serif;
         }
+
         canvas {
             border: 2px solid #fff;
             background-color: #000;
         }
+
         button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -30,13 +33,16 @@
             border: none;
             border-radius: 5px;
         }
+
         button:hover {
             background-color: #45a049;
         }
+
         #score {
             margin-bottom: 10px;
             font-size: 24px;
         }
+
         #gameOver {
             display: none;
             position: absolute;
@@ -48,8 +54,9 @@
             border-radius: 10px;
             text-align: center;
             color: white;
-            font-size: 32px;
+            font-size: 24px;
         }
+
         .foodEffect {
             position: absolute;
             background-color: rgba(255, 0, 0, 0.6);
@@ -57,208 +64,245 @@
             pointer-events: none;
             animation: burst 0.5s forwards;
         }
+
         @keyframes burst {
             0% {
                 transform: scale(1);
             }
+
             100% {
                 transform: scale(2);
                 opacity: 0;
             }
         }
+
+        .obstacle {
+            position: absolute;
+            background-color: rgba(200, 200, 0, 0.8);
+        }
+
+        #timer {
+            font-size: 24px;
+            margin-top: 15px;
+        }
     </style>
 </head>
+
 <body>
 
-<div id="score">Pontuação: 0 | Nível: 1</div>
-<canvas id="gameCanvas" width="400" height="400"></canvas>
-<button id="startButton">Start</button>
-<div id="gameOver">Game Over!<br><button id="restartButton">Tentar Novamente</button></div>
+    <div id="score">Pontuação: 0 | Nível: 1</div>
+    <div id="timer">Tempo: 0s</div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <button id="startButton">Iniciar</button>
+    <div id="gameOver">Game Over!<br><button id="restartButton">Tentar Novamente</button></div>
 
-<audio id="eatSound" src="https://www.soundjay.com/button/sounds/button-3.mp3" preload="auto"></audio>
-<audio id="gameOverSound" src="https://www.soundjay.com/button/sounds/button-10.mp3" preload="auto"></audio>
+    <audio id="eatSound" src="https://www.soundjay.com/button/sounds/button-3.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="https://www.soundjay.com/button/sounds/button-10.mp3" preload="auto"></audio>
 
-<script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-    const box = 20;
-    let snake = [{ x: 9 * box, y: 9 * box }];
-    let direction = 'RIGHT';
-    let nextDirection = direction; // Direção futura para suavizar as mudanças
-    let food = spawnFood();
-    let score = 0;
-    let level = 1;
-    let foodsEaten = 0;
-    let game;
-    const maxLevel = 3;
+        const box = 20;
+        let snake, direction, nextDirection, food, obstacles, score, level, foodsEaten, timer, game, lastTime;
+        const levelUpScore = 5; // Alimentos necessários para subir de nível
+        const maxLevel = 5;
+        const fps = 10;
+        const frameInterval = 1000 / fps;
+        const winningScore = 1000; // Pontuação para ganhar
+        let gameStarted = false; // Estado do jogo
 
-    const eatSound = document.getElementById('eatSound');
-    const gameOverSound = document.getElementById('gameOverSound');
+        document.addEventListener('keydown', documentKeyDown);
+        document.getElementById('startButton').addEventListener('click', startGame);
+        document.getElementById('restartButton').addEventListener('click', startGame);
 
-    let lastTime;
-    const fps = 11; // FPS ajustado para 9 para reduzir a velocidade
-    const frameInterval = 1000 / fps; 
-
-    document.addEventListener('keydown', documentKeyDown);
-    document.getElementById('startButton').addEventListener('click', startGame);
-    document.getElementById('restartButton').addEventListener('click', startGame);
-
-    function documentKeyDown(event) {
-        if (event.key === 'ArrowUp' && direction !== 'DOWN') {
-            nextDirection = 'UP';
-        } else if (event.key === 'ArrowDown' && direction !== 'UP') {
-            nextDirection = 'DOWN';
-        } else if (event.key === 'ArrowLeft' && direction !== 'RIGHT') {
-            nextDirection = 'LEFT';
-        } else if (event.key === 'ArrowRight' && direction !== 'LEFT') {
-            nextDirection = 'RIGHT';
-        }
-    }
-
-    function startGame() {
-        snake = [{ x: 9 * box, y: 9 * box }];
-        direction = 'RIGHT';
-        nextDirection = direction; // Inicializa a próxima direção
-        food = spawnFood();
-        score = 0;
-        level = 1;
-        foodsEaten = 0;
-        document.getElementById('score').innerText = `Pontuação: ${score} | Nível: ${level}`;
-        hideGameOver();
-        if (game) cancelAnimationFrame(game);
-        lastTime = Date.now();
-        game = requestAnimationFrame(draw);
-    }
-
-    function hideGameOver() {
-        document.getElementById('gameOver').style.display = 'none';
-    }
-
-    function showGameOver() {
-        document.getElementById('gameOver').style.display = 'block';
-        document.getElementById('gameOver').innerHTML = `Game Over!<br>Pontuação Final: ${score}<br><button id="restartButton">Tentar Novamente</button>`;
-    }
-
-    function spawnFood() {
-        return {
-            x: Math.floor(Math.random() * 20) * box,
-            y: Math.floor(Math.random() * 20) * box
-        };
-    }
-
-    function createFoodEffect(x, y) {
-        const foodEffect = document.createElement('div');
-        foodEffect.classList.add('foodEffect');
-        document.body.appendChild(foodEffect);
-        foodEffect.style.left = `${x}px`;
-        foodEffect.style.top = `${y}px`;
-        setTimeout(() => {
-            document.body.removeChild(foodEffect);
-        }, 500);
-    }
-
-    function draw() {
-        const now = Date.now();
-        const delta = now - lastTime;
-
-        // Se o tempo decorrido for menor que o intervalo, retorna
-        if (delta < frameInterval) {
-            game = requestAnimationFrame(draw);
-            return;
+        function documentKeyDown(event) {
+            if (!gameStarted) return; // Ignorar controle se o jogo não iniciou
+            if (event.key === 'ArrowUp' && direction !== 'DOWN') {
+                nextDirection = 'UP';
+            } else if (event.key === 'ArrowDown' && direction !== 'UP') {
+                nextDirection = 'DOWN';
+            } else if (event.key === 'ArrowLeft' && direction !== 'RIGHT') {
+                nextDirection = 'LEFT';
+            } else if (event.key === 'ArrowRight' && direction !== 'LEFT') {
+                nextDirection = 'RIGHT';
+            }
         }
 
-        lastTime = now;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawBackground();
-        drawSnake();
-        drawFood();
-
-        let snakeX = snake[0].x;
-        let snakeY = snake[0].y;
-
-        // Atualizando a direção suavemente
-        direction = nextDirection;
-
-        // Mapeia a nova posição da cobra
-        if (direction === 'LEFT') snakeX -= box;
-        if (direction === 'UP') snakeY -= box;
-        if (direction === 'RIGHT') snakeX += box;
-        if (direction === 'DOWN') snakeY += box;
-
-        if (snakeX === food.x && snakeY === food.y) {
-            score += 20;
-            foodsEaten++;
-            eatSound.play();
-            createFoodEffect(food.x, food.y); // Efeito visual ao comer
+        function startGame() {
+            snake = [{ x: 9 * box, y: 9 * box }];
+            direction = 'RIGHT';
+            nextDirection = direction;
             food = spawnFood();
+            obstacles = spawnObstacles();
+            score = 0;
+            level = 1;
+            foodsEaten = 0;
+            timer = 0; // Resetando o temporizador
+            document.getElementById('score').innerText = `Pontuação: ${score} | Nível: ${level}`;
+            document.getElementById('timer').innerText = `Tempo: ${timer}s`;
+            document.getElementById('gameOver').style.display = 'none';
+            gameStarted = true; // O jogo começou
+            if (game) cancelAnimationFrame(game);
+            lastTime = Date.now();
+            game = requestAnimationFrame(draw);
+        }
 
-            if (foodsEaten === 5) {
-                level++;
-                foodsEaten = 0; // Resetando o contador de alimentos
-                if (level > maxLevel) {
-                    cancelAnimationFrame(game);
-                    setTimeout(() => {
-                        alert('Você ganhou! Parabéns!');
-                    }, 100);
-                    return;
+        function showGameOver() {
+            gameStarted = false; // O jogo parou
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('gameOver').innerHTML = `Game Over!<br>Pontuação Final: ${score}<br><button id="restartButton">Tentar Novamente</button>`;
+        }
+
+        function spawnFood() {
+            return {
+                x: Math.floor(Math.random() * (canvas.width / box)) * box,
+                y: Math.floor(Math.random() * (canvas.height / box)) * box
+            };
+        }
+
+        function spawnObstacles() {
+            const obstacleCount = Math.floor(level + 2); // Aumenta obstáculo em cada nível
+            const obstacles = [];
+            for (let i = 0; i < obstacleCount; i++) {
+                obstacles.push({
+                    x: Math.floor(Math.random() * (canvas.width / box)) * box,
+                    y: Math.floor(Math.random() * (canvas.height / box)) * box
+                });
+            }
+            return obstacles;
+        }
+
+        function createFoodEffect(x, y) {
+            const foodEffect = document.createElement('div');
+            foodEffect.classList.add('foodEffect');
+            document.body.appendChild(foodEffect);
+            foodEffect.style.left = `${x}px`;
+            foodEffect.style.top = `${y}px`;
+            setTimeout(() => {
+                document.body.removeChild(foodEffect);
+            }, 500);
+        }
+
+        function draw() {
+            const now = Date.now();
+            const delta = now - lastTime;
+
+            if (delta < frameInterval) {
+                game = requestAnimationFrame(draw);
+                return;
+            }
+
+            lastTime = now;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            drawSnake();
+            drawFood();
+            drawObstacles();
+
+            const snakeX = snake[0].x;
+            const snakeY = snake[0].y;
+
+            direction = nextDirection;
+            let newHead;
+
+            if (direction === 'LEFT') newHead = { x: snakeX - box, y: snakeY };
+            if (direction === 'UP') newHead = { x: snakeX, y: snakeY - box };
+            if (direction === 'RIGHT') newHead = { x: snakeX + box, y: snakeY };
+            if (direction === 'DOWN') newHead = { x: snakeX, y: snakeY + box };
+
+            // Comendo comida
+            if (snakeX === food.x && snakeY === food.y) {
+                score += 20;
+                foodsEaten++;
+                eatSound.play();
+                createFoodEffect(food.x, food.y);
+                food = spawnFood();
+
+                if (foodsEaten === levelUpScore) {
+                    level++;
+                    foodsEaten = 0;
+
+                    // Limita o nível máximo
+                    if (level > maxLevel) {
+                        cancelAnimationFrame(game);
+                        setTimeout(() => {
+                            alert('Você ganhou! Parabéns!');
+                        }, 100);
+                        return;
+                    }
+                }
+            } else {
+                snake.pop(); // Retira a cauda da cobra se não comeu
+            }
+
+            if (collision(newHead, snake) || collisionObstacles(newHead)) {
+                cancelAnimationFrame(game);
+                gameOverSound.play();
+                showGameOver();
+                return;
+            }
+
+            snake.unshift(newHead);
+            document.getElementById('score').innerText = `Pontuação: ${score} | Nível: ${level}`;
+            document.getElementById('timer').innerText = `Tempo: ${Math.floor(timer / 1000)}s`;
+
+            // Verificar se o jogador ganhou
+            if (score >= winningScore) {
+                cancelAnimationFrame(game);
+                setTimeout(() => {
+                    alert('Você ganhou! Parabéns!');
+                }, 100);
+                return;
+            }
+
+            timer += frameInterval; // Atualiza o tempo
+            game = requestAnimationFrame(draw);
+        }
+
+        function drawBackground() {
+            ctx.fillStyle = '#000'; // Cor de fundo
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawSnake() {
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = (i === 0) ? '#00FF00' : '#FFFFFF'; // Cor da cabeça e corpo
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+            }
+        }
+
+        function drawFood() {
+            ctx.fillStyle = '#FF0000'; // Cor da comida
+            ctx.fillRect(food.x, food.y, box, box);
+        }
+
+        function drawObstacles() {
+            ctx.fillStyle = '#FFFF00'; // Cor dos obstáculos
+            for (let obstacle of obstacles) {
+                ctx.fillRect(obstacle.x, obstacle.y, box, box);
+            }
+        }
+
+        function collision(head, array) {
+            for (let i = 0; i < array.length; i++) {
+                if (head.x === array[i].x && head.y === array[i].y) {
+                    return true;
                 }
             }
-        } else {
-            snake.pop(); // Remove a cauda da cobrinha
+            return false;
         }
 
-        const newHead = { x: snakeX, y: snakeY };
-
-        if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
-            cancelAnimationFrame(game);
-            gameOverSound.play();
-            showGameOver();
-            return;
-        }
-
-        snake.unshift(newHead); // Adiciona a nova cabeça
-        document.getElementById('score').innerText = `Pontuação: ${score} | Nível: ${level}`;
-        game = requestAnimationFrame(draw); // Solicita a próxima animação
-    }
-
-    function drawBackground() {
-        switch (level) {
-            case 1:
-                ctx.fillStyle = '#1E1E1E';
-                break;
-            case 2:
-                ctx.fillStyle = '#3E3E3E';
-                break;
-            case 3:
-                ctx.fillStyle = '#5E5E5E';
-                break;
-        }
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function drawSnake() {
-        for (let i = 0; i < snake.length; i++) {
-            ctx.fillStyle = (i === 0) ? '#00FF00' : '#FFFFFF';
-            ctx.fillRect(snake[i].x, snake[i].y, box, box);
-        }
-    }
-
-    function drawFood() {
-        ctx.fillStyle = '#FF0000';
-        ctx.fillRect(food.x, food.y, box, box);
-    }
-
-    function collision(head, array) {
-        for (let i = 0; i < array.length; i++) {
-            if (head.x === array[i].x && head.y === array[i].y) {
-                return true;
+        function collisionObstacles(head) {
+            for (let obstacle of obstacles) {
+                if (head.x === obstacle.x && head.y === obstacle.y) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
-    }
-</script>
+    </script>
 
 </body>
+
 </html>
