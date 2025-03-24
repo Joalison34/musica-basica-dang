@@ -97,7 +97,7 @@
     const gameOverSound = document.getElementById('gameOverSound');
 
     let lastTime;
-    const fps = 15; // FPS para animação
+    const fps = 11; // FPS ajustado para 9 para reduzir a velocidade
     const frameInterval = 1000 / fps; 
 
     document.addEventListener('keydown', documentKeyDown);
@@ -162,6 +162,7 @@
         const now = Date.now();
         const delta = now - lastTime;
 
+        // Se o tempo decorrido for menor que o intervalo, retorna
         if (delta < frameInterval) {
             game = requestAnimationFrame(draw);
             return;
@@ -180,6 +181,7 @@
         // Atualizando a direção suavemente
         direction = nextDirection;
 
+        // Mapeia a nova posição da cobra
         if (direction === 'LEFT') snakeX -= box;
         if (direction === 'UP') snakeY -= box;
         if (direction === 'RIGHT') snakeX += box;
