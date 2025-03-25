@@ -49,15 +49,21 @@
         h2 {
             color: #2ecc71;
             margin-top: 25px;
-            border-bottom: 2px solid #2ecc71;
             padding-bottom: 8px;
+            padding-left: 40px;
+            border-left: 5px solid #27ae60;
+            transition: color 0.3s, transform 0.2s, box-shadow 0.3s;
+            position: relative;
+            display: inline-block;
+            font-size: 1.5em;
             cursor: pointer;
-            transition: color 0.3s, transform 0.2s;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
         
         h2:hover {
             color: #27ae60;
             animation: shake 0.5s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         @keyframes shake {
@@ -73,13 +79,13 @@
             margin: 20px 0;
             padding: 18px;
             background-color: #d9f7d9;
-            border-left: 5px solid #2ecc71;
             border-radius: 6px;
             font-size: 1.1em;
             overflow: hidden;
             max-height: 0;
             opacity: 0;
             transition: max-height 0.2s ease-out, padding 0.2s ease-out, opacity 0.2s ease-out;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .content.show {
@@ -206,42 +212,42 @@
     <div class="rain-container" id="rainContainer"></div>
 
     <main>
-        <h2 onclick="toggleContent('introContent')">Introdução</h2>
+        <h2 onclick="toggleContent('introContent')">📖 Introdução</h2>
         <div class="content" id="introContent">
             <p>A polarização política e a disseminação de fake news estão afetando gravemente a confiança nos veículos jornalísticos. Este fenômeno se reflete em como as pessoas consomem informações, especialmente nas redes sociais. A polarização pode influenciar o endosso a notícias falsas, aumentando a desinformação. Indivíduos tendem a acreditar em notícias que reforçam suas crenças, criando bolhas informativas. Esse cenário demandará novos métodos de engajamento e reconquista de credibilidade da mídia.</p>
         </div>
 
-        <h2 onclick="toggleContent('pesquisaContent')">Pesquisa do Instituto Reuters</h2>
+        <h2 onclick="toggleContent('pesquisaContent')">📊 Pesquisa do Instituto Reuters</h2>
         <div class="content" id="pesquisaContent">
             <p>O Relatório de Notícias Digitais 2019 revela que 85% dos brasileiros se preocupam com a veracidade das notícias. Este estudo, realizado em 38 países, mostra que a desconfiança nas informações é um fenômeno global. O Brasil destaca-se como a nação mais preocupada com fake news, seguida por países como Reino Unido e EUA. O relatório sugere que a polarização política contribui para essa desconfiança. A pesquisa revela também que muitas pessoas evitam veículos de notícias com reputação questionável.</p>
         </div>
 
-        <h2 onclick="toggleContent('confiancaContent')">Redução da Confiança</h2>
+        <h2 onclick="toggleContent('confiancaContent')">🔒 Redução da Confiança</h2>
         <div class="content" id="confiancaContent">
             <p>A confiança nos veículos de comunicação caiu para 42%, com apenas 33% confiando em mecanismos de busca, como Google. A polarização exacerba essa desconfiança, refletindo uma crise de credibilidade nas informações online. Uma pesquisa indicou que 32% dos entrevistados evitam notícias, impactados pela sensação de impotência em relação aos fatos. A comparação entre países mostra uma confiança ainda menor em lugares como a França. Esses dados revelam a necessidade urgente de restaurar a confiança na mídia.</p>
         </div>
 
-        <h2 onclick="toggleContent('conteudoPagoContent')">Conteúdo Pago</h2>
+        <h2 onclick="toggleContent('conteudoPagoContent')">💳 Conteúdo Pago</h2>
         <div class="content" id="conteudoPagoContent">
             <p>O consumo pago de serviços noticiosos aumentou modestamente, com a maioria das assinaturas direcionadas ao entretenimento. Em países nórdicos como Noruega e Suécia, a adesão a serviços noticiosos pagos é maior. No entanto, a concentração em poucos serviços mostra um comportamento econômico de "vencedor-leva-tudo". Essa tendência tem implicações sobre a forma como as notícias são consumidas e a confiança atribuída ao conteúdo. A preferência por entretenimento evidencia um desafio para as organizações de mídia.</p>
         </div>
 
-        <h2 onclick="toggleContent('redesSociaisContent')">O Papel das Redes Sociais</h2>
+        <h2 onclick="toggleContent('redesSociaisContent')">📱 O Papel das Redes Sociais</h2>
         <div class="content" id="redesSociaisContent">
             <p>O WhatsApp se tornou a principal fonte de notícias para 53% dos brasileiros, transformando o consumo informativo em algo mais particular. Essa mudança levanta questões sobre a disseminação de fake news em um espaço menos regulado. A prática de se informar em grandes grupos de redes sociais também se faz presente, impactando a qualidade da informação. Essa centralização no WhatsApp exacerba o risco de desinformação nas eleições e outros eventos críticos. O cenário enfatiza a necessidade de alfabetização midiática.</p>
         </div>
 
-        <h2 onclick="toggleContent('polarizacaoContent')">O Impacto da Polarização Política</h2>
+        <h2 onclick="toggleContent('polarizacaoContent')">⚖️ O Impacto da Polarização Política</h2>
         <div class="content" id="polarizacaoContent">
             <p>A polarização política causa um afastamento significativo entre grupos ideológicos e influencia a crença em fake news. Um estudo revelou que indivíduos tendem a acreditar em notícias falsas que corroboram suas crenças partidárias. Participantes com orientações políticas mais extremas demonstraram maior tendência a endossar fake news, especialmente entre os de direita. Essa dinâmica prejudica o debate público e requer esforços para restaurar a confiança no jornalismo. As implicações para o combate às fake news são fundamentais nesse contexto.</p>
         </div>
 
-        <h2 onclick="toggleContent('conclusaoContent')">Conclusão</h2>
+        <h2 onclick="toggleContent('conclusaoContent')">📅 Conclusão</h2>
         <div class="content" id="conclusaoContent">
             <p>É essencial que as organizações de mídia adotem práticas transparentes e reflitam sobre como reconquistar a confiança do público. A pluralidade de opiniões e o compromisso com a verdade são cruciais. Este seminário destaca a urgência de promover a alfabetização midiática para combater a desinformação. Restaurações de confiança dependem do engajamento e da inovação no jornalismo. O futuro informativo saudável exige um esforço conjunto para enfrentar a polarização e as fake news.</p>
         </div>
 
-        <button class="zoom-button" onclick="showVideo()">FIM!!!</button>
+        <button class="zoom-button" onclick="showVideo()">📺 FIM!!!</button>
 
         <!-- Overlay do vídeo -->
         <div class="overlay" id="overlay">
