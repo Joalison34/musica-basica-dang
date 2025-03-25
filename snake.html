@@ -97,7 +97,7 @@
     <div id="gameOver">Game Over!<br><button id="restartButton">Tentar Novamente</button></div>
 
     <audio id="eatSound" src="https://www.soundjay.com/button/sounds/button-3.mp3" preload="auto"></audio>
-    <audio id="gameOverSound" src="https://www.soundjay.com/button/sounds/button-10.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="https://www.soundjay.com/button/sounds/button-10.mp3" preload="auto"></audio">
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -300,6 +300,107 @@
                 }
             }
             return false;
+        }
+
+        // Funções adicionais
+        function reverseControls() {
+            direction = nextDirection; // Inverte a direção da cobra
+        }
+
+        function growSnake() {
+            snake.push({ ...snake[snake.length - 1] }); // Aumenta o tamanho da cobra
+        }
+
+        function speedBoost() {
+            if (fps < 20) {
+                fps += 2; // Aumenta a velocidade
+            }
+        }
+
+        function slowDown() {
+            if (fps > 5) {
+                fps -= 2; // Diminui a velocidade
+            }
+        }
+
+        function spawnSpeedFood() {
+            food = spawnFood(); // Gera comida especial que aumenta a velocidade
+            food.speedBoost = true;
+        }
+
+        function spawnObstacle() {
+            const newObstacle = {
+                x: Math.floor(Math.random() * (canvas.width / box)) * box,
+                y: Math.floor(Math.random() * (canvas.height / box)) * box
+            };
+            obstacles.push(newObstacle);
+        }
+
+        function shrinkSnake() {
+            if (snake.length > 1) {
+                snake.pop(); // Remove um segmento da cobra
+            }
+        }
+
+        function drawPowerUps() {
+            // Lógica para desenhar power-ups
+        }
+
+        function collectPowerUp(head) {
+            // Lógica para coletar power-ups
+        }
+
+        function spawnShrinkFood() {
+            food = spawnFood(); // Gera comida que diminui o tamanho da cobra
+            food.shrink = true;
+        }
+
+        function playThemeMusic() {
+            const themeMusic = new Audio('path/to/music.mp3'); // Música de tema
+            themeMusic.loop = true;
+            themeMusic.play();
+        }
+
+        function togglePause() {
+            if (gameStarted) {
+                gameStarted = false;
+                cancelAnimationFrame(game);
+            } else {
+                gameStarted = true;
+                game = requestAnimationFrame(draw);
+            }
+        }
+
+        function updatePlaneteryEffects() {
+            // Lógica para atualização de efeitos planetários (gráficos)
+        }
+
+        function checkForMultipleCollisions(head) {
+            // Lógica para checar múltiplas colisões
+        }
+
+        function resetGame() {
+            score = 0;
+            level = 1;
+            foodsEaten = 0;
+            timer = 0;
+            obstacles = spawnObstacles();
+        }
+
+        function showLeaderboard() {
+            // Implemente lógica para mostrar a tabela de pontuação
+        }
+
+        function saveScore() {
+            // Lógica para salvar a pontuação do jogador
+        }
+
+        function animateBackground() {
+            // Lógica para animação de fundo no jogo
+        }
+
+        function spawnTimeBonus() {
+            // Gera bônus de tempo
         }
     </script>
 
