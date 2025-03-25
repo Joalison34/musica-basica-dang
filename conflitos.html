@@ -13,6 +13,7 @@
             color: #2c3e50;
             line-height: 1.7;
             overflow: auto;
+            transition: background 0.3s, color 0.3s;
         }
         
         header {
@@ -21,11 +22,23 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transition: background 0.3s, color 0.3s;
         }
-        
+
         h1 {
             font-size: 2.8em;
             margin: 0;
+            color: inherit;  /* Herdar a cor do modo */
+        }
+
+        /* Modo Claro */
+        .light h1 {
+            color: #2c3e50; /* Preto no modo claro */
+        }
+
+        /* Modo Escuro e Escuro Turbo */
+        .dark h1, .dark-turbo h1 {
+            color: #ffffff; /* Branco no modo escuro */
         }
 
         nav {
@@ -34,10 +47,11 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             padding: 10px;
             border-radius: 6px;
+            transition: background 0.3s;
         }
 
         nav a {
-            color: #2ecc71;
+            color: #2ecc71; /* Cor dos links padrão */
             margin: 0 15px;
             text-decoration: none;
             font-weight: bold;
@@ -49,17 +63,32 @@
             transform: scale(1.1);
         }
 
+        .search-box {
+            margin: 20px;
+            text-align: center;
+        }
+
+        .search-box input {
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            border: 2px solid #2ecc71;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
         main {
             padding: 30px;
             max-width: 900px;
             margin: auto;
-            background: white;
+            background: white; /* Mantém o fundo branco */
             border-radius: 12px;
             box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s;
         }
 
         h2 {
-            color: #2ecc71;
+            color: #2ecc71; /* Cor dos subtítulos padrão */
             margin-top: 25px;
             padding-bottom: 8px;
             padding-left: 40px;
@@ -91,7 +120,7 @@
             opacity: 1;
             padding: 18px;
         }
-    
+
         footer {
             text-align: center;
             margin-top: 30px;
@@ -99,6 +128,7 @@
             font-size: 0.95em;
             background: linear-gradient(to right, #2ecc71, #27ae60);
             color: white;
+            transition: background 0.3s;
         }
 
         .zoom-button {
@@ -152,25 +182,74 @@
             z-index: 15;
         }
 
-        /* Estilos do jump scare */
-        .jump-scare {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #27ae60;
-            font-size: 5em;
-            font-weight: bold;
-            opacity: 1;
-            z-index: 10;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
+        /* Modo Claro */
+        .light {
+            --bg-color: #e3f2fd;
+            --text-color: #2c3e50;
+            --nav-bg: #ffffff;
+            --footer-bg: linear-gradient(to right, #2ecc71, #27ae60);
+        }
+
+        /* Modo Escuro */
+        .dark {
+            --bg-color: #333;
+            --text-color: #1a1a1a;
+            --nav-bg: #444;
+            --footer-bg: #555;
+        }
+
+        /* Modo Escuro Turbo */
+        .dark-turbo {
+            --bg-color: #000;
+            --text-color: #1a1a1a;
+            --nav-bg: #1a1a1a;
+            --footer-bg: #2a2a2a;
+        }
+
+        body, header, nav, footer, main {
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        nav {
+            background: var(--nav-bg);
+        }
+
+        footer {
+            background: var(--footer-bg);
+        }
+
+        .footer-highlight {
+            color: #ffffff; /* Branco forte no modo claro */
+        }
+
+        .dark .footer-highlight {
+            color: #ffffff; /* Branco forte no modo escuro */
+        }
+
+        .dark-turbo .footer-highlight {
+            color: #f0f0f0; /* Branco ainda mais forte no modo super escuro */
+        }
+
+        .title-highlight {
+            color: #ffffff; /* Branco forte no modo claro */
+        }
+
+        .dark .title-highlight {
+            color: #ffffff; /* Branco forte no modo escuro */
+        }
+
+        .dark-turbo .title-highlight {
+            color: #f0f0f0; /* Branco ainda mais forte no modo super escuro */
         }
     </style>
 </head>
-<body>
+<body class="light">
     <header>
         <h1>Seminário: Polarização Política e Fake News</h1>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar tópicos..." onkeyup="filterTopics()">
+        </div>
         <nav>
             <a href="#intro">Introdução</a>
             <a href="#pesquisa">Pesquisa do Instituto Reuters</a>
@@ -180,6 +259,11 @@
             <a href="#polarizacao">Impacto da Polarização</a>
             <a href="#conclusao">Conclusão</a>
         </nav>
+        <div style="margin-top: 10px;">
+            <button onclick="setLightMode()">🌞 Modo Claro</button>
+            <button onclick="setDarkMode()">🌙 Modo Escuro</button>
+            <button onclick="setDarkTurboMode()">🌑 Modo Escuro Turbo</button>
+        </div>
     </header>
 
     <main>
@@ -231,7 +315,10 @@
     </main>
     
     <footer>
-        <p>&copy; 2025 - Seminário, as revoluções são as festas dos oprimidos e explorados -Vladimir lênin-</p>
+        <p>
+            <span class="footer-highlight">© 2025 -</span> 
+            <span class="footer-highlight">Seminário, as revoluções são as festas dos oprimidos e explorados -Vladimir Lênin-</span>
+        </p>
     </footer>
 
     <script>
@@ -253,6 +340,35 @@
                     content.style.display = 'none';
                 }, 300);
             }
+        }
+
+        function filterTopics() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const h2s = document.querySelectorAll('main h2');
+
+            h2s.forEach(h2 => {
+                const text = h2.innerText.toLowerCase();
+                if (text.includes(filter)) {
+                    h2.style.display = '';
+                } else {
+                    h2.style.display = 'none';
+                    const content = document.getElementById(h2.id + 'Content');
+                    content.classList.remove('show'); // Esconde conteúdo se o tópico estiver oculto
+                }
+            });
+        }
+
+        function setLightMode() {
+            document.body.className = 'light';
+        }
+
+        function setDarkMode() {
+            document.body.className = 'dark';
+        }
+
+        function setDarkTurboMode() {
+            document.body.className = 'dark-turbo';
         }
 
         // Função para mostrar o vídeo
