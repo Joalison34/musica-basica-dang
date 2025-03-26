@@ -6,210 +6,377 @@
     <title>Seminário: Polarização Política e Fake News</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Verdana', sans-serif;
+            background: linear-gradient(to bottom right, #e3f2fd, #bbdefb);
             margin: 0;
             padding: 0;
-            color: #333;
-            animation: fadeIn 1s;
-            line-height: 1.8;
-            overflow: auto; /* Permite rolagem */
+            color: #2c3e50;
+            line-height: 1.7;
+            overflow: auto;
+            transition: background 0.3s, color 0.3s;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        
         header {
-            background-color: #FF5733;
+            background: linear-gradient(to right, #2ecc71, #27ae60);
             color: white;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transition: background 0.3s, color 0.3s;
         }
-        main {
-            padding: 20px;
-            max-width: 800px;
-            margin: auto;
-            background: #f9d5d5;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 1; 
-        }
+
         h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2.8em;
+            margin: 0;
+            color: inherit;  /* Herdar a cor do modo */
         }
+
+        nav {
+            margin-top: 10px;
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        nav a {
+            color: #2ecc71; /* Cor dos links padrão */
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s, transform 0.2s;
+        }
+
+        nav a:hover {
+            color: #27ae60;
+            transform: scale(1.1);
+        }
+
+        .search-box {
+            margin: 20px;
+            text-align: center;
+        }
+
+        .search-box input {
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            border: 2px solid #2ecc71;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        main {
+            padding: 30px;
+            max-width: 900px;
+            margin: auto;
+            background: white; /* Mantém o fundo branco */
+            border-radius: 12px;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s;
+        }
+
         h2 {
-            color: #FF5733;
-            margin-top: 20px;
-            border-bottom: 2px solid #FF5733;
-            padding-bottom: 5px;
+            color: #2ecc71; /* Cor dos subtítulos padrão */
+            margin-top: 25px;
+            padding-bottom: 8px;
+            padding-left: 40px;
+            border-left: 5px solid #27ae60;
+            transition: color 0.3s, transform 0.2s;
+            font-size: 1.5em;
             cursor: pointer;
-            transition: color 0.3s;
         }
+
         h2:hover {
-            color: #c74b2b;
+            color: #27ae60;
+            transform: translateX(5px);
         }
+
         .content {
             display: none;
-            line-height: 1.6;
-            margin: 15px 0;
-            padding: 15px;
-            background-color: #ffe5e5;
-            border-left: 5px solid #FF5733;
-            border-radius: 4px;
-            font-size: 1.1em;
-            transition: max-height 0.2s ease-out;
+            padding: 18px;
+            background: rgba(0, 150, 136, 0.1); /* Um leve tom de verde */
+            border-radius: 6px;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease-out, padding 0.2s ease-out, opacity 0.3s ease-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
+
+        .content.show {
+            display: block;
+            max-height: 500px;
+            opacity: 1;
+            padding: 18px;
+        }
+
         footer {
             text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            font-size: 0.9em;
+            margin-top: 30px;
+            padding: 12px;
+            font-size: 0.95em;
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: white;
+            transition: background 0.3s;
         }
-        .rain-container {
-            position: absolute;
+
+        .zoom-button {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 22px;
+            background: linear-gradient(to right, #ff6f61, #ff4f3d); /* Alterado para um novo gradiente */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.3em;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Adicionando sombra */
+        }
+
+        .zoom-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); /* Efeito de hover mais forte */
+        }
+
+        /* Overlay do vídeo */
+        .overlay {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; 
-            overflow: hidden;
-            z-index: 0; 
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
         }
-        .rain {
+
+        .overlay video {
+            width: 100%;
+            height: auto;
+        }
+
+        .close-button {
             position: absolute;
-            color: black; 
-            font-weight: bold; 
-            font-size: 2em; 
-            white-space: nowrap;
-            opacity: 0; 
-            animation: rain-fall 3s infinite; 
+            top: 20px;
+            right: 20px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 15;
         }
 
-        @keyframes rain-fall {
-            0% { top: -10%; opacity: 1; }
-            100% { top: 100%; opacity: 0; }
+        /* Modo Claro */
+        .light {
+            --bg-color: #e3f2fd;
+            --text-color: #2c3e50;
+            --nav-bg: #ffffff;
+            --footer-bg: linear-gradient(to right, #2ecc71, #27ae60);
         }
 
-        /* Animação Jumpscare */
-        .jump-scare {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 5em; 
-            color: red; 
-            opacity: 1;
-            animation: jump 0.5s forwards, fade 0.5s forwards 0.5s;
-            z-index: 10; 
+        /* Modo Escuro */
+        .dark {
+            --bg-color: #333;
+            --text-color: #1a1a1a;
+            --nav-bg: #444;
+            --footer-bg: #555;
         }
 
-        @keyframes jump {
-            0% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.2); }
-            100% { transform: translate(-50%, -50%) scale(1); }
+        /* Modo Escuro Turbo */
+        .dark-turbo {
+            --bg-color: #000;
+            --text-color: #1a1a1a;
+            --nav-bg: #1a1a1a;
+            --footer-bg: #2a2a2a;
         }
 
-        @keyframes fade {
-            from { opacity: 1; }
-            to { opacity: 0; }
+        body, header, nav, footer, main {
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        nav {
+            background: var(--nav-bg);
+        }
+
+        footer {
+            background: var(--footer-bg);
+        }
+
+        .footer-highlight {
+            color: #ffffff; /* Branco forte no modo claro */
+        }
+
+        .dark .footer-highlight {
+            color: #ffffff; /* Branco forte no modo escuro */
+        }
+
+        .dark-turbo .footer-highlight {
+            color: #f0f0f0; /* Branco ainda mais forte no modo super escuro */
+        }
+
+        .title-highlight {
+            color: #ffffff; /* Branco forte no modo claro */
+        }
+
+        .dark .title-highlight {
+            color: #ffffff; /* Branco forte no modo escuro */
+        }
+
+        .dark-turbo .title-highlight {
+            color: #f0f0f0; /* Branco ainda mais forte no modo super escuro */
         }
     </style>
 </head>
-<body>
+<body class="light">
+    <audio autoplay loop>
+        <source src="path/to/your/musicfile.mp3" type="audio/mpeg">
+        Seu navegador não suporta a reprodução de áudio.
+    </audio>
     <header>
         <h1>Seminário: Polarização Política e Fake News</h1>
-        <p>Impacto na Confiança no Jornalismo</p>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar tópicos..." onkeyup="filterTopics()">
+        </div>
+        <nav>
+            <a href="#intro">Introdução</a>
+            <a href="#pesquisa">Pesquisa do Instituto Reuters</a>
+            <a href="#confianca">Redução da Confiança</a>
+            <a href="#conteudoPago">Conteúdo Pago</a>
+            <a href="#redesSociais">O Papel das Redes Sociais</a>
+            <a href="#polarizacao">Impacto da Polarização</a>
+            <a href="#conclusao">Conclusão</a>
+        </nav>
+        <div style="margin-top: 10px;">
+            <button onclick="setLightMode()">🌞 Modo Claro</button>
+            <button onclick="setDarkMode()">🌙 Modo Escuro</button>
+            <button onclick="setDarkTurboMode()">🌑 Modo Escuro Turbo</button>
+        </div>
     </header>
 
-    <div class="rain-container" id="rainContainer"></div>
-
     <main>
-        <h2 onclick="toggleContent('introContent')">Introdução</h2>
+        <h2 id="intro" onclick="toggleContent('introContent')">📖 Introdução</h2>
         <div class="content" id="introContent">
             <p>A polarização política e a disseminação de fake news estão afetando gravemente a confiança nos veículos jornalísticos. Este fenômeno se reflete em como as pessoas consomem informações, especialmente nas redes sociais. A polarização pode influenciar o endosso a notícias falsas, aumentando a desinformação. Indivíduos tendem a acreditar em notícias que reforçam suas crenças, criando bolhas informativas. Esse cenário demandará novos métodos de engajamento e reconquista de credibilidade da mídia.</p>
         </div>
-        
-        <h2 onclick="toggleContent('pesquisaContent')">Pesquisa do Instituto Reuters</h2>
+
+        <h2 id="pesquisa" onclick="toggleContent('pesquisaContent')">📊 Pesquisa do Instituto Reuters</h2>
         <div class="content" id="pesquisaContent">
             <p>O Relatório de Notícias Digitais 2019 revela que 85% dos brasileiros se preocupam com a veracidade das notícias. Este estudo, realizado em 38 países, mostra que a desconfiança nas informações é um fenômeno global. O Brasil destaca-se como a nação mais preocupada com fake news, seguida por países como Reino Unido e EUA. O relatório sugere que a polarização política contribui para essa desconfiança. A pesquisa revela também que muitas pessoas evitam veículos de notícias com reputação questionável.</p>
         </div>
-        
-        <h2 onclick="toggleContent('confiancaContent')">Redução da Confiança</h2>
+
+        <h2 id="confianca" onclick="toggleContent('confiancaContent')">🔒 Redução da Confiança</h2>
         <div class="content" id="confiancaContent">
             <p>A confiança nos veículos de comunicação caiu para 42%, com apenas 33% confiando em mecanismos de busca, como Google. A polarização exacerba essa desconfiança, refletindo uma crise de credibilidade nas informações online. Uma pesquisa indicou que 32% dos entrevistados evitam notícias, impactados pela sensação de impotência em relação aos fatos. A comparação entre países mostra uma confiança ainda menor em lugares como a França. Esses dados revelam a necessidade urgente de restaurar a confiança na mídia.</p>
         </div>
-        
-        <h2 onclick="toggleContent('conteudoPagoContent')">Conteúdo Pago</h2>
+
+        <h2 id="conteudoPago" onclick="toggleContent('conteudoPagoContent')">💳 Conteúdo Pago</h2>
         <div class="content" id="conteudoPagoContent">
             <p>O consumo pago de serviços noticiosos aumentou modestamente, com a maioria das assinaturas direcionadas ao entretenimento. Em países nórdicos como Noruega e Suécia, a adesão a serviços noticiosos pagos é maior. No entanto, a concentração em poucos serviços mostra um comportamento econômico de "vencedor-leva-tudo". Essa tendência tem implicações sobre a forma como as notícias são consumidas e a confiança atribuída ao conteúdo. A preferência por entretenimento evidencia um desafio para as organizações de mídia.</p>
         </div>
 
-        <h2 onclick="toggleContent('redesSociaisContent')">O Papel das Redes Sociais</h2>
+        <h2 id="redesSociais" onclick="toggleContent('redesSociaisContent')">📱 O Papel das Redes Sociais</h2>
         <div class="content" id="redesSociaisContent">
             <p>O WhatsApp se tornou a principal fonte de notícias para 53% dos brasileiros, transformando o consumo informativo em algo mais particular. Essa mudança levanta questões sobre a disseminação de fake news em um espaço menos regulado. A prática de se informar em grandes grupos de redes sociais também se faz presente, impactando a qualidade da informação. Essa centralização no WhatsApp exacerba o risco de desinformação nas eleições e outros eventos críticos. O cenário enfatiza a necessidade de alfabetização midiática.</p>
         </div>
 
-        <h2 onclick="toggleContent('polarizacaoContent')">O Impacto da Polarização Política</h2>
+        <h2 id="polarizacao" onclick="toggleContent('polarizacaoContent')">⚖️ O Impacto da Polarização Política</h2>
         <div class="content" id="polarizacaoContent">
             <p>A polarização política causa um afastamento significativo entre grupos ideológicos e influencia a crença em fake news. Um estudo revelou que indivíduos tendem a acreditar em notícias falsas que corroboram suas crenças partidárias. Participantes com orientações políticas mais extremas demonstraram maior tendência a endossar fake news, especialmente entre os de direita. Essa dinâmica prejudica o debate público e requer esforços para restaurar a confiança no jornalismo. As implicações para o combate às fake news são fundamentais nesse contexto.</p>
         </div>
 
-        <h2 onclick="toggleContent('conclusaoContent')">Conclusão</h2>
+        <h2 id="conclusao" onclick="toggleContent('conclusaoContent')">📅 Conclusão</h2>
         <div class="content" id="conclusaoContent">
             <p>É essencial que as organizações de mídia adotem práticas transparentes e reflitam sobre como reconquistar a confiança do público. A pluralidade de opiniões e o compromisso com a verdade são cruciais. Este seminário destaca a urgência de promover a alfabetização midiática para combater a desinformação. Restaurações de confiança dependem do engajamento e da inovação no jornalismo. O futuro informativo saudável exige um esforço conjunto para enfrentar a polarização e as fake news.</p>
         </div>
-    </main>
-    <footer>
-        <p>&copy; 2025 - Seminário sobre Jornalismo e Desinformação</p>
-    </footer>
 
-    <!-- Iframe do SoundCloud com a música desejada -->
-    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1990205463&color=ff5500"></iframe>
-    <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif; font-weight: 100;">
-        <a href="https://soundcloud.com/lucas-mendonca-lemos" title="LUCAS MENDONCA LEMOS" target="_blank" style="color: #cccccc; text-decoration: none;">LUCAS MENDONCA LEMOS</a> · 
-        <a href="https://soundcloud.com/lucas-mendonca-lemos/e-o-gordinho-entao-pega-a-visao" title="é o gordinho então pega a visão" target="_blank" style="color: #cccccc; text-decoration: none;">é o gordinho então pega a visão</a>
-    </div>
+        <button class="zoom-button" onclick="showVideo()">📺 FIM!!!</button>
+
+        <!-- Overlay do vídeo -->
+        <div class="overlay" id="overlay">
+            <button class="close-button" onclick="hideVideo()">X</button>
+            <video controls loop>
+                <source src="Todos/OBRIGADO PELA ATENÇÃO (2).mp4" type="video/mp4">
+                Seu navegador não suporta o elemento de vídeo.
+            </video>
+        </div>
+    </main>
+    
+    <footer>
+        <p>
+            <span class="footer-highlight">© 2025 -</span> 
+            <span class="footer-highlight">Seminário, as revoluções são as festas dos oprimidos e explorados -Vladimir Lênin-</span>
+        </p>
+    </footer>
 
     <script>
         function toggleContent(contentId) {
             const content = document.getElementById(contentId);
-            content.style.display = (content.style.display === "none" || content.style.display === "") ? "block" : "none";
-        }
+            const isVisible = content.classList.contains('show');
+            content.classList.toggle('show');
 
-        function createRain() {
-            const rainContainer = document.getElementById('rainContainer');
-            const words = ["FAKE NEWS", "FAKE NEWS", "FAKE NEWS", "FAKE NEWS", "FAKE NEWS"];
-            for (let i = 0; i < 50; i++) {
-                const word = document.createElement('div');
-                word.className = 'rain';
-                word.innerText = words[Math.floor(Math.random() * words.length)];
-                word.style.left = Math.random() * 100 + 'vw'; // Posicionamento horizontal aleatório
-                word.style.animationDuration = Math.random() * 3 + 2 + 's'; // Durações aleatórias
-                word.style.animationDelay = Math.random() * 5 + 's'; // Atrasos aleatórios
-                rainContainer.appendChild(word);
+            if (!isVisible) {
+                content.style.display = 'block';
+                setTimeout(() => {
+                    content.style.opacity = '1';
+                    content.style.maxHeight = content.scrollHeight + "px"; // Ajustando max-height
+                }, 20);
+            } else {
+                content.style.opacity = '0';
+                content.style.maxHeight = "0"; // Colocando max-height em 0
+                setTimeout(() => {
+                    content.style.display = 'none';
+                }, 300);
             }
         }
 
-        function showJumpScare() {
-            const jumpScare = document.createElement('div');
-            jumpScare.className = 'jump-scare';
-            jumpScare.innerText = 'POLÍTICA';
-            document.body.appendChild(jumpScare);
+        function filterTopics() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const h2s = document.querySelectorAll('main h2');
 
-            // Remover a animação após um tempo
-            setTimeout(() => {
-                jumpScare.remove();
-            }, 1000); // Dura 1 segundo (0.5s de animação e 0.5s de fade)
+            h2s.forEach(h2 => {
+                const text = h2.innerText.toLowerCase();
+                if (text.includes(filter)) {
+                    h2.style.display = '';
+                } else {
+                    h2.style.display = 'none';
+                    const content = document.getElementById(h2.id + 'Content');
+                    content.classList.remove('show'); // Esconde conteúdo se o tópico estiver oculto
+                }
+            });
         }
 
-        // Iniciar a chuva de palavras
-        createRain();
+        function setLightMode() {
+            document.body.className = 'light';
+        }
 
-        // Configurar o jumpscare a cada 5 segundos
-        setInterval(showJumpScare, 5000);
+        function setDarkMode() {
+            document.body.className = 'dark';
+        }
+
+        function setDarkTurboMode() {
+            document.body.className = 'dark-turbo';
+        }
+
+        // Função para mostrar o vídeo
+        function showVideo() {
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'flex'; // Exibe o overlay
+        }
+
+        // Função para esconder o vídeo
+        function hideVideo() {
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'none'; // Esconde o overlay
+        }
     </script>
 </body>
 </html>
