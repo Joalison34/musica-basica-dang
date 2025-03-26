@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeria de Filmes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #c8e6c9; /* Verde claro */
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        #search-bar {
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #a5d6a7; /* Borda do campo de busca */
+            border-radius: 4px; /* Bordas arredondadas */
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .film {
+            position: relative;
+            margin: 20px;
+            text-align: center; /* Centraliza o texto e os elementos */
+        }
+
+        .cover {
+            width: 300px;
+            cursor: pointer;
+            border: 2px solid #81c784; /* Borda da imagem de capa */
+            border-radius: 4px; /* Bordas arredondadas */
+        }
+
+        .video {
+            display: none;
+            width: 300px;
+            margin-top: 10px;
+            border: 2px solid #4caf50; /* Borda do vídeo */
+            border-radius: 4px; /* Bordas arredondadas */
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4caf50; /* Cor do botão */
+            color: white; /* Cor do texto do botão */
+            border: none;
+            border-radius: 4px; /* Bordas arredondadas */
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #388e3c; /* Cor do botão ao passar o mouse */
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Galeria de Filmes</h1>
+        <input type="text" id="search-bar" placeholder="Buscar filmes...">
+    </header>
+
+    <main>
+        <div class="film">
+            <img src="capa-do-filme.jpg" alt="Capa do Filme" class="cover" onclick="playVideo()">
+            <video id="video-player" class="video" controls>
+                <source src="filme.mp4" type="video/mp4">
+                Seu navegador não suporta o formato de vídeo.
+            </video>
+            <button onclick="toggleFullScreen()">Tela Cheia</button>
+        </div>
+    </main>
+
+    <script>
+        function playVideo() {
+            const videoPlayer = document.getElementById('video-player');
+            videoPlayer.style.display = 'block';
+            videoPlayer.play();
+        }
+
+        function toggleFullScreen() {
+            const videoPlayer = document.getElementById('video-player');
+            if (videoPlayer.requestFullscreen) {
+                videoPlayer.requestFullscreen();
+            } else if (videoPlayer.mozRequestFullScreen) { // Firefox
+                videoPlayer.mozRequestFullScreen();
+            } else if (videoPlayer.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+                videoPlayer.webkitRequestFullscreen();
+            } else if (videoPlayer.msRequestFullscreen) { // IE/Edge
+                videoPlayer.msRequestFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
