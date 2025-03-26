@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -29,6 +30,16 @@
             font-size: 2.8em;
             margin: 0;
             color: inherit;  /* Herdar a cor do modo */
+        }
+
+        /* Modo Claro */
+        .light h1 {
+            color: #2c3e50; /* Preto no modo claro */
+        }
+
+        /* Modo Escuro e Escuro Turbo */
+        .dark h1, .dark-turbo h1 {
+            color: #ffffff; /* Branco no modo escuro */
         }
 
         nav {
@@ -96,7 +107,7 @@
         .content {
             display: none;
             padding: 18px;
-            background: rgba(0, 150, 136, 0.1); /* Um leve tom de verde */
+            background-color: #d9f7d9;
             border-radius: 6px;
             max-height: 0;
             opacity: 0;
@@ -125,19 +136,18 @@
             display: inline-block;
             margin-top: 25px;
             padding: 12px 22px;
-            background: linear-gradient(to right, #ff6f61, #ff4f3d); /* Alterado para um novo gradiente */
+            background: linear-gradient(to right, #2ecc71, #27ae60);
             color: white;
             border: none;
             border-radius: 6px;
             font-size: 1.3em;
             cursor: pointer;
             transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Adicionando sombra */
         }
 
         .zoom-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); /* Efeito de hover mais forte */
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
         }
 
         /* Overlay do vídeo */
