@@ -83,7 +83,7 @@
         <div class="film">
             <img src="capa-do-filme.jpg" alt="Capa do Filme" class="cover" onclick="playVideo()">
             <video id="video-player" class="video" controls>
-                <source src="filme.mp4" type="video/mp4">
+                <source id="video-source" src="LINK_DO_VIDEO_AQUI" type="video/mp4">
                 Seu navegador não suporta o formato de vídeo.
             </video>
             <button onclick="toggleFullScreen()">Tela Cheia</button>
@@ -93,6 +93,9 @@
     <script>
         function playVideo() {
             const videoPlayer = document.getElementById('video-player');
+            const videoSource = document.getElementById('video-source');
+            videoSource.src = "LINK_DO_VIDEO_AQUI"; // Cole seu link aqui
+            videoPlayer.load(); // Carrega o novo vídeo
             videoPlayer.style.display = 'block';
             videoPlayer.play();
         }
