@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segunda Guerra Mundial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+            position: relative;
+            overflow-y: auto; /* Permitir rolagem vertical */
+            background: rgba(0, 0, 0, 0.8); /* Fundo escuro para contraste */
+            height: 100vh; /* Altura total da visualização */
+            overflow-x: hidden; /* Impedir rolagem horizontal */
+        }
+        h1 {
+            text-align: center;
+            font-size: 3.5em; /* Aumentar tamanho do título */
+            animation: fadeIn 1s;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Sombra para dar profundidade */
+        }
+        h2 {
+            font-size: 2.5em;
+            animation: slideIn 1s;
+            margin-top: 20px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        p, li {
+            font-size: 1.5em;
+            animation: fadeIn 1.5s;
+            line-height: 1.6; /* Melhorar legibilidade */
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .image-placeholder {
+            width: 100%;
+            height: 250px; /* Aumentar altura da imagem */
+            background-color: rgba(255, 255, 255, 0.1);
+            text-align: center;
+            line-height: 250px;
+            margin: 20px 0;
+            transition: transform 0.3s;
+        }
+        .image-placeholder:hover {
+            transform: scale(1.05);
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: rgba(255, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2); /* Aumentar sombra */
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Animação de fumaça */
+        .smoke {
+            position: absolute;
+            width: 200px; /* Aumentar largura da fumaça */
+            height: 200px; /* Aumentar altura da fumaça */
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: smokeAnimation 4s infinite;
+            opacity: 0;
+            filter: blur(20px); /* Aumentar desfoque */
+        }
+
+        @keyframes smokeAnimation {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            20% {
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-100px) scale(1.5);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-200px) scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* Estilos de explosão */
+        .explosion {
+            position: absolute;
+            width: 100px; /* Aumentar largura da explosão */
+            height: 100px; /* Aumentar altura da explosão */
+            background: radial-gradient(circle, yellow, orange, red);
+            border-radius: 50%;
+            animation: explosionAnimation 0.8s forwards; /* Aumentar duração da animação */
+            opacity: 0;
+            z-index: 0;
+        }
+
+        @keyframes explosionAnimation {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4); /* Aumentar escala final */
+                opacity: 0;
+            }
+        }
+
+        /* Estilo do vídeo de fogo */
+        .fire {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .fire video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: brightness(0.5); /* Diminuir brilho do vídeo */
+        }
+    </style>
+</head>
+<body>
+    <div class="fire">
+        <video autoplay loop muted>
+            <source src="imagens/42130082.mp4" type="video/mp4">
+            Seu navegador não suporta vídeo.
+        </video>
+    </div>
+    <div class="container">
+        <h1>Segunda Guerra Mundial</h1>
+        
+        <h2>Introdução</h2>
+        <p>A Segunda Guerra Mundial foi um conflito global que ocorreu entre 1939 e 1945, envolvendo a maioria das nações do mundo. Este conflito foi marcado por eventos significativos que moldaram a história do século XX e teve um impacto duradouro nas relações internacionais. A guerra começou com a invasão da Polônia pela Alemanha em setembro de 1939 e se espalhou rapidamente, envolvendo países de todos os continentes.</p>
+        
+        <img src="imagens/guerra 1.jpeg" alt="Imagem 1" loading="lazy" class="image-placeholder">
+        
+        <h2>Causas</h2>
+        <p>As causas da Segunda Guerra Mundial são complexas e multifacetadas. Entre os fatores mais significativos estão:</p>
+        <ul>
+            <li>Tratado de Versalhes: Impôs pesadas reparações à Alemanha após a Primeira Guerra Mundial, gerando ressentimento.</li>
+            <li>Expansão territorial da Alemanha: A busca de Lebensraum (espaço vital) levou Adolf Hitler a ambições expansionistas.</li>
+            <li>Crise econômica mundial: A Grande Depressão de 1929 contribuiu para a instabilidade política e social em muitos países.</li>
+        </ul>
+        
+        <img src="imagens/guerra.  3.jpeg" alt="Imagem 1" loading="lazy" class="image-placeholder">
+        
+        <h2>Principais Acontecimentos</h2>
+        <p>Dentre os principais eventos da guerra, destacam-se:</p>
+        <ul>
+            <li>Invasão da Polônia (1939): A ação que deu início ao conflito, resultando na rápida queda do país.</li>
+            <li>Batalha da Grã-Bretanha (1940): A primeira grande campanha aérea, onde a RAF britânica resistiu aos ataques da Luftwaffe.</li>
+            <li>Ataque a Pearl Harbor (1941): O ataque surpresa do Japão aos EUA levou à entrada dos Estados Unidos na guerra.</li>
+            <li>Dia D (1944): A invasão aliada na Normandia, que marcou o início da libertação da Europa Ocidental.</li>
+        </ul>
+        
+        <img src="imagens/guerra 4.jpeg" alt="Imagem 1" loading="lazy" class="image-placeholder">
+        
+        <h2>Consequências</h2>
+        <p>As consequências da Segunda Guerra Mundial foram profundas e abrangentes:</p>
+        <ul>
+            <li>Criação da ONU: A Organização das Nações Unidas foi estabelecida para promover a paz e a cooperação internacional.</li>
+            <li>Divisão da Europa em blocos: O continente foi dividido entre o Ocidente capitalista e o Leste comunista, iniciando a Guerra Fria.</li>
+            <li>Guerra Fria: Um período de tensão entre os EUA e a URSS que durou várias décadas, com conflitos indiretos em várias partes do mundo.</li>
+        </ul>
+        
+        <img src="imagens/guerra de batata.jpeg" alt="Imagem 1" loading="lazy" class="image-placeholder">
+        
+        <h2>Conclusão</h2>
+        <p>A Segunda Guerra Mundial teve um impacto profundo na história do século XX e continua a influenciar o mundo contemporâneo. As lições aprendidas com este conflito são vitais para a promoção da paz e da segurança global. É fundamental lembrar e estudar esses eventos para evitar que tragédias semelhantes se repitam no futuro.</p>
+        
+        <!-- Adicionando explosões em loop -->
+        <script>
+            function createExplosion() {
+                const explosion = document.createElement('div');
+                explosion.className = 'explosion';
+                explosion.style.left = Math.random() * 100 + 'vw'; // Posição horizontal aleatória
+                explosion.style.top = Math.random() * 100 + 'vh'; // Posição vertical aleatória
+                document.body.appendChild(explosion);
+
+                // Remover a explosão após a animação
+                setTimeout(() => {
+                    explosion.remove();
+                }, 800); // Tempo da animação
+            }
+
+            setInterval(createExplosion, 10); // Criar uma explosão a cada 50ms
+        </script>
+        
+        <!-- Adicionando fumaça -->
+        <div class="smoke" style="top: 20px; left: 10%; animation-delay: 0s;"></div>
+        <div class="smoke" style="top: 20px; right: 10%; animation-delay: 1s;"></div>
+        <div class="smoke" style="top: 20px; left: 40%; animation-delay: 2s;"></div>
+        <div class="smoke" style="top: 60px; left: 30%; animation-delay: 0.5s;"></div>
+    </div>
+</body>
+</html>
