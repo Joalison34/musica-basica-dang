@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo Avançado e Difícil sobre Psicose</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            text-align: center;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        #end-game {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jogo Avançado e Difícil sobre Psicose</h1>
+    <p>Teste seu conhecimento profundo sobre psicose com perguntas desafiadoras.</p>
+    
+    <div id="question-container">
+        <h2 id="question-title"></h2>
+        <p id="question"></p>
+        <button class="button" onclick="answerQuestion('sim')">Sim</button>
+        <button class="button" onclick="answerQuestion('não')">Não</button>
+    </div>
+    
+    <div id="result-container" style="display: none;">
+        <p id="result"></p>
+        <button class="button" onclick="nextQuestion()">Próxima Pergunta</button>
+    </div>
+    
+    <div id="end-game">
+        <h2>Fim do Jogo!</h2>
+        <p id="final-score"></p>
+        <button class="button" onclick="restartGame()">Jogar Novamente</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                title: "Percepções e Realidade",
+                question: "A teoria da 'desregulação dopaminérgica' sugere que um excesso de dopamina em certas áreas do cérebro é responsável por sintomas psicóticos. Isso está correto?",
+                answer: "sim"
+            },
+            {
+                title: "Causas Genéticas",
+                question: "Estudos mostram que a prevalência de transtornos psicóticos entre gêmeos monozigóticos é significativamente maior do que em gêmeos dizigóticos, sugerindo uma forte influência genética. Isso é verdadeiro?",
+                answer: "sim"
+            },
+            {
+                title: "Sintomas",
+                question: "Os sintomas negativos da esquizofrenia, como anedonia e apatia, devem ser tratados com medicamentos antipsicóticos para serem eficazes, o que muitas vezes não ocorre. Isso é correto?",
+                answer: "não"
+            },
+            {
+                title: "Tratamento e Intervenção",
+                question: "Um tipo de intervenção chamado 'terapia cognitivo-comportamental' tem se mostrado útil para reduzir a gravidade dos sintomas psicóticos, mesmo em combinação com medicação. Isso é verdade?",
+                answer: "sim"
+            },
+            {
+                title: "Aspectos Epidemiológicos",
+                question: "A incidência de esquizofrenia é consistentemente mais alta em áreas urbanas do que em áreas rurais, refletindo a relação entre estressores sociais e o desenvolvimento de psicose. Isso é correto?",
+                answer: "sim"
+            },
+            {
+                title: "Comorbidades",
+                question: "Pessoas com transtorno depressivo maior têm uma taxa de desenvolvimento de psicose semelhante àquelas com transtorno de personalidade borderline. Isso é verdadeiro?",
+                answer: "não"
+            },
+            {
+                title: "Cultura e Psicose",
+                question: "A forma como os sintomas psicóticos se manifestam pode variar de acordo com o contexto cultural e as crenças locais, tornando o diagnóstico um desafio clínico. Isso é correto?",
+                answer: "sim"
+            },
+            {
+                title: "Neurociência da Psicose",
+                question: "Imagens de ressonância magnética demonstraram que pessoas com esquizofrenia frequentemente apresentam alterações na estrutura cerebral, como aumento dos ventrículos laterais. Isso é verdadeiro?",
+                answer: "sim"
+            },
+            {
+                title: "Histórico Médico",
+                question: "É aceitável que um episódio psicótico induzido por substâncias seja considerado um diagnóstico separado de um transtorno psicótico primário, conforme os critérios do DSM-5? Isso é correto?",
+                answer: "sim"
+            },
+            {
+                title: "Tratamentos Inovadores",
+                question: "Atualmente, as terapias com psicodélicos, como a psilocibina, estão sendo estudadas como uma possível opção de tratamento para psicose. Isso é verdade?",
+                answer: "não"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        function displayQuestion() {
+            const questionContainer = document.getElementById("question-container");
+            const questionTitle = document.getElementById("question-title");
+            const questionElement = document.getElementById("question");
+
+            questionTitle.textContent = questions[currentQuestionIndex].title;
+            questionElement.textContent = questions[currentQuestionIndex].question;
+        }
+
+        function answerQuestion(answer) {
+            const resultElement = document.getElementById("result");
+            const resultContainer = document.getElementById("result-container");
+            const isCorrect = answer === questions[currentQuestionIndex].answer;
+
+            if (isCorrect) {
+                resultElement.textContent = "Correto! Excelente resposta.";
+                score += 3; // Maior recompensa por respostas corretas
+            } else {
+                resultElement.textContent = `Incorreto. A resposta correta é: '${questions[currentQuestionIndex].answer}'. Você perdeu 1 ponto.`;
+                score -= 1; // Penaliza com 1 ponto para respostas incorretas
+            }
+
+            // Restringe a pontuação mínima
+            score = Math.max(score, 0);
+
+            document.getElementById("question-container").style.display = "none";
+            resultContainer.style.display = "block";
+        }
+
+        function nextQuestion() {
+            const resultContainer = document.getElementById("result-container");
+            resultContainer.style.display = "none";
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                document.getElementById("question-container").style.display = "block";
+                displayQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            document.getElementById("question-container").style.display = "none";
+            const finalScoreElement = document.getElementById("final-score");
+            finalScoreElement.textContent = `Você acertou ${score / 3} de ${questions.length} perguntas. Sua pontuação total: ${score}.`;
+            document.getElementById("end-game").style.display = "block";
+        }
+
+        function restartGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById("end-game").style.display = "none";
+            displayQuestion();
+            document.getElementById("question-container").style.display = "block";
+        }
+
+        // Inicia o jogo
+        displayQuestion();
+    </script>
+</body>
+</html>
