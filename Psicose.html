@@ -6,8 +6,8 @@
     <title>Jogo Avançado e Difícil sobre Psicose</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom right, #e9ecef, #ffffff);
             color: #343a40;
             text-align: center;
             max-width: 800px;
@@ -15,6 +15,19 @@
             padding: 20px;
             border: 1px solid #ced4da;
             border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        h2 {
+            color: #343a40;
+            font-size: 1.8em;
+            margin-top: 20px;
+            animation: fadeIn 0.5s ease-in-out;
         }
         .button {
             padding: 10px 20px;
@@ -24,13 +37,56 @@
             border-radius: 5px;
             cursor: pointer;
             margin: 5px;
-            transition: background-color 0.3s;
+            font-size: 1.1em;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.5);
+            animation: fadeIn 0.5s ease-in-out;
         }
         .button:hover {
             background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        .button:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 3px rgba(0, 123, 255, 0.3);
         }
         #end-game {
             display: none;
+        }
+        #question-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            opacity: 0; /* Inicialmente invisível */
+            animation: fadeIn 0.5s forwards; /* Animação de entrada */
+        }
+        p {
+            font-size: 1.1em;
+        }
+        .result {
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #28a745;
+        }
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        /* Estilo de feedback para respostas */
+        .correct {
+            color: #28a745; /* Verde para respostas corretas */
+            font-weight: bold;
+        }
+        .incorrect {
+            color: #dc3545; /* Vermelho para respostas incorretas */
+            font-weight: bold;
         }
     </style>
 </head>
@@ -46,13 +102,13 @@
     </div>
     
     <div id="result-container" style="display: none;">
-        <p id="result"></p>
+        <p id="result" class="result"></p>
         <button class="button" onclick="nextQuestion()">Próxima Pergunta</button>
     </div>
     
     <div id="end-game">
         <h2>Fim do Jogo!</h2>
-        <p id="final-score"></p>
+        <p id="final-score" class="result"></p>
         <button class="button" onclick="restartGame()">Jogar Novamente</button>
     </div>
 
@@ -120,6 +176,9 @@
 
             questionTitle.textContent = questions[currentQuestionIndex].title;
             questionElement.textContent = questions[currentQuestionIndex].question;
+            questionContainer.style.display = "block";
+            questionContainer.style.opacity = 0; // Inicialmente invisível
+            questionContainer.style.animation = "fadeIn 0.5s forwards"; // Animação de entrada
         }
 
         function answerQuestion(answer) {
@@ -129,9 +188,11 @@
 
             if (isCorrect) {
                 resultElement.textContent = "Correto! Excelente resposta.";
+                resultElement.className = "result correct"; // Classe para resposta correta
                 score += 3; // Maior recompensa por respostas corretas
             } else {
                 resultElement.textContent = `Incorreto. A resposta correta é: '${questions[currentQuestionIndex].answer}'. Você perdeu 1 ponto.`;
+                resultElement.className = "result incorrect"; // Classe para resposta incorreta
                 score -= 1; // Penaliza com 1 ponto para respostas incorretas
             }
 
@@ -148,7 +209,6 @@
             currentQuestionIndex++;
 
             if (currentQuestionIndex < questions.length) {
-                document.getElementById("question-container").style.display = "block";
                 displayQuestion();
             } else {
                 endGame();
@@ -167,7 +227,6 @@
             score = 0;
             document.getElementById("end-game").style.display = "none";
             displayQuestion();
-            document.getElementById("question-container").style.display = "block";
         }
 
         // Inicia o jogo
