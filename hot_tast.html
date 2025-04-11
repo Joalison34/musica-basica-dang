@@ -59,26 +59,7 @@
             border-radius: 5px;
             margin: 10px;
         }
-        .controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 15;
-        }
-        .control-button {
-            padding: 15px;
-            font-size: 18px;
-            cursor: pointer;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            width: 80px;
-            text-align: center;
-        }
+        /* Removido a seção de controles móveis */
     </style>
 </head>
 <body>
@@ -96,11 +77,6 @@
         </div>
         <button id="onePlayerButton">1 Jogador</button>
         <button id="twoPlayersButton">2 Jogadores</button>
-    </div>
-
-    <div class="controls" id="controls" style="display: none;">
-        <button class="control-button" id="leftButton">← (P1)</button>
-        <button class="control-button" id="rightButton">→ (P1)</button>
     </div>
 
     <script>
@@ -141,7 +117,6 @@
         function selectMode(selectedMode) {
             mode = selectedMode;
             document.getElementById('modeSelection').style.display = 'none';
-            document.getElementById('controls').style.display = 'flex';
             document.getElementById('startGame');
         }
 
@@ -174,8 +149,6 @@
 
         // Controles do jogador 1 (A e D) e dois jogadores
         document.addEventListener('keydown', moveCar);
-        document.getElementById('leftButton').addEventListener('click', () => moveCar({ code: 'KeyA' }));
-        document.getElementById('rightButton').addEventListener('click', () => moveCar({ code: 'KeyD' }));
 
         function moveCar(event) {
             if (!gameStarted) return;
@@ -290,8 +263,6 @@
             obstacles = [];
             gameStarted = true;
 
-            document.getElementById('controls').style.display = 'flex';
-
             gameInterval = setInterval(() => {
                 updateObstacles();
                 draw();
@@ -318,7 +289,6 @@
             clearInterval(gameInterval);
             clearInterval(timerInterval);
             gameStarted = false;
-            document.getElementById('controls').style.display = 'none';
             document.getElementById('modeSelection').style.display = 'flex';
         }
 
