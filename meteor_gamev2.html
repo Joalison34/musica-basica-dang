@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desvio de Meteoros</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #gameCanvas {
+            display: none;
+            background: url('https://example.com/espaco.jpg') no-repeat center center;
+            background-size: cover;
+            margin: auto;
+        }
+        #startScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        #status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="startScreen">
+    <h1>Desvio de Meteoros</h1>
+    <button onclick="startGame(1)">1 Jogador</button>
+    <button onclick="startGame(2)">2 Jogadores</button>
+</div>
+
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<div id="status">Jogador 1: Vidas - 2 | Jogador 2: Vidas - 2</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const player1 = { x: 100, y: 500, width: 30, height: 30, color: 'blue', lives: 2 };
+    const player2 = { x: 200, y: 500, width: 30, height: 30, color: 'green', lives: 2 };
+    const meteors = [];
+    let gameInterval;
+    let isTwoPlayers = false;
+    
+    // Função para criar meteoros
+    function createMeteor() {
+        const x = Math.random() * canvas.width;
+        meteors.push({ x: x, y: 0, size: Math.random() * 20 + 10 });
+    }
+
+    // Função para atualizar o jogo
+    function updateGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawPlayers();
+        drawMeteors();
+        moveMeteors();
+        checkCollisions();
+        updateStatus();
+    }
+
+    // Função para desenhar jogadores
+    function drawPlayers() {
+        ctx.fillStyle = player1.color;
+        ctx.fillRect(player1.x, player1.y, player1.width, player1.height);
+        if (isTwoPlayers) {
+            ctx.fillStyle = player2.color;
+            ctx.fillRect(player2.x, player2.y, player2.width, player2.height);
+        }
+    }
+
+    // Função para desenhar meteoros
+    function drawMeteors() {
+        ctx.fillStyle = 'red';
+        meteors.forEach(meteor => {
+            ctx.beginPath();
+            ctx.arc(meteor.x, meteor.y, meteor.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+        });
+    }
+
+    // Função para mover meteoros
+    function moveMeteors() {
+        meteors.forEach(meteor => {
+            meteor.y += 3; // Aumente para acelerar os meteoros
+        });
+        meteors = meteors.filter(meteor => meteor.y < canvas.height);
+    }
+
+    // Função para verificar colisões
+    function checkCollisions() {
+        const players = [player1, player2].filter(player => player.lives > 0);
+        players.forEach(player => {
+            meteors.forEach(meteor => {
+                if (
+                    player.x < meteor.x + meteor.size &&
+                    player.x + player.width > meteor.x - meteor.size &&
+                    player.y < meteor.y + meteor.size &&
+                    player.y + player.height > meteor.y - meteor.size
+                ) {
+                    meteors.splice(meteors.indexOf(meteor), 1);
+                    player.lives--;
+                    if (player.lives < 0) {
+                        alert(`Game Over! Jogador ${player.color === 'blue' ? '1' : '2'} perdeu!`);
+                        clearInterval(gameInterval);
+                        resetGame();
+                    }
+                }
+            });
+        });
+    }
+
+    // Função para atualizar o status
+    function updateStatus() {
+        document.getElementById('status').innerText = `Jogador 1: Vidas - ${player1.lives} | Jogador 2: Vidas - ${isTwoPlayers ? player2.lives : 'N/A'}`;
+    }
+
+    // Iniciar o jogo
+    function startGame(numPlayers) {
+        isTwoPlayers = (numPlayers === 2);
+        document.getElementById('startScreen').style.display = 'none';
+        canvas.style.display = 'block';
+        resetGame();
+        gameInterval = setInterval(() => {
+            if (Math.random() < 0.05) createMeteor(); // Chance de gerar meteoros
+            updateGame();
+        }, 100);
+    }
+
+    // Reiniciar o jogo
+    function resetGame() {
+        player1.lives = 2;
+        player1.x = 100;
+        player1.y = 500;
+
+        player2.lives = 2;
+        player2.x = 200;
+        player2.y = 500;
+
+        meteors.length = 0;
+        updateStatus();
+    }
+
+    document.addEventListener('keydown', (event) => {
+        // Controle do Jogador 1
+        switch(event.key) {
+            case 'a': player1.x = Math.max(0, player1.x - 10); break; // esquerda
+            case 'd': player1.x = Math.min(canvas.width - player1.width, player1.x + 10); break; // direita
+            case 'w': player1.y = Math.max(0, player1.y - 10); break; // cima
+            case 'z': player1.y = Math.min(canvas.height - player1.height, player1.y + 10); break; // baixo
+        }
+        // Controle do Jogador 2
+        if (isTwoPlayers) {
+            switch(event.key) {
+                case 'ArrowLeft': player2.x = Math.max(0, player2.x - 10); break; // esquerda
+                case 'ArrowRight': player2.x = Math.min(canvas.width - player2.width, player2.x + 10); break; // direita
+                case 'ArrowUp': player2.y = Math.max(0, player2.y - 10); break; // cima
+                case 'ArrowDown': player2.y = Math.min(canvas.height - player2.height, player2.y + 10); break; // baixo
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
