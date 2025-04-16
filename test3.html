@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Dash</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #87CEEB; /* Céu azul */
+        }
+        canvas {
+            display: block;
+            margin: auto;
+            border: 2px solid black;
+        }
+        .hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 24px;
+            z-index: 10;
+        }
+        #modeSelection {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 32px;
+            z-index: 20;
+        }
+        .name-inputs {
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .name-inputs input {
+            margin: 5px 0;
+            padding: 5px;
+            font-size: 18px;
+        }
+        #startButton, #onePlayerButton, #twoPlayersButton {
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        /* Removido a seção de controles móveis */
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div class="hud">
+        𝕁𝕠𝕘𝕒𝕕𝕠𝕣 𝟙: 𝕍𝕚𝕕𝕒𝕤: <span id="lives1">3</span> | ℙ𝕠𝕟𝕥𝕦𝕒𝕔𝕚𝕠𝕟: <span id="score1">0</span> | 𝕋𝕖𝕞𝕡𝕠: <span id="timer">100</span> <br>
+        𝕁𝕠𝕘𝕒𝕕𝕠𝕣 𝟚: 𝕍𝕚𝕕𝕒𝕤: <span id="lives2">3</span> | ℙ𝕠𝕟𝕥𝕦𝕒𝕔𝕚𝕠𝕟: <span id="score2">0</span>
+    </div>
+    
+    <div id="modeSelection">
+        <h1>𝕄𝔼𝕋𝔼𝕆ℝ𝕀ℂ ℝ𝔸ℂ𝔼 𝔾𝔸𝕄𝔼</h1>
+        <div class="name-inputs">
+            <input type="text" id="player1Name" placeholder="𝔑𝔬𝔪𝔢 𝔡𝔬 𝔍𝔬𝔤𝔞𝔡𝔬𝔯 1" />
+            <input type="text" id="player2Name" placeholder="𝔑𝔬𝔪𝔢 𝔡𝔬 𝔍𝔬𝔤𝔞𝔡𝔬𝔯 2" />
+        </div>
+        <button id="onePlayerButton">1 𝔍𝔬𝔤𝔞𝔡𝔬𝔯</button>
+        <button id="twoPlayersButton">2 𝔍𝔬𝔤𝔞𝔡𝔬𝔯𝔢𝔰</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const carWidth = 40;
+        const carHeight = 80;
+        let carX1, carX2;
+        const carY = canvas.height - carHeight - 10;
+
+        let lives1, lives2;
+        let score1, score2;
+        let timer;
+        let obstacles = [];
+        let gameInterval, timerInterval;
+        let gameStarted = false;
+        let mode;
+        let player1Name = 'Jogador 1';
+        let player2Name = 'Jogador 2';
+        
+        let carColor1 = 'red';
+        let carColor2 = 'blue';
+        const colors = ['black', 'blue', 'red']; // Cores disponíveis
+
+        // Selecionar o modo de jogo
+        document.getElementById('onePlayerButton').addEventListener('click', () => selectMode('1'));
+        document.getElementById('twoPlayersButton').addEventListener('click', () => selectMode('2'));
+        
+        document.getElementById('player1Name').addEventListener('input', function() {
+            player1Name = this.value || 'Jogador 1';
+        });
+
+        document.getElementById('player2Name').addEventListener('input', function() {
+            player2Name = this.value || 'Jogador 2';
+        });
+
+        function selectMode(selectedMode) {
+            mode = selectedMode;
+            document.getElementById('modeSelection').style.display = 'none';
+            document.getElementById('startGame');
+        }
+
+        // Adiciona evento para as teclas 1 e 2
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Digit1') {
+                changeCarColor(1); // Troca cor para o jogador 1
+            } else if (event.code === 'Digit2') {
+                changeCarColor(2); // Troca cor para o jogador 2
+            }
+        });
+
+        function changeCarColor(player) {
+            let availableColors = [];
+            if (player === 1) {
+                availableColors = colors.filter(color => color !== carColor2);
+                let newColor = prompt(`Jogador 1, escolha a nova cor: ${availableColors.join(', ')}`);
+                if (availableColors.includes(newColor)) {
+                    carColor1 = newColor;
+                }
+            } else if (player === 2) {
+                availableColors = colors.filter(color => color !== carColor1);
+                let newColor = prompt(`Jogador 2, escolha a nova cor: ${availableColors.join(', ')}`);
+                if (availableColors.includes(newColor)) {
+                    carColor2 = newColor;
+                }
+            }
+            draw(); // Atualiza a tela com as novas cores
+        }
+
+        // Controles do jogador 1 (A e D) e dois jogadores
+        document.addEventListener('keydown', moveCar);
+
+        function moveCar(event) {
+            if (!gameStarted) return;
+
+            // Jogador 1
+            if (event.code === 'KeyA' && carX1 > 0) {
+                carX1 -= 20;
+            }
+            if (event.code === 'KeyD' && carX1 < canvas.width - carWidth) {
+                carX1 += 20;
+            }
+
+            // Jogador 2 (apenas se no modo 2 Jogadores)
+            if (mode === '2') {
+                if (event.code === 'ArrowLeft' && carX2 > 0) {
+                    carX2 -= 20;
+                }
+                if (event.code === 'ArrowRight' && carX2 < canvas.width - carWidth) {
+                    carX2 += 20;
+                }
+            }
+        }
+
+        function createObstacle() {
+            const obstacleX = Math.random() * (canvas.width - 40);
+            obstacles.push({ x: obstacleX, y: 0, width: 40, height: 40 });
+        }
+
+        function updateObstacles() {
+            obstacles.forEach((obstacle, index) => {
+                obstacle.y += 5 + Math.floor(score1 / 10);
+
+                // Colisão com o Jogador 1
+                if (
+                    carX1 < obstacle.x + obstacle.width &&
+                    carX1 + carWidth > obstacle.x &&
+                    carY < obstacle.y + obstacle.height &&
+                    carY + carHeight > obstacle.y
+                ) {
+                    lives1--;
+                    obstacles.splice(index, 1);
+                    if (lives1 === 0) {
+                        endGame();
+                    }
+                }
+
+                // Colisão com o Jogador 2
+                if (mode === '2') {
+                    if (
+                        carX2 < obstacle.x + obstacle.width &&
+                        carX2 + carWidth > obstacle.x &&
+                        carY < obstacle.y + obstacle.height &&
+                        carY + carHeight > obstacle.y
+                    ) {
+                        lives2--;
+                        obstacles.splice(index, 1);
+                        if (lives2 === 0) {
+                            endGame();
+                        }
+                    }
+                }
+            });
+
+            score1 += 1;
+            if (mode === '2') {
+                score2 += 1;
+            }
+
+            obstacles = obstacles.filter(obstacle => obstacle.y <= canvas.height);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Carro do Jogador 1
+            ctx.fillStyle = carColor1;
+            ctx.fillRect(carX1, carY, carWidth, carHeight);
+
+            // Carro do Jogador 2
+            if (mode === '2') {
+                ctx.fillStyle = carColor2;
+                ctx.fillRect(carX2, carY, carWidth, carHeight);
+            }
+
+            obstacles.forEach(obstacle => {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+
+            document.getElementById('lives1').innerText = lives1 + ' (' + player1Name + ')';
+            document.getElementById('score1').innerText = score1;
+            if (mode === '2') {
+                document.getElementById('lives2').innerText = lives2 + ' (' + player2Name + ')';
+                document.getElementById('score2').innerText = score2;
+            }
+
+            document.getElementById('timer').innerText = timer;
+
+            if (timer <= 0) {
+                endGame();
+            }
+        }
+
+        function startGame() {
+            lives1 = 3;
+            lives2 = mode === '2' ? 3 : 0;
+            score1 = 0;
+            score2 = mode === '2' ? 0 : 0;
+            timer = 60;
+            carX1 = canvas.width / 4 - carWidth / 2;
+            carX2 = mode === '2' ? (canvas.width * 3 / 4) - carWidth / 2 : -100;
+            obstacles = [];
+            gameStarted = true;
+
+            gameInterval = setInterval(() => {
+                updateObstacles();
+                draw();
+            }, 100);
+            timerInterval = setInterval(() => {
+                timer--;
+            }, 1000);
+            setInterval(createObstacle, 2000);
+        }
+
+        function endGame() {
+            let winnerMessage = '';
+            if (lives1 <= 0 && lives2 <= 0) {
+                winnerMessage = 'Empate! Ambos os jogadores perderam.';
+            } else if (lives1 <= 0) {
+                winnerMessage = 'Jogador 2 venceu!';
+            } else if (lives2 <= 0) {
+                winnerMessage = 'Jogador 1 venceu!';
+            }
+
+            alert(winnerMessage + ' ' + player1Name + ': ' + score1 + ' pontos. ' + 
+                  (mode === '2' ? ' ' + player2Name + ': ' + score2 + ' pontos.' : ''));
+            
+            clearInterval(gameInterval);
+            clearInterval(timerInterval);
+            gameStarted = false;
+            document.getElementById('modeSelection').style.display = 'flex';
+        }
+
+        // Adiciona evento de iniciar o jogo
+        document.getElementById('onePlayerButton').addEventListener('click', startGame);
+        document.getElementById('twoPlayersButton').addEventListener('click', startGame);
+    </script>
+</body>
+</html>
