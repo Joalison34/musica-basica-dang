@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Comentários</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .auth-section, .comment-section {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .comment {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .comment .username {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .comment .role {
+            font-size: 12px;
+            color: #777;
+            margin-left: 10px;
+        }
+
+        .comment.moderator .username {
+            color: #e67e22;
+            animation: glow-moderator 2s infinite;
+        }
+
+        .comment.owner .username {
+            color: #c0392b;
+            animation: glow-owner 1.5s infinite;
+        }
+
+        @keyframes glow-moderator {
+            0% { text-shadow: 0 0 5px #e67e22; }
+            50% { text-shadow: 0 0 15px #e67e22; }
+            100% { text-shadow: 0 0 5px #e67e22; }
+        }
+
+        @keyframes glow-owner {
+            0% { text-shadow: 0 0 5px #c0392b; }
+            50% { text-shadow: 0 0 20px #c0392b; }
+            100% { text-shadow: 0 0 5px #c0392b; }
+        }
+
+        .comment .delete-btn, .comment .ban-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .comment .ban-btn {
+            background-color: #dc3545;
+        }
+
+        .comment .ban-btn:hover {
+            background-color: #a71d2a;
+        }
+
+        .error, .success {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .error { background-color: #f8d7da; color: #721c24; }
+        .success { background-color: #d4edda; color: #155724; }
+
+        .hidden { display: none; }
+
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Comentários</h1>
+
+        <div class="auth-section" id="authSection">
+            <div class="form-group">
+                <label for="username">Nome de Usuário</label>
+                <input type="text" id="username" placeholder="Digite seu nome">
+            </div>
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" placeholder="Digite sua senha">
+            </div>
+            <div class="form-group" id="codeGroup" style="display: none;">
+                <label for="code">Código (opcional)</label>
+                <input type="text" id="code" placeholder="Código para Moderador ou Dono">
+            </div>
+            <button onclick="showRegister()">Registrar</button>
+            <button onclick="login()">Entrar</button>
+        </div>
+
+        <div class="comment-section hidden" id="commentSection">
+            <div class="form-group">
+                <label for="commentInput">Escreva seu comentário</label>
+                <textarea id="commentInput" rows="4" placeholder="Digite seu comentário"></textarea>
+            </div>
+            <button onclick="postComment()">Enviar Comentário</button>
+            <div id="commentsList"></div>
+        </div>
+
+        <div id="message" class="hidden"></div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        const backendUrl = 'http://localhost:3000'; // Altere para o URL do seu backend
+
+        function showMessage(text, isError = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = isError ? 'error' : 'success';
+            messageDiv.classList.remove('hidden');
+            setTimeout(() => messageDiv.classList.add('hidden'), 3000);
+        }
+
+        function showRegister() {
+            document.getElementById('codeGroup').style.display = 'block';
+            document.querySelector('button[onclick="showRegister()"]').textContent = 'Criar Conta';
+            document.querySelector('button[onclick="showRegister()"]').onclick = register;
+        }
+
+        async function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const code = document.getElementById('code').value;
+
+            try {
+                const response = await fetch(`${backendUrl}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, code })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage('Conta criada com sucesso! Faça login.');
+                    document.getElementById('codeGroup').style.display = 'none';
+                    document.querySelector('button[onclick="register()"]').textContent = 'Registrar';
+                    document.querySelector('button[onclick="register()"]').onclick = showRegister;
+                } else {
+                    showMessage(data.message, true);
+                }
+            } catch (error) {
+                showMessage('Erro ao conectar ao servidor.', true);
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${backendUrl}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    currentUser = data.user;
+                    document.getElementById('authSection').classList.add('hidden');
+                    document.getElementById('commentSection').classList.remove('hidden');
+                    document.getElementById('commentSection').classList.add('fade-in');
+                    loadComments();
+                    showMessage(`Bem-vindo, ${username}!`);
+                } else {
+                    showMessage(data.message, true);
+                }
+            } catch (error) {
+                showMessage('Erro ao conectar ao servidor.', true);
+            }
+        }
+
+        async function postComment() {
+            const content = document.getElementById('commentInput').value;
+            if (!content) {
+                showMessage('Escreva um comentário.', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${backendUrl}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser.username, content })
+                });
+                if (response.ok) {
+                    document.getElementById('commentInput').value = '';
+                    loadComments();
+                } else {
+                    showMessage('Erro ao postar comentário.', true);
+                }
+            } catch (error) {
+                showMessage('Erro ao conectar ao servidor.', true);
+            }
+        }
+
+        async function deleteComment(id) {
+            try {
+                const response = await fetch(`${backendUrl}/comments/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser.username })
+                });
+                if (response.ok) {
+                    loadComments();
+                    showMessage('Comentário apagado.');
+                } else {
+                    const data = await response.json();
+                    showMessage(data.message, true);
+                }
+            } catch (error) {
+                showMessage('Erro ao conectar ao servidor.', true);
+            }
+        }
+
+        async function banUser(targetUsername) {
+            try {
+                const response = await fetch(`${backendUrl}/ban`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser.username, targetUsername })
+                });
+                if (response.ok) {
+                    loadComments();
+                    showMessage('Usuário banido.');
+                } else {
+                    const data = await response.json();
+                    showMessage(data.message, true);
+                }
+            } catch (error) {
+                showMessage('Erro ao conectar ao servidor.', true);
+            }
+        }
+
+        async function loadComments() {
+            try {
+                const response = await fetch(`${backendUrl}/comments`);
+                const comments = await response.json();
+                const commentsList = document.getElementById('commentsList');
+                commentsList.innerHTML = '';
+                comments.forEach(comment => {
+                    const div = document.createElement('div');
+                    div.className = `comment ${comment.role} fade-in`;
+                    div.innerHTML = `
+                        <span class="username">${comment.username}</span>
+                        <span class="role">(${comment.role})</span>
+                        <p>${comment.content}</p>
+                    `;
+                    if (currentUser.role === 'moderator' || currentUser.role === 'owner') {
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-btn';
+                        deleteBtn.textContent = 'Apagar';
+                        deleteBtn.onclick = () => deleteComment(comment.id);
+                        div.appendChild(deleteBtn);
+                    }
+                    if (currentUser.role === 'owner' && comment.role !== 'owner') {
+                        const banBtn = document.createElement('button');
+                        banBtn.className = 'ban-btn';
+                        banBtn.textContent = 'Banir Usuário';
+                        banBtn.onclick = () => banUser(comment.username);
+                        div.appendChild(banBtn);
+                    }
+                    commentsList.appendChild(div);
+                });
+            } catch (error) {
+                showMessage('Erro ao carregar comentários.', true);
+            }
+        }
+    </script>
+</body>
+  </html>
