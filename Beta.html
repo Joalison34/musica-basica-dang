@@ -81,6 +81,11 @@
             background: linear-gradient(45deg, #00e06f, #00a3d6);
             transform: scale(1.05);
         }
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
         .delete-btn {
             background: linear-gradient(45deg, #ff4d4d, #cc0000);
             width: auto;
@@ -246,7 +251,7 @@
             <input type="text" id="createUsername" placeholder="Nome de usuário" required>
             <input type="password" id="createPassword" placeholder="Senha" required>
             <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
-            <button onclick="createAccount()">Criar Conta</button>
+            <button id="createAccountBtn" onclick="createAccount()">Criar Conta</button>
             <p class="error" id="createErrorMessage"></p>
         </div>
 
@@ -255,7 +260,7 @@
             <h2>Login</h2>
             <input type="text" id="loginUsername" placeholder="Nome de usuário" required>
             <input type="password" id="loginPassword" placeholder="Senha" required>
-            <button onclick="login()">Entrar</button>
+            <button id="loginBtn" onclick="login()">Entrar</button>
             <p class="error" id="errorMessage"></p>
         </div>
 
@@ -266,11 +271,11 @@
             <button onclick="logout()">Sair</button>
             <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
             <input type="file" id="mediaInput" accept="image/png,image/jpeg,video/mp4" title="Adicione uma imagem (PNG/JPG) ou vídeo (MP4, máx. 5 min)">
-            <button onclick="postComment()">Postar Comentário</button>
+            <button id="postCommentBtn" onclick="postComment()">Postar Comentário</button>
             <div id="banSection" class="ban-section hidden">
                 <h3>Banir Usuário (Apenas Dono)</h3>
                 <input type="text" id="banUsername" placeholder="Nome do usuário a banir">
-                <button onclick="banUser()">Banir</button>
+                <button id="banBtn" onclick="banUser()">Banir</button>
             </div>
             <div id="commentsList"></div>
         </div>
@@ -295,15 +300,32 @@
             const password = document.getElementById('createPassword').value.trim();
             const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
             const createErrorMessage = document.getElementById('createErrorMessage');
+            const createBtn = document.getElementById('createAccountBtn');
+
+            createBtn.disabled = true;
+            createErrorMessage.textContent = '';
 
             if (!username || !password) {
-                createErrorMessage.textContent = 'Por favor, preencha nome e senha.';
+                createErrorMessage.textContent = 'Nome de usuário e senha são obrigatórios.';
+                createBtn.disabled = false;
                 return;
             }
 
-            // Verifica duplicatas (case-insensitive)
+            if (username.length < 3 || username.length > 20) {
+                createErrorMessage.textContent = 'O nome de usuário deve ter entre 3 e 20 caracteres.';
+                createBtn.disabled = false;
+                return;
+            }
+
+            if (password.length < 6) {
+                createErrorMessage.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+                createBtn.disabled = false;
+                return;
+            }
+
             if (users.find(user => user.username.toLowerCase() === username.toLowerCase())) {
-                createErrorMessage.textContent = 'Este nome de usuário já está em uso. Escolha outro.';
+                createErrorMessage.textContent = 'Este nome de usuário já está em uso.';
+                createBtn.disabled = false;
                 return;
             }
 
@@ -322,6 +344,7 @@
             document.getElementById('createUsername').value = '';
             document.getElementById('createPassword').value = '';
             document.getElementById('roleCode').value = '';
+            createBtn.disabled = false;
         }
 
         // Função para login
@@ -329,20 +352,31 @@
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             const errorMessage = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
 
-            const user = users.find(user => user.username === username && user.password === password);
+            loginBtn.disabled = true;
+            errorMessage.textContent = '';
+
+            if (!username || !password) {
+                errorMessage.textContent = 'Nome de usuário e senha são obrigatórios.';
+                loginBtn.disabled = false;
+                return;
+            }
+
+            const user = users.find(user => user.username.toLowerCase() === username.toLowerCase() && user.password === password);
             if (user) {
                 currentUser = user;
                 document.getElementById('createAccountSection').classList.add('hidden');
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('commentSection').classList.remove('hidden');
-                document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}" onclick="showProfile('${username}')">${username}</span> (${user.role})`;
+                document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}" onclick="showProfile('${user.username}')">${user.username}</span> (${user.role})`;
                 document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
-                document.getElementById('errorMessage').textContent = '';
+                errorMessage.textContent = '';
                 loadComments();
             } else {
                 errorMessage.textContent = 'Nome de usuário ou senha incorretos.';
             }
+            loginBtn.disabled = false;
         }
 
         // Função para logout
@@ -361,9 +395,13 @@
             const commentText = document.getElementById('commentInput').value.trim();
             const mediaInput = document.getElementById('mediaInput');
             const file = mediaInput.files[0];
+            const postBtn = document.getElementById('postCommentBtn');
+
+            postBtn.disabled = true;
 
             if (!commentText && !file) {
                 alert('Escreva um comentário ou adicione uma mídia.');
+                postBtn.disabled = false;
                 return;
             }
 
@@ -375,11 +413,17 @@
                 media: null,
                 mediaType: null,
                 likes: [],
-                commentId: Date.now() + Math.random() // ID único para o comentário
+                commentId: Date.now() + Math.random()
             };
 
             if (file) {
                 const maxVideoDuration = 300; // 5 minutos em segundos
+                const maxFileSize = 2 * 1024 * 1024; // 2 MB
+                if (file.size > maxFileSize) {
+                    alert('O arquivo deve ter no máximo 2 MB.');
+                    postBtn.disabled = false;
+                    return;
+                }
                 if (file.type.startsWith('video/')) {
                     const video = document.createElement('video');
                     video.src = URL.createObjectURL(file);
@@ -387,9 +431,14 @@
                         if (video.duration > maxVideoDuration) {
                             alert('O vídeo deve ter no máximo 5 minutos.');
                             URL.revokeObjectURL(video.src);
+                            postBtn.disabled = false;
                             return;
                         }
                         processFile(file, comment);
+                    };
+                    video.onerror = () => {
+                        alert('Erro ao carregar o vídeo.');
+                        postBtn.disabled = false;
                     };
                 } else {
                     processFile(file, comment);
@@ -401,6 +450,7 @@
             function processFile(file, comment) {
                 if (!file.type.match('image/png|image/jpeg|video/mp4')) {
                     alert('Apenas imagens PNG/JPG ou vídeos MP4 são permitidos.');
+                    postBtn.disabled = false;
                     return;
                 }
                 const reader = new FileReader();
@@ -409,15 +459,24 @@
                     comment.mediaType = file.type;
                     saveComment(comment);
                 };
+                reader.onerror = () => {
+                    alert('Erro ao processar o arquivo.');
+                    postBtn.disabled = false;
+                };
                 reader.readAsDataURL(file);
             }
 
             function saveComment(comment) {
-                comments.push(comment);
-                localStorage.setItem('comments', JSON.stringify(comments));
-                document.getElementById('commentInput').value = '';
-                mediaInput.value = '';
-                loadComments();
+                try {
+                    comments.push(comment);
+                    localStorage.setItem('comments', JSON.stringify(comments));
+                    document.getElementById('commentInput').value = '';
+                    mediaInput.value = '';
+                    loadComments();
+                } catch (e) {
+                    alert('Erro ao salvar o comentário. O armazenamento pode estar cheio.');
+                }
+                postBtn.disabled = false;
             }
         }
 
@@ -448,66 +507,20 @@
         // Função para banir usuário
         function banUser() {
             const banUsername = document.getElementById('banUsername').value.trim();
+            const banBtn = document.getElementById('banBtn');
+
+            banBtn.disabled = true;
+
             if (!banUsername) {
                 alert('Digite o nome do usuário a banir.');
+                banBtn.disabled = false;
                 return;
             }
             if (banUsername === currentUser.username) {
                 alert('Você não pode banir a si mesmo.');
+                banBtn.disabled = false;
                 return;
             }
-            users = users.filter(user => user.username !== banUsername);
-            comments = comments.filter(comment => comment.username !== banUsername);
-            localStorage.setItem('users', JSON.stringify(users));
-            localStorage.setItem('comments', JSON.stringify(comments));
-            document.getElementById('banUsername').value = '';
-            alert(`Usuário ${banUsername} foi banido.`);
-            loadComments();
-        }
-
-        // Função para mostrar perfil
-        function showProfile(username) {
-            const user = users.find(u => u.username === username);
-            if (!user) return;
-            const userComments = comments.filter(c => c.username === username);
-            let commentsHtml = userComments.length ? '' : '<p>Nenhum comentário postado.</p>';
-            userComments.forEach(comment => {
-                let mediaContent = '';
-                if (comment.media) {
-                    if (comment.mediaType.startsWith('image/')) {
-                        mediaContent = `<img src="${comment.media}" class="media" alt="Imagem do comentário">`;
-                    } else if (comment.mediaType.startsWith('video/')) {
-                        mediaContent = `<video src="${comment.media}" class="media" controls></video>`;
-                    }
-                }
-                commentsHtml += `
-                    <div class="comment ${comment.role}">
-                        <div>
-                            ${comment.text}
-                            ${mediaContent}
-                            <br><small>${comment.timestamp} - ${comment.likes.length} curtida(s)</small>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('profileContent').innerHTML = `
-                <p><strong>Nome:</strong> <span class="username ${user.role}">${user.username}</span></p>
-                <p><strong>Cargo:</strong> ${user.role}</p>
-                <p><strong>Conta criada em:</strong> ${user.createdAt}</p>
-                <h3>Comentários</h3>
-                ${commentsHtml}
-            `;
-            document.getElementById('commentSection').classList.add('hidden');
-            document.getElementById('profileSection').classList.remove('hidden');
-        }
-
-        // Função para esconder perfil
-        function hideProfile() {
-            document.getElementById('profileSection').classList.add('hidden');
-            document.getElementById('commentSection').classList.remove('hidden');
-        }
-
-        // Função para carregar comentários
-        function loadComments() {
-            const commentsList = document.getElementById('commentsList');
-            commentsList.innerHTM
+            if (!users.find(user => user.username.toLowerCase() === banUsername.toLowerCase())) {
+                alert('Usuário não encontrado.');
+                banBtn.disabled = false;
