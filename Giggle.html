@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site de Comentários</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .form-section, .comment-section {
+            margin-bottom: 30px;
+        }
+        input, button, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        input, textarea {
+            background: #f1f3f5;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+        }
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #ff8787, #6be7e0);
+            transform: scale(1.05);
+        }
+        .delete-btn {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            width: auto;
+            padding: 8px 15px;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+        .delete-btn:hover {
+            background: linear-gradient(45deg, #c82333, #b21f2d);
+            transform: scale(1.05);
+        }
+        .ban-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8e1e1;
+            border-radius: 8px;
+        }
+        .comment {
+            border: none;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .comment:hover {
+            transform: translateY(-3px);
+        }
+        .comment.common {
+            background: #ffffff;
+        }
+        .comment.moderator {
+            background: #e6f3ff;
+            border: 2px solid #007bff;
+        }
+        .comment.owner {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            background-size: 200%;
+            animation: gradientFlow 5s ease infinite;
+            color: white;
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .username.moderator {
+            display: inline-block;
+            border: 2px solid #007bff;
+            padding: 3px 8px;
+            border-radius: 5px;
+            animation: modBlink 2s infinite;
+        }
+        .username.owner {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            position: relative;
+            color: #fff;
+            text-shadow: 0 0 10px #ff6b6b, 0 0 20px #4ecdc4;
+            animation: neonGlow 1.5s ease-in-out infinite alternate;
+        }
+        .username.owner::before {
+            content: '👑';
+            position: absolute;
+            left: -25px;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            animation: crownSpin 4s linear infinite;
+        }
+        .username.owner::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.3) 0%, transparent 70%);
+            animation: particlePulse 3s ease-in-out infinite;
+            z-index: -1;
+        }
+        @keyframes modBlink {
+            0%, 100% { border-color: #007bff; background: #e6f3ff; }
+            50% { border-color: #00c4b4; background: #d1e8ff; }
+        }
+        @keyframes neonGlow {
+            from { text-shadow: 0 0 10px #ff6b6b, 0 0 20px #ff6b6b, 0 0 30px #4ecdc4; }
+            to { text-shadow: 0 0 20px #4ecdc4, 0 0 30px #4ecdc4, 0 0 40px #ff6b6b; }
+        }
+        @keyframes crownSpin {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
+        }
+        @keyframes particlePulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .media {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 8px;
+            display: block;
+        }
+        video.media {
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Site de Comentários</h1>
+
+        <!-- Formulário de Criar Conta -->
+        <div id="createAccountSection" class="form-section">
+            <h2>Criar Conta</h2>
+            <input type="text" id="createUsername" placeholder="Nome de usuário" required>
+            <input type="password" id="createPassword" placeholder="Senha" required>
+            <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
+            <button onclick="createAccount()">Criar Conta</button>
+        </div>
+
+        <!-- Formulário de Login -->
+        <div id="loginSection" class="form-section">
+            <h2>Login</h2>
+            <input type="text" id="loginUsername" placeholder="Nome de usuário" required>
+            <input type="password" id="loginPassword" placeholder="Senha" required>
+            <button onclick="login()">Entrar</button>
+            <p class="error" id="errorMessage"></p>
+        </div>
+
+        <!-- Seção de Comentários -->
+        <div id="commentSection" class="comment-section hidden">
+            <h2>Comentários</h2>
+            <p>Logado como: <span id="currentUser"></span></p>
+            <button onclick="logout()">Sair</button>
+            <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
+            <input type="file" id="mediaInput" accept="image/png,image/jpeg,video/mp4" title="Adicione uma imagem (PNG/JPG) ou vídeo (MP4, máx. 5 min)">
+            <button onclick="postComment()">Postar Comentário</button>
+            <div id="banSection" class="ban-section hidden">
+                <h3>Banir Usuário (Apenas Dono)</h3>
+                <input type="text" id="banUsername" placeholder="Nome do usuário a banir">
+                <button onclick="banUser()">Banir</button>
+            </div>
+            <div id="commentsList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializa dados do localStorage
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let comments = JSON.parse(localStorage.getItem('comments')) || [];
+        let currentUser = null;
+
+        // Função para criar conta
+        function createAccount() {
+            const username = document.getElementById('createUsername').value.trim();
+            const password = document.getElementById('createPassword').value.trim();
+            const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
+
+            if (!username || !password) {
+                alert('Por favor, preencha nome e senha.');
+                return;
+            }
+
+            if (users.find(user => user.username === username)) {
+                alert('Este nome de usuário já existe.');
+                return;
+            }
+
+            let role = 'common';
+            if (roleCode === '7733') {
+                role = 'moderator';
+            } else if (roleCode === 'ABACATE') {
+                role = 'owner';
+            }
+
+            users.push({ username, password, role });
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Conta criada com sucesso! Faça login.');
+            document.getElementById('createUsername').value = '';
+            document.getElementById('createPassword').value = '';
+            document.getElementById('roleCode').value = '';
+        }
+
+        // Função para login
+        function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorMessage = document.getElementById('errorMessage');
+
+            const user = users.find(user => user.username === username && user.password === password);
+            if (user) {
+                currentUser = user;
+                document.getElementById('createAccountSection').classList.add('hidden');
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('commentSection').classList.remove('hidden');
+                document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}">${username}</span> (${user.role})`;
+                document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
+                document.getElementById('errorMessage').textContent = '';
+                loadComments();
+            } else {
+                errorMessage.textContent = 'Nome de usuário ou senha incorretos.';
+            }
+        }
+
+        // Função para logout
+        function logout() {
+            currentUser = null;
+            document.getElementById('createAccountSection').classList.remove('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('commentSection').classList.add('hidden');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        // Função para postar comentário
+        function postComment() {
+            const commentText = document.getElementById('commentInput').value.trim();
+            const mediaInput = document.getElementById('mediaInput');
+            const file = mediaInput.files[0];
+
+            if (!commentText && !file) {
+                alert('Escreva um comentário ou adicione uma mídia.');
+                return;
+            }
+
+            const comment = {
+                username: currentUser.username,
+                role: currentUser.role,
+                text: commentText,
+                timestamp: new Date().toLocaleString('pt-BR'),
+                media: null,
+                mediaType: null
+            };
+
+            if (file) {
+                const maxVideoDuration = 300; // 5 minutos em segundos
+                if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = URL.createObjectURL(file);
+                    video.onloadedmetadata = () => {
+                        if (video.duration > maxVideoDuration) {
+                            alert('O vídeo deve ter no máximo 5 minutos.');
+                            URL.revokeObjectURL(video.src);
+                            return;
+                        }
+                        processFile(file, comment);
+                    };
+                } else {
+                    processFile(file, comment);
+                }
+            } else {
+                saveComment(comment);
+            }
+
+            function processFile(file, comment) {
+                if (!file.type.match('image/png|image/jpeg|video/mp4')) {
+                    alert('Apenas imagens PNG/JPG ou vídeos MP4 são permitidos.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                    comment.media = reader.result;
+                    comment.mediaType = file.type;
+                    saveComment(comment);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function saveComment(comment) {
+                comments.push(comment);
+                localStorage.setItem('comments', JSON.stringify(comments));
+                document.getElementById('commentInput').value = '';
+                mediaInput.value = '';
+                loadComments();
+            }
+        }
+
+        // Função para apagar comentário
+        function deleteComment(index) {
+            comments.splice(index, 1);
+            localStorage.setItem('comments', JSON.stringify(comments));
+            loadComments();
+        }
+
+        // Função para banir usuário
+        function banUser() {
+            const banUsername = document.getElementById('banUsername').value.trim();
+            if (!banUsername) {
+                alert('Digite o nome do usuário a banir.');
+                return;
+            }
+            if (banUsername === currentUser.username) {
+                alert('Você não pode banir a si mesmo.');
+                return;
+            }
+            users = users.filter(user => user.username !== banUsername);
+            comments = comments.filter(comment => comment.username !== banUsername);
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('comments', JSON.stringify(comments));
+            document.getElementById('banUsername').value = '';
+            alert(`Usuário ${banUsername} foi banido.`);
+            loadComments();
+        }
+
+        // Função para carregar comentários
+        function loadComments() {
+            const commentsList = document.getElementById('commentsList');
+            commentsList.innerHTML = '';
+            comments.forEach((comment, index) => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = `comment ${comment.role}`;
+                let deleteButton = '';
+                if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
+                    deleteButton = `<button class="delete-btn" onclick="deleteComment(${index})">Apagar</button>`;
+                }
+                let mediaContent = '';
+                if (comment.media) {
+                    if (comment.mediaType.startsWith('image/')) {
+                        mediaContent = `<img src="${comment.media}" class="media" alt="Imagem do comentário">`;
+                    } else if (comment.mediaType.startsWith('video/')) {
+                        mediaContent = `<video src="${comment.media}" class="media" controls></video>`;
+                    }
+                }
+                commentDiv.innerHTML = `
+                    <div>
+                        <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${comment.timestamp}<br>
+                        ${comment.text}
+                        ${mediaContent}
+                    </div>
+                    ${deleteButton}
+                `;
+                commentsList.appendChild(commentDiv);
+            });
+        }
+    </script>
+</body>
+</html>
