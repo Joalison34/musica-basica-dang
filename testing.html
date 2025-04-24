@@ -212,7 +212,7 @@
             <h2>Login</h2>
             <input type="text" id="loginUsername" placeholder="Nome de usuário" required>
             <input type="password" id="loginPassword" placeholder="Senha" required>
-            <input type="password" id="githubToken" placeholder="Token de Acesso do GitHub" required>
+            <input type="password" id="githubToken" placeholder="Token de Acesso do GitHub (opcional)">
             <button onclick="login()">Entrar</button>
             <p class="error" id="errorMessage"></p>
         </div>
@@ -236,11 +236,10 @@
 
     <script>
         // Configurações do GitHub
-        const GITHUB_API_URL = 'https://api.github.com/repos/Joalison34/musica-basica-dang
-/contents/comments.json';
-        let githubToken = 'Ov23li4LdiGnmX15xpW8';
+        const GITHUB_API_URL = 'https://api.github.com/repos/Joalison34/comment-system/contents/comments.json';
+        let githubToken = '';
 
-        // Inicializa dados do localStorage (apenas para usuários)
+        // Inicializa dados do localStorage
         let users = JSON.parse(localStorage.getItem('users')) || [];
         let comments = [];
         let currentUser = null;
@@ -283,19 +282,44 @@
             githubToken = document.getElementById('githubToken').value.trim();
             const errorMessage = document.getElementById('errorMessage');
 
-            const user = users.find(user => user.username === username && user.password === password);
-            if (user) {
-                currentUser = user;
-                document.getElementById('createAccountSection').classList.add('hidden');
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('commentSection').classList.remove('hidden');
-                document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}">${username}</span> (${user.role})`;
-                document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
-                document.getElementById('errorMessage').textContent = '';
-                await loadComments();
-            } else {
-                errorMessage.textContent = 'Nome de usuário, senha ou token incorretos.';
+            if (!username || !password) {
+                errorMessage.textContent = 'Por favor, preencha nome e senha.';
+                return;
             }
+
+            const user = users.find(user => user.username === username && user.password === password);
+            if (!user) {
+                errorMessage.textContent = 'Nome de usuário ou senha incorretos.';
+                return;
+            }
+
+            // Testa conexão com GitHub se o token for fornecido
+            if (githubToken) {
+                try {
+                    const testResponse = await fetch('https://api.github.com/user', {
+                        headers: {
+                            'Authorization': `Bearer ${githubToken}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    if (!testResponse.ok) {
+                        errorMessage.textContent = 'Token do GitHub inválido.';
+                        return;
+                    }
+                } catch (error) {
+                    errorMessage.textContent = 'Erro ao validar token do GitHub.';
+                    return;
+                }
+            }
+
+            currentUser = user;
+            document.getElementById('createAccountSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('commentSection').classList.remove('hidden');
+            document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}">${username}</span> (${user.role})`;
+            document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
+            errorMessage.textContent = '';
+            await loadComments();
         }
 
         // Função para logout
@@ -312,6 +336,9 @@
 
         // Função para buscar comentários do GitHub
         async function fetchComments() {
+            if (!githubToken) {
+                return comments; // Usa comentários locais se não houver token
+            }
             try {
                 const response = await fetch(GITHUB_API_URL, {
                     headers: {
@@ -324,23 +351,24 @@
                     comments = JSON.parse(atob(data.content));
                     return comments;
                 } else if (response.status === 404) {
-                    // Arquivo não existe, cria um novo
                     comments = [];
                     await saveCommentsToGitHub();
                     return comments;
                 } else {
-                    throw new Error('Erro ao buscar comentários');
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
                 alert('Erro ao carregar comentários: ' + error.message);
-                return [];
+                return comments;
             }
         }
 
         // Função para salvar comentários no GitHub
         async function saveCommentsToGitHub() {
+            if (!githubToken) {
+                return; // Não tenta salvar se não houver token
+            }
             try {
-                // Busca o SHA do arquivo atual (se existir)
                 const response = await fetch(GITHUB_API_URL, {
                     headers: {
                         'Authorization': `Bearer ${githubToken}`,
@@ -353,7 +381,6 @@
                     sha = data.sha;
                 }
 
-                // Salva os comentários
                 const content = btoa(JSON.stringify(comments));
                 const body = {
                     message: 'Atualiza comentários',
@@ -372,7 +399,7 @@
                 });
 
                 if (!saveResponse.ok) {
-                    throw new Error('Erro ao salvar comentários');
+                    throw new Error(`Erro ${saveResponse.status}: ${saveResponse.statusText}`);
                 }
             } catch (error) {
                 alert('Erro ao salvar comentários: ' + error.message);
@@ -400,7 +427,7 @@
             };
 
             if (file) {
-                const maxVideoDuration = 300; // 5 minutos em segundos
+                const maxVideoDuration = 300; // 5 minutos
                 if (file.type.startsWith('video/')) {
                     const video = document.createElement('video');
                     video.src = URL.createObjectURL(file);
