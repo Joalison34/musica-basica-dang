@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iggle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #1a1a1a url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAAB9JREFUGFdjZGBg+M9AAmZgYGBg+D8mJiZGBoYGBgYGAO8uA/HfW4gBAAAAAElFTkSuQmCC') repeat;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 255, 128, 0.2);
+            border: 1px solid #00ff7f;
+        }
+        h1 {
+            text-align: center;
+            color: #00ff7f;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 0 0 5px #00ff7f, 0 0 10px #00b7eb;
+            animation: titleGlow 2s ease-in-out infinite;
+        }
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 5px #00ff7f, 0 0 10px #00b7eb; }
+            50% { text-shadow: 0 0 10px #00ff7f, 0 0 15px #00b7eb; }
+            100% { text-shadow: 0 0 5px #00ff7f, 0 0 10px #00b7eb; }
+        }
+        h2 {
+            color: #00b7eb;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+        }
+        .form-section, .comment-section, .profile-section {
+            margin-bottom: 30px;
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        input, button, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            background: #444;
+            color: #e0e0e0;
+            transition: all 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            background: #555;
+            box-shadow: 0 0 8px rgba(0, 183, 235, 0.5);
+        }
+        button {
+            background: linear-gradient(45deg, #00ff7f, #00b7eb);
+            color: #1a1a1a;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #00e06f, #00a3d6);
+            transform: scale(1.05);
+        }
+        .delete-btn {
+            background: linear-gradient(45deg, #ff4d4d, #cc0000);
+            width: auto;
+            padding: 8px 15px;
+            margin: 5px;
+            font-size: 0.9em;
+        }
+        .delete-btn.common {
+            background: linear-gradient(45deg, #ff8c00, #cc7000);
+        }
+        .delete-btn:hover {
+            transform: scale(1.05);
+        }
+        .like-btn {
+            background: none;
+            border: 1px solid #00ff7f;
+            color: #00ff7f;
+            width: auto;
+            padding: 8px 15px;
+            margin: 5px;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: Ascendancy;
+            cursor: pointer;
+        }
+        .like-btn.liked {
+            background: #00ff7f;
+            color: #1a1a1a;
+        }
+        .like-btn:hover {
+            background: #00ff7f;
+            color: #1a1a1a;
+            transform: scale(1.05);
+        }
+        .ban-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #3a1c1c;
+            border-radius: 6px;
+            border: 1px solid #ff4d4d;
+        }
+        .comment {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            transition: transform 0.2s;
+        }
+        .comment:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 255, 128, 0.3);
+        }
+        .comment.common {
+            background: #3c3c3c;
+        }
+        .comment.moderator {
+            background: #1c3a4a;
+            border: 2px solid #00b7eb;
+        }
+        .comment.owner {
+            background: linear-gradient(45deg, #ff4d4d, #00ff7f, #00b7eb);
+            background-size: 200%;
+            animation: gradientFlow 5s ease infinite;
+            color: #fff;
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .username {
+            cursor: pointer;
+        }
+        .username.moderator {
+            display: inline-block;
+            border: 2px solid #00b7eb;
+            padding: 3px 8px;
+            border-radius: 5px;
+            animation: modBlink 2s infinite;
+        }
+        .username.owner {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            position: relative;
+            color: #fff;
+            text-shadow: 0 0 10px #ff4d4d, 0 0 20px #00ff7f;
+            animation: neonGlow 1.5s ease-in-out infinite alternate;
+        }
+        .username.owner::before {
+            content: '👑';
+            position: absolute;
+            left: -25px;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            animation: crownSpin 4s linear infinite;
+        }
+        .username.owner::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(circle, rgba(255, 77, 77, 0.3) 0%, transparent 70%);
+            animation: particlePulse 3s ease-in-out infinite;
+            z-index: -1;
+        }
+        @keyframes modBlink {
+            0%, 100% { border-color: #00b7eb; background: #1c3a4a; }
+            50% { border-color: #00ff7f; background: #143a4a; }
+        }
+        @keyframes neonGlow {
+            from { text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d, 0 0 30px #00ff7f; }
+            to { text-shadow: 0 0 20px #00ff7f, 0 0 30px #00ff7f, 0 0 40px #ff4d4d; }
+        }
+        @keyframes crownSpin {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
+        }
+        @keyframes particlePulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: #ff4d4d;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .media {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 8px;
+            display: block;
+            border: 1px solid #555;
+        }
+        video.media {
+            max-height: 300px;
+        }
+        .profile-content {
+            padding: 15px;
+            background: #3c3c3c;
+            border-radius: 8px;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Iggle</h1>
+
+        <!-- Formulário de Criar Conta -->
+        <div id="createAccountSection" class="form-section">
+            <h2>Criar Conta</h2>
+            <input type="text" id="createUsername" placeholder="Nome de usuário" required>
+            <input type="password" id="createPassword" placeholder="Senha" required>
+            <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
+            <buttonන්
+
+System: Você parece estar pedindo várias melhorias para o seu site Iggle, mantendo a simplicidade de um único arquivo `index.html`. Vou completar o código que você começou, incorporando todas as funcionalidades solicitadas: permitir que usuários comuns apaguem seus próprios comentários, interface inspirada em 4chan e Facebook de 2020, sistema de curtidas, perfis de usuário, foco em memes, e o nome "Iggle" com animação suave. Como você enfatizou a simplicidade para hospedagem no GitHub Pages e seu conhecimento limitado de programação, continuarei usando apenas HTML, CSS e JavaScript puro, com `localStorage` para armazenar dados. Vou explicar tudo claramente e manter todas as funcionalidades anteriores (incluindo upload de imagens/vídeos e animações exclusivas para o dono).
+
+### Resumo dos Requisitos
+1. **Usuários Comuns Apagam Comentários**:
+   - Usuários comuns podem apagar **apenas seus próprios comentários** com um botão "Apagar" (diferente visualmente dos botões de moderadores/dono).
+2. **Interface 4chan + Facebook (2020)**:
+   - **4chan**: Cores escuras (verde neon, cinza, preto), fundo texturizado, vibe crua de fórum de memes.
+   - **Facebook 2020**: Layout social com perfis, curtidas, bordas arredondadas, azul nostálgico.
+   - Paleta: Verde neon (#00ff7f), azul (#00b7eb), cinza escuro (#2a2a2a), vermelho (#ff4d4d).
+3. **Sistema de Curtidas**:
+   - Botão "Like" com contador em cada comentário.
+   - Usuários logados podem curtir uma vez por comentário, salvo no `localStorage`.
+4. **Perfis de Usuário**:
+   - Clique no nome do usuário para ver perfil com: nome, cargo, data de criação, lista de comentários.
+   - Perfil exibido na mesma página (seção que aparece/desaparece).
+5. **Foco em Memes**:
+   - Suporte a imagens (PNG/JPG) e vídeos (MP4, até 5 minutos).
+   - Estilo descontraído, animações sutis, ideal para memes.
+6. **Nome "Iggle"**:
+   - Título com brilho suave (neon verde/azul, não exagerado).
+7. **Funcionalidades Mantidas**:
+   - Criar conta (códigos `7733` para moderador, `ABACATE` para dono).
+   - Login, logout, postar comentários (texto, imagens, vídeos).
+   - Apagar comentários (moderadores/dono: todos; comuns: próprios).
+   - Banir usuários (dono).
+   - Animações: Moderadores (borda piscante), Dono (neon, coroa girando, partículas, fundo animado).
+8. **Simplicidade**:
+   - Único arquivo `index.html`, com CSS e JavaScript embutidos.
+   - Funciona no GitHub Pages sem arquivos extras (exceto fonte Roboto via Google Fonts).
+
+### Código Completo
+Abaixo está o `index.html` atualizado, completando o código que você iniciou. Ele inclui todas as funcionalidades pedidas, com o mesmo `artifact_id` (atualização do projeto).
+
+<xaiArtifact artifact_id="53f325a8-87bc-4c5b-aa0a-65d79a6c5ab8" artifact_version_id="14bce5c1-e371-4fb0-97c5-63911acfb955" title="index.html" contentType="text/html">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iggle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #1a1a1a url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAAB9JREFUGFdjZGBg+M9AAmZgYGBg+D8mJiZGBoYGBgYGAO8uA/HfW4gBAAAAAElFTkSuQmCC') repeat;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 255, 128, 0.2);
+            border: 1px solid #00ff7f;
+        }
+        h1 {
+            text-align: center;
+            color: #00ff7f;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 0 0 5px #00ff7f, 0 0 10px #00b7eb;
+            animation: titleGlow 2s ease-in-out infinite;
+        }
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 5px #00ff7f, 0 0 10px #00b7eb; }
+            50% { text-shadow: 0 0 10px #00ff7f, 0 0 15px #00b7eb; }
+            100% { text-shadow: 0 0 5px #00ff7f, 0 0 10px #00b7eb; }
+        }
+        h2 {
+            color: #00b7eb;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+        }
+        .form-section, .comment-section, .profile-section {
+            margin-bottom: 30px;
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        input, button, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            background: #444;
+            color: #e0e0e0;
+            transition: all 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            background: #555;
+            box-shadow: 0 0 8px rgba(0, 183, 235, 0.5);
+        }
+        button {
+            background: linear-gradient(45deg, #00ff7f, #00b7eb);
+            color: #1a1a1a;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #00e06f, #00a3d6);
+            transform: scale(1.05);
+        }
+        .delete-btn {
+            background: linear-gradient(45deg, #ff4d4d, #cc0000);
+            width: auto;
+            padding: 8px 15px;
+            margin: 5px;
+            font-size: 0.9em;
+        }
+        .delete-btn.common {
+            background: linear-gradient(45deg, #ff8c00, #cc7000);
+        }
+        .delete-btn:hover {
+            transform: scale(1.05);
+        }
+        .like-btn {
+            background: none;
+            border: 1px solid #00ff7f;
+            color: #00ff7f;
+            width: auto;
+            padding: 8px 15px;
+            margin: 5px;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .like-btn.liked {
+            background: #00ff7f;
+            color: #1a1a1a;
+        }
+        .like-btn:hover {
+            background: #00ff7f;
+            color: #1a1a1a;
+            transform: scale(1.05);
+        }
+        .ban-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #3a1c1c;
+            border-radius: 6px;
+            border: 1px solid #ff4d4d;
+        }
+        .comment {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            transition: transform 0.2s;
+        }
+        .comment:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 255, 128, 0.3);
+        }
+        .comment.common {
+            background: #3c3c3c;
+        }
+        .comment.moderator {
+            background: #1c3a4a;
+            border: 2px solid #00b7eb;
+        }
+        .comment.owner {
+            background: linear-gradient(45deg, #ff4d4d, #00ff7f, #00b7eb);
+            background-size: 200%;
+            animation: gradientFlow 5s ease infinite;
+            color: #fff;
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .username {
+            cursor: pointer;
+        }
+        .username.moderator {
+            display: inline-block;
+            border: 2px solid #00b7eb;
+            padding: 3px 8px;
+            border-radius: 5px;
+            animation: modBlink 2s infinite;
+        }
+        .username.owner {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            position: relative;
+            color: #fff;
+            text-shadow: 0 0 10px #ff4d4d, 0 0 20px #00ff7f;
+            animation: neonGlow 1.5s ease-in-out infinite alternate;
+        }
+        .username.owner::before {
+            content: '👑';
+            position: absolute;
+            left: -25px;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            animation: crownSpin 4s linear infinite;
+        }
+        .username.owner::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(circle, rgba(255, 77, 77, 0.3) 0%, transparent 70%);
+            animation: particlePulse 3s ease-in-out infinite;
+            z-index: -1;
+        }
+        @keyframes modBlink {
+            0%, 100% { border-color: #00b7eb; background: #1c3a4a; }
+            50% { border-color: #00ff7f; background: #143a4a; }
+        }
+        @keyframes neonGlow {
+            from { text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d, 0 0 30px #00ff7f; }
+            to { text-shadow: 0 0 20px #00ff7f, 0 0 30px #00ff7f, 0 0 40px #ff4d4d; }
+        }
+        @keyframes crownSpin {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
+        }
+        @keyframes particlePulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: #ff4d4d;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .media {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 8px;
+            display: block;
+            border: 1px solid #555;
+        }
+        video.media {
+            max-height: 300px;
+        }
+        .profile-content {
+            padding: 15px;
+            background: #3c3c3c;
+            border-radius: 8px;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Iggle</h1>
+
+        <!-- Formulário de Criar Conta -->
+        <div id="createAccountSection" class="form-section">
+            <h2>Criar Conta</h2>
+            <input type="text" id="createUsername" placeholder="Nome de usuário" required>
+            <input type="password" id="createPassword" placeholder="Senha" required>
+            <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
+            <button onclick="createAccount()">Criar Conta</button>
+        </div>
+
+        <!-- Formulário de Login -->
+        <div id="loginSection" class="form-section">
+            <h2>Login</h2>
+            <input type="text" id="loginUsername" placeholder="Nome de usuário" required>
+            <input type="password" id="loginPassword" placeholder="Senha" required>
+            <button onclick="login()">Entrar</button>
+            <p class="error" id="errorMessage"></p>
+        </div>
+
+        <!-- Seção de Comentários -->
+        <div id="commentSection" class="comment-section hidden">
+            <h2>Comentários</h2>
+            <p>Logado como: <span id="currentUser"></span></p>
+            <button onclick="logout()">Sair</button>
+            <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
+            <input type="file" id="mediaInput" accept="image/png,image/jpeg,video/mp4" title="Adicione uma imagem (PNG/JPG) ou vídeo (MP4, máx. 5 min)">
+            <button onclick="postComment()">Postar Come
