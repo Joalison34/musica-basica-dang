@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site de Comentários</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .form-section, .comment-section {
+            margin-bottom: 20px;
+        }
+        input, button, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            width: auto;
+            padding: 5px 10px;
+            margin-left: 10px;
+            display: inline-block;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .ban-section {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .comment {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .comment.common {
+            background-color: #f9f9f9;
+        }
+        .comment.moderator {
+            background-color: #e6f3ff;
+            border: 2px solid #007bff;
+        }
+        .comment.owner {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+        }
+        .username.moderator {
+            display: inline-block;
+            border: 2px solid #007bff;
+            padding: 2px 5px;
+            animation: blink 1.5s infinite;
+        }
+        .username.owner {
+            display: inline-block;
+            padding: 2px 5px;
+            animation: shine 2s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { border-color: #007bff; }
+            50% { border-color: transparent; }
+        }
+        @keyframes shine {
+            0% { color: #ff6b6b; text-shadow: 0 0 5px #ff6b6b; }
+            50% { color: #4ecdc4; text-shadow: 0 0 10px #4ecdc4; }
+            100% { color: #ff6b6b; text-shadow: 0 0 5px #ff6b6b; }
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Site de Comentários</h1>
+
+        <!-- Formulário de Criar Conta -->
+        <div id="createAccountSection" class="form-section">
+            <h2>Criar Conta</h2>
+            <input type="text" id="createUsername" placeholder="Nome de usuário" required>
+            <input type="password" id="createPassword" placeholder="Senha" required>
+            <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
+            <button onclick="createAccount()">Criar Conta</button>
+        </div>
+
+        <!-- Formulário de Login -->
+        <div id="loginSection" class="form-section">
+            <h2>Login</h2>
+            <input type="text" id="loginUsername" placeholder="Nome de usuário" required>
+            <input type="password" id="loginPassword" placeholder="Senha" required>
+            <button onclick="login()">Entrar</button>
+            <p class="error" id="errorMessage"></p>
+        </div>
+
+        <!-- Seção de Comentários -->
+        <div id="commentSection" class="comment-section hidden">
+            <h2>Comentários</h2>
+            <p>Logado como: <span id="currentUser"></span></p>
+            <button onclick="logout()">Sair</button>
+            <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
+            <button onclick="postComment()">Postar Comentário</button>
+            <div id="banSection" class="ban-section hidden">
+                <h3>Banir Usuário (Apenas Dono)</h3>
+                <input type="text" id="banUsername" placeholder="Nome do usuário a banir">
+                <button onclick="banUser()">Banir</button>
+            </div>
+            <div id="commentsList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializa dados do localStorage
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let comments = JSON.parse(localStorage.getItem('comments')) || [];
+        let currentUser = null;
+
+        // Função para criar conta
+        function createAccount() {
+            const username = document.getElementById('createUsername').value.trim();
+            const password = document.getElementById('createPassword').value.trim();
+            const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
+
+            if (!username || !password) {
+                alert('Por favor, preencha nome e senha.');
+                return;
+            }
+
+            if (users.find(user => user.username === username)) {
+                alert('Este nome de usuário já existe.');
+                return;
+            }
+
+            let role = 'common';
+            if (roleCode === '7733') {
+                role = 'moderator';
+            } else if (roleCode === 'ABACATE') {
+                role = 'owner';
+            }
+
+            users.push({ username, password, role });
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Conta criada com sucesso! Faça login.');
+            document.getElementById('createUsername').value = '';
+            document.getElementById('createPassword').value = '';
+            document.getElementById('roleCode').value = '';
+        }
+
+        // Função para login
+        function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorMessage = document.getElementById('errorMessage');
+
+            const user = users.find(user => user.username === username && user.password === password);
+            if (user) {
+                currentUser = user;
+                document.getElementById('createAccountSection').classList.add('hidden');
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('commentSection').classList.remove('hidden');
+                document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}">${username}</span> (${user.role})`;
+                document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
+                document.getElementById('errorMessage').textContent = '';
+                loadComments();
+            } else {
+                errorMessage.textContent = 'Nome de usuário ou senha incorretos.';
+            }
+        }
+
+        // Função para logout
+        function logout() {
+            currentUser = null;
+            document.getElementById('createAccountSection').classList.remove('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('commentSection').classList.add('hidden');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        // Função para postar comentário
+        function postComment() {
+            const commentText = document.getElementById('commentInput').value.trim();
+            if (!commentText) {
+                alert('Escreva um comentário antes de postar.');
+                return;
+            }
+
+            const comment = {
+                username: currentUser.username,
+                role: currentUser.role,
+                text: commentText,
+                timestamp: new Date().toLocaleString('pt-BR')
+            };
+
+            comments.push(comment);
+            localStorage.setItem('comments', JSON.stringify(comments));
+            document.getElementById('commentInput').value = '';
+            loadComments();
+        }
+
+        // Função para apagar comentário
+        function deleteComment(index) {
+            comments.splice(index, 1);
+            localStorage.setItem('comments', JSON.stringify(comments));
+            loadComments();
+        }
+
+        // Função para banir usuário
+        function banUser() {
+            const banUsername = document.getElementById('banUsername').value.trim();
+            if (!banUsername) {
+                alert('Digite o nome do usuário a banir.');
+                return;
+            }
+            if (banUsername === currentUser.username) {
+                alert('Você não pode banir a si mesmo.');
+                return;
+            }
+            users = users.filter(user => user.username !== banUsername);
+            comments = comments.filter(comment => comment.username !== banUsername);
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('comments', JSON.stringify(comments));
+            document.getElementById('banUsername').value = '';
+            alert(`Usuário ${banUsername} foi banido.`);
+            loadComments();
+        }
+
+        // Função para carregar comentários
+        function loadComments() {
+            const commentsList = document.getElementById('commentsList');
+            commentsList.innerHTML = '';
+            comments.forEach((comment, index) => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = `comment ${comment.role}`;
+                let deleteButton = '';
+                if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
+                    deleteButton = `<button class="delete-btn" onclick="deleteComment(${index})">Apagar</button>`;
+                }
+                commentDiv.innerHTML = `
+                    <div>
+                        <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${comment.timestamp}<br>
+                        ${comment.text}
+                    </div>
+                    ${deleteButton}
+                `;
+                commentsList.appendChild(commentDiv);
+            });
+        }
+    </script>
+</body>
+              </html>
