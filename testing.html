@@ -1,236 +1,504 @@
-<?php
-// Função para redimensionar a imagem PNG
-function redimensionarImagem($caminhoImagem, $novaLargura, $novaAltura) {
-    // Carregar a imagem PNG
-    $imagemOriginal = imagecreatefrompng($caminhoImagem);
-
-    // Criar uma nova imagem verdadeira
-    $novaImagem = imagecreatetruecolor($novaLargura, $novaAltura);
-
-    // Habilitar a mesclagem de alfa e salvar a informação de alpha
-    imagealphablending($novaImagem, false);
-    imagesavealpha($novaImagem, true);
-
-    // Redimensionar e copiar a imagem original para a nova imagem
-    imagecopyresampled($novaImagem, $imagemOriginal, 0, 0, 0, 0, $novaLargura, $novaAltura, imagesx($imagemOriginal), imagesy($imagemOriginal));
-
-    // Salvar a nova imagem
-    $caminhoNovaImagem = 'caminho_para_guardar/' . basename($caminhoImagem); // Atualize conforme necessário
-    imagepng($novaImagem, $caminhoNovaImagem);
-
-    // Liberar a memória
-    imagedestroy($imagemOriginal);
-    imagedestroy($novaImagem);
-
-    return $caminhoNovaImagem; // Retorna o caminho da nova imagem
-}
-
-// Exemplo de uso
-$caminhoImagemOriginal1 = 'Todos/djamila1.png'; // Certifique-se de que a imagem tenha extensão PNG
-$caminhoImagemOriginal2 = 'Todos/djamilia2.png'; // Para manipulação de outras imagens
-$caminhoImagemOriginal3 = 'Todos/djamila3.png';
-$caminhoImagemOriginal4 = 'Todos/djamila4.png';
-
-$novaLargura = 500; // Defina a nova largura desejada
-$novaAltura = 300;  // Defina a nova altura desejada
-
-$caminhoNovaImagem1 = redimensionarImagem($caminhoImagemOriginal1, $novaLargura, $novaAltura);
-$caminhoNovaImagem2 = redimensionarImagem($caminhoImagemOriginal2, $novaLargura, $novaAltura);
-$caminhoNovaImagem3 = redimensionarImagem($caminhoImagemOriginal3, $novaLargura, $novaAltura);
-$caminhoNovaImagem4 = redimensionarImagem($caminhoImagemOriginal4, $novaLargura, $novaAltura);
-?>
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ Djamila Ribeiro: A Voz do Feminismo Negro ✨</title>
+    <title>Site de Comentários</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #f8bbd0 0%, #c5cae9 100%);
-            transition: background-color 0.3s, color 0.3s;
+            box-sizing: border-box;
         }
-        .light-mode {
-            color: #000000;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
-        .dark-mode {
-            background-color: #2C2C2C;
-            color: #ffffff;
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
         }
-        header {
-            padding: 40px;
-            text-align: center;
-            background: #c62828;
-            color: white;
-            animation: fadeIn 1s ease-in;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        .container:hover {
+            transform: translateY(-5px);
         }
         h1 {
-            font-size: 2.5em;
-            margin: 0;
-            animation: slideIn 0.5s ease-in-out;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
         }
-        section {
-            padding: 20px;
-            margin: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            opacity: 0; /* Inicia invisível */
-            transform: translateY(20px); /* Deslocada para baixo */
-            animation: slideInUp 0.8s forwards, fadeIn 0.5s forwards; /* Nova animação de fade-in */
-            position: relative;
-            transition: transform 0.3s, box-shadow 0.3s;
-            font-size: 1.3em; /* Aumenta o tamanho da fonte para 30% maior */
+        h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 1.5em;
         }
-        section:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        .form-section, .comment-section {
+            margin-bottom: 30px;
         }
-        section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
+        input, button, textarea {
             width: 100%;
-            height: 5px;
-            background: #c62828;
-            border-radius: 8px 8px 0 0;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
             border-radius: 8px;
-            margin-top: 10px;
-            transition: transform 0.3s, opacity 0.3s; /* Opacidade */
+            font-size: 1em;
+            transition: all 0.3s;
         }
-        img:hover {
-            transform: scale(1.05) rotate(2deg); /* Adicionando rotação */
-            opacity: 0.8;
+        input, textarea {
+            background: #f1f3f5;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
         }
         button {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            margin: 10px;
-            cursor: pointer;
-            background-color: #c62828;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
             color: white;
-            font-weight: bold;
-            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            font-weight: 600;
         }
         button:hover {
-            background-color: #b71c1c;
+            background: linear-gradient(45deg, #ff8787, #6be7e0);
             transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            animation: pulse 0.6s infinite; /* Efeito de pulsar */
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .delete-btn {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            width: auto;
+            padding: 8px 15px;
+            margin-left: 10px;
+            font-size: 0.9em;
         }
-        @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
+        .delete-btn:hover {
+            background: linear-gradient(45deg, #c82333, #b21f2d);
+            transform: scale(1.05);
         }
-        @keyframes slideInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .ban-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8e1e1;
+            border-radius: 8px;
         }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .comment {
+            border: none;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
         }
-        
-        /* Estilo da flor */
-        .flower {
+        .comment:hover {
+            transform: translateY(-3px);
+        }
+        .comment.common {
+            background: #ffffff;
+        }
+        .comment.moderator {
+            background: #e6f3ff;
+            border: 2px solid #007bff;
+        }
+        .comment.owner {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            background-size: 200%;
+            animation: gradientFlow 5s ease infinite;
+            color: white;
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .username.moderator {
+            display: inline-block;
+            border: 2px solid #007bff;
+            padding: 3px 8px;
+            border-radius: 5px;
+            animation: modBlink 2s infinite;
+        }
+        .username.owner {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            position: relative;
+            color: #fff;
+            text-shadow: 0 0 10px #ff6b6b, 0 0 20px #4ecdc4;
+            animation: neonGlow 1.5s ease-in-out infinite alternate;
+        }
+        .username.owner::before {
+            content: '👑';
             position: absolute;
-            top: -50px; /* Começa fora da tela */
-            animation: fall linear forwards;
-            opacity: 0.8;
-            width: 50px; /* Tamanho da flor (largura) */
-            height: auto; /* Altura automática para manter a proporção */
+            left: -25px;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            animation: crownSpin 4s linear infinite;
         }
-
-        @keyframes fall {
-            to {
-                transform: translateY(100vh);
-                opacity: 0; /* Desaparece ao cair */
-            }
+        .username.owner::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.3) 0%, transparent 70%);
+            animation: particlePulse 3s ease-in-out infinite;
+            z-index: -1;
         }
-
-        section:nth-child(1) { animation-delay: 0.1s; }
-        section:nth-child(2) { animation-delay: 0.2s; }
-        section:nth-child(3) { animation-delay: 0.3s; }
-        section:nth-child(4) { animation-delay: 0.4s; }
+        @keyframes modBlink {
+            0%, 100% { border-color: #007bff; background: #e6f3ff; }
+            50% { border-color: #00c4b4; background: #d1e8ff; }
+        }
+        @keyframes neonGlow {
+            from { text-shadow: 0 0 10px #ff6b6b, 0 0 20px #ff6b6b, 0 0 30px #4ecdc4; }
+            to { text-shadow: 0 0 20px #4ecdc4, 0 0 30px #4ecdc4, 0 0 40px #ff6b6b; }
+        }
+        @keyframes crownSpin {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
+        }
+        @keyframes particlePulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .media {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 8px;
+            display: block;
+        }
+        video.media {
+            max-height: 300px;
+        }
     </style>
 </head>
-<body class="light-mode">
+<body>
+    <div class="container">
+        <h1>Site de Comentários</h1>
 
-<header>
-    <h1>✨ Djamila Ribeiro: A Voz do Feminismo Negro ✨</h1>
-    <button onclick="toggleMode()">Alternar Modo</button>
-</header>
+        <!-- Formulário de Criar Conta -->
+        <div id="createAccountSection" class="form-section">
+            <h2>Criar Conta</h2>
+            <input type="text" id="createUsername" placeholder="Nome de usuário" required>
+            <input type="password" id="createPassword" placeholder="Senha" required>
+            <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
+            <button onclick="createAccount()">Criar Conta</button>
+        </div>
 
-<section>
-    <h2>1. Formação Acadêmica</h2>
-    <p>Djamila Ribeiro é graduada em Filosofia pela Universidade Federal de São Paulo (UNIFESP). Durante sua trajetória acadêmica, ela se destacou ao aprofundar seus estudos na Filosofia Política, focando especialmente na teoria feminista e na negritude. Em 2015, completou seu mestrado, onde analisou as estruturas de poder e as experiências vividas por mulheres negras na sociedade brasileira. Sua pesquisa oferece uma crítica incisiva sobre as formas de opressão, e suas contribuições acadêmicas têm sido fundamentais para o entendimento da intersecionalidade nas discussões contemporâneas sobre raça e gênero.</p>
-    <img src="<?php echo $caminhoNovaImagem1; ?>" alt="Djamila Ribeiro - Formação Acadêmica">
-</section>
+        <!-- Formulário de Login -->
+        <div id="loginSection" class="form-section">
+            <h2>Login</h2>
+            <input type="text" id="loginUsername" placeholder="Nome de usuário" required>
+            <input type="password" id="loginPassword" placeholder="Senha" required>
+            <input type="password" id="githubToken" placeholder="Token de Acesso do GitHub" required>
+            <button onclick="login()">Entrar</button>
+            <p class="error" id="errorMessage"></p>
+        </div>
 
-<section>
-    <h2>2. Atuação como Autora</h2>
-    <p>Djamila é autora de várias obras impactantes, entre elas "O que é lugar de fala?", que se tornou um marco na discussão sobre representatividade e reconhecimento das vozes silenciadas na sociedade. Este livro, acessível e profundo, convida leitores a refletir sobre os poderes e as limitações que diferentes perspectivas sociais impõem. Em 2020, seu livro "Pequeno Manual Antirracista" foi o mais vendido no Brasil, refletindo o crescente interesse e urgência nas questões raciais e de justiça social. Além disso, Djamila contribui regularmente com artigos e ensaios para diversas publicações, expandindo o debate sobre os direitos das mulheres e a luta antirracista.</p>
-    <img src="<?php echo $caminhoNovaImagem2; ?>" alt="Djamila Ribeiro - Atuação como Autora">
-</section>
+        <!-- Seção de Comentários -->
+        <div id="commentSection" class="comment-section hidden">
+            <h2>Comentários</h2>
+            <p>Logado como: <span id="currentUser"></span></p>
+            <button onclick="logout()">Sair</button>
+            <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
+            <input type="file" id="mediaInput" accept="image/png,image/jpeg,video/mp4" title="Adicione uma imagem (PNG/JPG) ou vídeo (MP4, máx. 5 min)">
+            <button onclick="postComment()">Postar Comentário</button>
+            <div id="banSection" class="ban-section hidden">
+                <h3>Banir Usuário (Apenas Dono)</h3>
+                <input type="text" id="banUsername" placeholder="Nome do usuário a banir">
+                <button onclick="banUser()">Banir</button>
+            </div>
+            <div id="commentsList"></div>
+        </div>
+    </div>
 
-<section>
-    <h2>3. Contribuições para o Feminismo Negro</h2>
-    <p>Como uma das principais vozes do feminismo negro no Brasil, Djamila Ribeiro tem sido essencial para fortalecer a intersecionalidade dentro das pautas feministas. Seu trabalho no ativismo e na escrita tem ajudado a visibilizar as lutas enfrentadas por mulheres que sofrem múltiplas formas de discriminação. Djamila utiliza suas plataformas para destacar as experiências e as narrativas de mulheres negras, que muitas vezes são invisibilizadas em discussões feministas tradicionais, enfatizando que a luta pela igualdade deve considerar a diversidade das vozes femininas. Ela também promove diálogos sobre como as diferentes identidades de gênero e raça interagem nas lutas sociais contemporâneas.</p>
-    <img src="<?php echo $caminhoNovaImagem3; ?>" alt="Djamila Ribeiro - Feminismo Negro">
-</section>
+    <script>
+        // Configurações do GitHub
+        const GITHUB_API_URL = 'https://api.github.com/repos/SEU_USUARIO/SEU_REPOSITORIO/contents/comments.json';
+        let githubToken = '';
 
-<section>
-    <h2>4. Engajamento Político</h2>
-    <p>Djamila Ribeiro foi nomeada secretária-adjunta de Direitos Humanos e Cidadania na cidade de São Paulo em 2016, onde trabalhou ativamente em políticas voltadas para a promoção dos direitos de grupos marginalizados e pela inclusão social. Sua atuação política vai além das instituições, estendendo-se à sua presença nas redes sociais, onde frequentemente aborda temas controversos e desafiadores. Djamila defende a importância da participação ativa da sociedade civil na construção de políticas públicas, e seu trabalho é um exemplo de como a teoria pode se transformar em ação efetiva em prol dos direitos humanos e sociais. Por meio de sua voz, ela inspira novas gerações a continuarem a luta pela justiça e igualdade.</p>
-    <img src="<?php echo $caminhoNovaImagem4; ?>" alt="Djamila Ribeiro - Engajamento Político">
-</section>
+        // Inicializa dados do localStorage (apenas para usuários)
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let comments = [];
+        let currentUser = null;
 
-<script>
-    function toggleMode() {
-        const body = document.body;
-        body.classList.toggle('dark-mode');
-        body.classList.toggle('light-mode');
-    }
+        // Função para criar conta
+        function createAccount() {
+            const username = document.getElementById('createUsername').value.trim();
+            const password = document.getElementById('createPassword').value.trim();
+            const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
 
-    function createFlower() {
-        const flower = document.createElement('img');
-        flower.src = 'Todos/flor sex.png'; // Substitua pelo caminho da imagem da flor
-        flower.classList.add('flower');
+            if (!username || !password) {
+                alert('Por favor, preencha nome e senha.');
+                return;
+            }
 
-        // Posição aleatória
-        flower.style.left = Math.random() * 100 + 'vw'; // 100vw para largura da tela
-        flower.style.animationDuration = Math.random() * 3 + 2 + 's'; // Duração aleatória
+            if (users.find(user => user.username === username)) {
+                alert('Este nome de usuário já existe.');
+                return;
+            }
 
-        document.body.appendChild(flower);
+            let role = 'common';
+            if (roleCode === '7733') {
+                role = 'moderator';
+            } else if (roleCode === 'ABACATE') {
+                role = 'owner';
+            }
 
-        // Remover a flor após a animação
-        flower.addEventListener('animationend', () => {
-            flower.remove();
-        });
-    }
+            users.push({ username, password, role });
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Conta criada com sucesso! Faça login.');
+            document.getElementById('createUsername').value = '';
+            document.getElementById('createPassword').value = '';
+            document.getElementById('roleCode').value = '';
+        }
 
-    // Criar flores a cada 500ms
-    setInterval(createFlower, 500);
-</script>
+        // Função para login
+        async function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            githubToken = document.getElementById('githubToken').value.trim();
+            const errorMessage = document.getElementById('errorMessage');
 
+            const user = users.find(user => user.username === username && user.password === password);
+            if (user) {
+                currentUser = user;
+                document.getElementById('createAccountSection').classList.add('hidden');
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('commentSection').classList.remove('hidden');
+                document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}">${username}</span> (${user.role})`;
+                document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
+                document.getElementById('errorMessage').textContent = '';
+                await loadComments();
+            } else {
+                errorMessage.textContent = 'Nome de usuário, senha ou token incorretos.';
+            }
+        }
+
+        // Função para logout
+        function logout() {
+            currentUser = null;
+            githubToken = '';
+            document.getElementById('createAccountSection').classList.remove('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('commentSection').classList.add('hidden');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('githubToken').value = '';
+        }
+
+        // Função para buscar comentários do GitHub
+        async function fetchComments() {
+            try {
+                const response = await fetch(GITHUB_API_URL, {
+                    headers: {
+                        'Authorization': `Bearer ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    comments = JSON.parse(atob(data.content));
+                    return comments;
+                } else if (response.status === 404) {
+                    // Arquivo não existe, cria um novo
+                    comments = [];
+                    await saveCommentsToGitHub();
+                    return comments;
+                } else {
+                    throw new Error('Erro ao buscar comentários');
+                }
+            } catch (error) {
+                alert('Erro ao carregar comentários: ' + error.message);
+                return [];
+            }
+        }
+
+        // Função para salvar comentários no GitHub
+        async function saveCommentsToGitHub() {
+            try {
+                // Busca o SHA do arquivo atual (se existir)
+                const response = await fetch(GITHUB_API_URL, {
+                    headers: {
+                        'Authorization': `Bearer ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                let sha = null;
+                if (response.ok) {
+                    const data = await response.json();
+                    sha = data.sha;
+                }
+
+                // Salva os comentários
+                const content = btoa(JSON.stringify(comments));
+                const body = {
+                    message: 'Atualiza comentários',
+                    content: content,
+                    sha: sha
+                };
+
+                const saveResponse = await fetch(GITHUB_API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!saveResponse.ok) {
+                    throw new Error('Erro ao salvar comentários');
+                }
+            } catch (error) {
+                alert('Erro ao salvar comentários: ' + error.message);
+            }
+        }
+
+        // Função para postar comentário
+        async function postComment() {
+            const commentText = document.getElementById('commentInput').value.trim();
+            const mediaInput = document.getElementById('mediaInput');
+            const file = mediaInput.files[0];
+
+            if (!commentText && !file) {
+                alert('Escreva um comentário ou adicione uma mídia.');
+                return;
+            }
+
+            const comment = {
+                username: currentUser.username,
+                role: currentUser.role,
+                text: commentText,
+                timestamp: new Date().toLocaleString('pt-BR'),
+                media: null,
+                mediaType: null
+            };
+
+            if (file) {
+                const maxVideoDuration = 300; // 5 minutos em segundos
+                if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = URL.createObjectURL(file);
+                    video.onloadedmetadata = async () => {
+                        if (video.duration > maxVideoDuration) {
+                            alert('O vídeo deve ter no máximo 5 minutos.');
+                            URL.revokeObjectURL(video.src);
+                            return;
+                        }
+                        await processFile(file, comment);
+                    };
+                } else {
+                    await processFile(file, comment);
+                }
+            } else {
+                await saveComment(comment);
+            }
+
+            async function processFile(file, comment) {
+                if (!file.type.match('image/png|image/jpeg|video/mp4')) {
+                    alert('Apenas imagens PNG/JPG ou vídeos MP4 são permitidos.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    comment.media = reader.result;
+                    comment.mediaType = file.type;
+                    await saveComment(comment);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            async function saveComment(comment) {
+                comments.push(comment);
+                await saveCommentsToGitHub();
+                document.getElementById('commentInput').value = '';
+                mediaInput.value = '';
+                await loadComments();
+            }
+        }
+
+        // Função para apagar comentário
+        async function deleteComment(index) {
+            comments.splice(index, 1);
+            await saveCommentsToGitHub();
+            await loadComments();
+        }
+
+        // Função para banir usuário
+        async function banUser() {
+            const banUsername = document.getElementById('banUsername').value.trim();
+            if (!banUsername) {
+                alert('Digite o nome do usuário a banir.');
+                return;
+            }
+            if (banUsername === currentUser.username) {
+                alert('Você não pode banir a si mesmo.');
+                return;
+            }
+            users = users.filter(user => user.username !== banUsername);
+            comments = comments.filter(comment => comment.username !== banUsername);
+            localStorage.setItem('users', JSON.stringify(users));
+            await saveCommentsToGitHub();
+            document.getElementById('banUsername').value = '';
+            alert(`Usuário ${banUsername} foi banido.`);
+            await loadComments();
+        }
+
+        // Função para carregar comentários
+        async function loadComments() {
+            const commentsList = document.getElementById('commentsList');
+            commentsList.innerHTML = '';
+            comments = await fetchComments();
+            comments.forEach((comment, index) => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = `comment ${comment.role}`;
+                let deleteButton = '';
+                if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
+                    deleteButton = `<button class="delete-btn" onclick="deleteComment(${index})">Apagar</button>`;
+                }
+                let mediaContent = '';
+                if (comment.media) {
+                    if (comment.mediaType.startsWith('image/')) {
+                        mediaContent = `<img src="${comment.media}" class="media" alt="Imagem do comentário">`;
+                    } else if (comment.mediaType.startsWith('video/')) {
+                        mediaContent = `<video src="${comment.media}" class="media" controls></video>`;
+                    }
+                }
+                commentDiv.innerHTML = `
+                    <div>
+                        <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${comment.timestamp}<br>
+                        ${comment.text}
+                        ${mediaContent}
+                    </div>
+                    ${deleteButton}
+                `;
+                commentsList.appendChild(commentDiv);
+            });
+        }
+    </script>
 </body>
 </html>
