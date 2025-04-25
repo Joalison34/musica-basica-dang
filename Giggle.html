@@ -68,7 +68,7 @@
             border-radius: 5px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
         }
         .comment.common {
             background-color: #f9f9f9;
@@ -108,6 +108,36 @@
             color: red;
             text-align: center;
         }
+        .file-input {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .file-input label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .file-input input[type="file"] {
+            padding: 0;
+            border: none;
+        }
+        .comment-media {
+            margin-top: 10px;
+            max-width: 100%;
+        }
+        .comment-media img, .comment-media video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            display: block;
+            margin-top: 5px;
+        }
+        .comment-content {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -138,6 +168,10 @@
             <p>Logado como: <span id="currentUser"></span></p>
             <button id="logoutBtn">Sair</button>
             <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
+            <div class="file-input">
+                <label for="mediaInput">Anexar imagem ou vídeo (PNG, JPEG, MP4, WEBM, vídeos até 500MB):</label>
+                <input type="file" id="mediaInput" accept="image/png,image/jpeg,video/mp4,video/webm">
+            </div>
             <button id="postCommentBtn">Postar Comentário</button>
             <div id="banSection" class="ban-section hidden">
                 <h3>Banir Usuário (Apenas Dono)</h3>
@@ -152,6 +186,7 @@
         // Importa as funções do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // Configuração do Firebase
         const firebaseConfig = {
@@ -164,10 +199,11 @@
         };
 
         // Inicializa o Firebase
-        let db;
+        let db, storage;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
+            storage = getStorage(app);
             console.log("Firebase inicializado com sucesso");
         } catch (error) {
             console.error("Erro ao inicializar Firebase:", error);
@@ -176,7 +212,7 @@
 
         // Inicializa dados do localStorage
         let users = JSON.parse(localStorage.getItem('users')) || [];
-        let currentUser = null;
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
         // Adiciona event listeners aos botões
         document.getElementById('createAccountBtn').addEventListener('click', createAccount);
@@ -185,8 +221,24 @@
         document.getElementById('postCommentBtn').addEventListener('click', postComment);
         document.getElementById('banUserBtn').addEventListener('click', banUser);
 
+        // Verifica se há usuário logado ao carregar a página
+        if (currentUser) {
+            updateUIForLoggedInUser();
+        }
+
         // Carrega comentários ao iniciar
         loadComments();
+
+        // Função para atualizar a interface para usuário logado
+        function updateUIForLoggedInUser() {
+            document.getElementById('createAccountSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('commentSection').classList.remove('hidden');
+            document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
+            document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
+            loadComments();
+            console.log("Usuário restaurado do localStorage:", currentUser.username);
+        }
 
         // Função para criar conta
         function createAccount() {
@@ -225,13 +277,9 @@
             const user = users.find(user => user.username === username && user.password === password);
             if (user) {
                 currentUser = user;
-                document.getElementById('createAccountSection').classList.add('hidden');
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('commentSection').classList.remove('hidden');
-                document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}">${username}</span> (${user.role})`;
-                document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateUIForLoggedInUser();
                 errorMessage.textContent = '';
-                loadComments();
                 console.log("Login bem-sucedido:", username);
             } else {
                 errorMessage.textContent = 'Nome ou senha incorretos.';
@@ -243,6 +291,7 @@
         function logout() {
             console.log("Saindo...");
             currentUser = null;
+            localStorage.removeItem('currentUser');
             document.getElementById('createAccountSection').classList.remove('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('commentSection').classList.add('hidden');
@@ -259,18 +308,22 @@
                 return;
             }
             const commentText = document.getElementById('commentInput').value.trim();
-            if (!commentText) {
-                alert('Escreva um comentário.');
+            const mediaInput = document.getElementById('mediaInput');
+            const file = mediaInput.files[0];
+
+            if (!commentText && !file) {
+                alert('Escreva um comentário ou anexe uma mídia.');
                 return;
             }
 
-            if (!db) {
+            if (!db || !storage) {
                 alert('Erro: Servidor não inicializado.');
-                console.error("Firestore não inicializado");
+                console.error("Firestore ou Storage não inicializado");
                 return;
             }
 
             try {
+                // Verifica limite de comentários diários
                 const today = new Date().toISOString().split('T')[0];
                 const q = query(
                     collection(db, 'comments'),
@@ -284,18 +337,47 @@
                     return;
                 }
 
+                let mediaUrl = null;
+                let mediaType = null;
+
+                // Processa upload de arquivo, se houver
+                if (file) {
+                    const validImageTypes = ['image/png', 'image/jpeg'];
+                    const validVideoTypes = ['video/mp4', 'video/webm'];
+                    const maxVideoSize = 500 * 1024 * 1024; // 500MB em bytes
+
+                    if (!validImageTypes.includes(file.type) && !validVideoTypes.includes(file.type)) {
+                        alert('Arquivo inválido. Use PNG, JPEG, MP4 ou WEBM.');
+                        return;
+                    }
+
+                    if (validVideoTypes.includes(file.type) && file.size > maxVideoSize) {
+                        alert('Vídeo excede o limite de 500MB.');
+                        return;
+                    }
+
+                    const storageRef = ref(storage, `media/${currentUser.username}/${Date.now()}_${file.name}`);
+                    await uploadBytes(storageRef, file);
+                    mediaUrl = await getDownloadURL(storageRef);
+                    mediaType = validImageTypes.includes(file.type) ? 'image' : 'video';
+                    console.log("Arquivo enviado:", mediaUrl);
+                }
+
                 const comment = {
                     username: currentUser.username,
                     role: currentUser.role,
-                    text: commentText,
+                    text: commentText || '',
                     timestamp: new Date().toISOString(),
-                    date: today
+                    date: today,
+                    mediaUrl: mediaUrl || null,
+                    mediaType: mediaType || null
                 };
 
                 await addDoc(collection(db, 'comments'), comment);
                 document.getElementById('commentInput').value = '';
+                mediaInput.value = '';
                 loadComments();
-                console.log("Comentário postado:", commentText);
+                console.log("Comentário postado:", comment);
             } catch (error) {
                 console.error("Erro ao postar comentário:", error);
                 alert('Erro ao postar comentário. Veja o console.');
@@ -402,37 +484,4 @@
                 commentsSnapshot.forEach(doc => {
                     const comment = doc.data();
                     const commentDate = new Date(comment.timestamp);
-                    if (commentDate >= threeDaysAgo) {
-                        const commentDiv = document.createElement('div');
-                        commentDiv.className = `comment ${comment.role}`;
-                        let deleteButton = '';
-                        if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
-                            deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
-                        }
-                        commentDiv.innerHTML = `
-                            <div>
-                                <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
-                                ${comment.text}
-                            </div>
-                            ${deleteButton}
-                        `;
-                        commentsList.appendChild(commentDiv);
-                    }
-                });
-                // Adiciona event listeners aos botões de apagar
-                document.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const commentId = button.getAttribute('data-comment-id');
-                        console.log("Botão Apagar clicado para comentário:", commentId);
-                        deleteComment(commentId);
-                    });
-                });
-                console.log("Comentários carregados:", commentsSnapshot.size);
-            } catch (error) {
-                console.error("Erro ao carregar comentários:", error);
-                commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
-            }
-        }
-    </script>
-</body>
-</html>
+                    if (commentDate >= threeD
