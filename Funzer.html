@@ -165,6 +165,9 @@
     </div>
 
     <script type="module">
+        // Teste inicial pra confirmar que o script tá rodando
+        console.log("Script JavaScript iniciado");
+
         // Importa as funções do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -180,14 +183,14 @@
         };
 
         // Inicializa o Firebase
-        let db;
+        let db = null;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             console.log("Firebase inicializado com sucesso");
         } catch (error) {
             console.error("Erro ao inicializar Firebase:", error);
-            alert("Erro ao conectar com o servidor. Verifique o console.");
+            alert("Erro ao conectar com o servidor. Algumas funções podem não funcionar. Veja o console.");
         }
 
         // Inicializa dados do localStorage
@@ -199,15 +202,16 @@
         try {
             users = JSON.parse(localStorage.getItem('users')) || [];
             mutes = JSON.parse(localStorage.getItem('mutes')) || {};
+            console.log("Dados do localStorage carregados:", users.length, "usuários,", Object.keys(mutes).length, "mutes");
         } catch (error) {
             console.error("Erro ao carregar localStorage:", error);
-            localStorage.removeItem('users');
-            localStorage.removeItem('mutes');
+            localStorage.clear(); // Limpa localStorage pra evitar dados corrompidos
             users = [];
             mutes = {};
+            console.log("localStorage limpo devido a erro");
         }
 
-        // Verifica sessão persistente ao carregar a página
+        // Verifica sessão persistente
         try {
             const savedUser = JSON.parse(localStorage.getItem('currentUser'));
             if (savedUser) {
@@ -224,10 +228,13 @@
         } catch (error) {
             console.error("Erro ao verificar sessão persistente:", error);
             localStorage.removeItem('currentUser');
+            console.log("Sessão persistente limpa devido a erro");
         }
 
-        // Aguarda o DOM carregar pra adicionar event listeners
-        document.addEventListener('DOMContentLoaded', () => {
+        // Adiciona event listeners após o carregamento completo
+        window.onload = () => {
+            console.log("window.onload disparado");
+
             const createAccountBtn = document.getElementById('createAccountBtn');
             const loginBtn = document.getElementById('loginBtn');
             const logoutBtn = document.getElementById('logoutBtn');
@@ -240,6 +247,7 @@
                 console.log("Event listener adicionado para createAccountBtn");
             } else {
                 console.error("Elemento createAccountBtn não encontrado");
+                alert("Erro: Botão Criar Conta não encontrado. Veja o console.");
             }
 
             if (loginBtn) {
@@ -247,6 +255,7 @@
                 console.log("Event listener adicionado para loginBtn");
             } else {
                 console.error("Elemento loginBtn não encontrado");
+                alert("Erro: Botão Entrar não encontrado. Veja o console.");
             }
 
             if (logoutBtn) {
@@ -279,7 +288,7 @@
 
             // Carrega comentários ao iniciar
             loadComments();
-        });
+        };
 
         // Função para criar conta
         function createAccount() {
@@ -290,7 +299,7 @@
 
             if (!createUsername || !createPassword || !roleCode) {
                 console.error("Elementos do formulário de criação de conta não encontrados");
-                alert('Erro no formulário. Veja o console.');
+                alert('Erro no formulário de criação de conta. Veja o console.');
                 return;
             }
 
@@ -334,7 +343,7 @@
 
             if (!loginUsername || !loginPassword || !errorMessage) {
                 console.error("Elementos do formulário de login não encontrados");
-                alert('Erro no formulário. Veja o console.');
+                alert('Erro no formulário de login. Veja o console.');
                 return;
             }
 
@@ -361,6 +370,7 @@
 
         // Função para atualizar a UI após login
         function updateUIForLoggedInUser() {
+            console.log("Atualizando UI para usuário logado:", currentUser.username);
             const createAccountSection = document.getElementById('createAccountSection');
             const loginSection = document.getElementById('loginSection');
             const commentSection = document.getElementById('commentSection');
@@ -370,6 +380,7 @@
 
             if (!createAccountSection || !loginSection || !commentSection || !currentUserSpan || !banSection || !muteSection) {
                 console.error("Elementos da UI não encontrados");
+                alert('Erro na interface. Veja o console.');
                 return;
             }
 
@@ -388,11 +399,23 @@
             currentUser = null;
             try {
                 localStorage.removeItem('currentUser');
-                document.getElementById('createAccountSection').classList.remove('hidden');
-                document.getElementById('loginSection').classList.remove('hidden');
-                document.getElementById('commentSection').classList.add('hidden');
-                document.getElementById('loginUsername').value = '';
-                document.getElementById('loginPassword').value = '';
+                const createAccountSection = document.getElementById('createAccountSection');
+                const loginSection = document.getElementById('loginSection');
+                const commentSection = document.getElementById('commentSection');
+                const loginUsername = document.getElementById('loginUsername');
+                const loginPassword = document.getElementById('loginPassword');
+
+                if (!createAccountSection || !loginSection || !commentSection || !loginUsername || !loginPassword) {
+                    console.error("Elementos para logout não encontrados");
+                    alert('Erro ao sair. Veja o console.');
+                    return;
+                }
+
+                createAccountSection.classList.remove('hidden');
+                loginSection.classList.remove('hidden');
+                commentSection.classList.add('hidden');
+                loginUsername.value = '';
+                loginPassword.value = '';
                 console.log("Logout concluído");
             } catch (error) {
                 console.error("Erro ao fazer logout:", error);
@@ -409,7 +432,6 @@
                 return;
             }
 
-            // Verifica se o usuário está mutado
             const mute = mutes[currentUser.username];
             if (mute && Date.now() < mute.expires) {
                 const remainingSeconds = Math.ceil((mute.expires - Date.now()) / 1000);
@@ -466,32 +488,4 @@
                 console.log("Comentário postado:", commentText);
             } catch (error) {
                 console.error("Erro ao postar comentário:", error);
-                alert('Erro ao postar comentário. Veja o console.');
-            }
-        }
-
-        // Função para apagar comentário
-        async function deleteComment(commentId) {
-            console.log("Tentando apagar comentário com ID:", commentId);
-            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
-                alert('Apenas moderadores e o dono podem apagar comentários.');
-                console.log("Usuário sem permissão para apagar:", currentUser?.username);
-                return;
-            }
-            if (!db) {
-                alert('Erro: Servidor não inicializado.');
-                console.error("Firestore não inicializado");
-                return;
-            }
-            if (!commentId || typeof commentId !== 'string') {
-                alert('Erro: Comentário inválido.');
-                console.error("ID do comentário inválido:", commentId);
-                return;
-            }
-            try {
-                console.log("Executando deleteDoc para comentário:", commentId);
-                await deleteDoc(doc(db, 'comments', commentId));
-                console.log("Comentário apagado com sucesso:", commentId);
-                loadComments();
-                alert('Comentário apagado com sucesso.');
-            } catch
+                alert('Erro ao postar comentário. Veja o
