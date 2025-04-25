@@ -315,15 +315,16 @@
                 console.error("Firestore não inicializado");
                 return;
             }
-            if (!commentId) {
+            if (!commentId || typeof commentId !== 'string') {
                 alert('Erro: Comentário inválido.');
                 console.error("ID do comentário inválido:", commentId);
                 return;
             }
             try {
+                console.log("Executando deleteDoc para comentário:", commentId);
                 await deleteDoc(doc(db, 'comments', commentId));
-                loadComments();
                 console.log("Comentário apagado com sucesso:", commentId);
+                loadComments();
                 alert('Comentário apagado com sucesso.');
             } catch (error) {
                 console.error("Erro ao apagar comentário:", error);
@@ -355,15 +356,21 @@
             }
             try {
                 // Remove usuário do localStorage
+                console.log("Removendo usuário do localStorage:", banUsername);
                 users = users.filter(user => user.username !== banUsername);
                 localStorage.setItem('users', JSON.stringify(users));
                 console.log("Usuário removido do localStorage:", banUsername);
 
                 // Remove todos os comentários do usuário no Firestore
+                console.log("Buscando comentários do usuário:", banUsername);
                 const q = query(collection(db, 'comments'), where('username', '==', banUsername));
                 const commentsSnapshot = await getDocs(q);
+                console.log("Comentários encontrados:", commentsSnapshot.size);
                 const batch = writeBatch(db);
-                commentsSnapshot.forEach(doc => batch.delete(doc.ref));
+                commentsSnapshot.forEach(doc => {
+                    console.log("Marcando comentário para exclusão:", doc.id);
+                    batch.delete(doc.ref);
+                });
                 await batch.commit();
                 console.log("Comentários do usuário removidos:", commentsSnapshot.size);
 
@@ -400,7 +407,7 @@
                         commentDiv.className = `comment ${comment.role}`;
                         let deleteButton = '';
                         if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
-                            deleteButton = `<button class="delete-btn" onclick="deleteComment('${doc.id}')">Apagar</button>`;
+                            deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
                         }
                         commentDiv.innerHTML = `
                             <div>
@@ -411,6 +418,14 @@
                         `;
                         commentsList.appendChild(commentDiv);
                     }
+                });
+                // Adiciona event listeners aos botões de apagar
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const commentId = button.getAttribute('data-comment-id');
+                        console.log("Botão Apagar clicado para comentário:", commentId);
+                        deleteComment(commentId);
+                    });
                 });
                 console.log("Comentários carregados:", commentsSnapshot.size);
             } catch (error) {
