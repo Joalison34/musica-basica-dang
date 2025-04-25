@@ -498,4 +498,59 @@
                 console.log("Usuário banido com sucesso:", banUsername);
             } catch (error) {
                 console.error("Erro ao banir usuário:", error);
-               
+             alert('Erro ao banir usuário. Veja o console.');
+            }
+        }
+
+        // Função para carregar comentários
+        async function loadComments() {
+            console.log("Carregando comentários...");
+            const commentsList = document.getElementById('commentsList');
+            commentsList.innerHTML = '';
+            if (!db) {
+                commentsList.innerHTML = '<p class="error">Erro: Servidor não inicializado.</p>';
+                console.error("Firestore não inicializado");
+                return;
+            }
+            try {
+                const threeDaysAgo = new Date();
+                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+                const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
+                const commentsSnapshot = await getDocs(q);
+                commentsSnapshot.forEach(doc => {
+                    const comment = doc.data();
+                    const commentDate = new Date(comment.timestamp);
+                    if (commentDate >= threeDaysAgo) {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = `comment ${comment.role}`;
+                        let deleteButton = '';
+                        if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
+                            deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
+                        }
+                        commentDiv.innerHTML = `
+                            <div>
+                                <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
+                                ${comment.text}
+                            </div>
+                            ${deleteButton}
+                        `;
+                        commentsList.appendChild(commentDiv);
+                    }
+                });
+                // Adiciona event listeners aos botões de apagar
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const commentId = button.getAttribute('data-comment-id');
+                        console.log("Botão Apagar clicado para comentário:", commentId);
+                        deleteComment(commentId);
+                    });
+                });
+                console.log("Comentários carregados:", commentsSnapshot.size);
+            } catch (error) {
+                console.error("Erro ao carregar comentários:", error);
+                commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
+            }
+        }
+    </script>
+</body>
+</html>  
