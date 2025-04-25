@@ -215,11 +215,41 @@
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
         // Adiciona event listeners aos botões
-        document.getElementById('createAccountBtn').addEventListener('click', createAccount);
-        document.getElementById('loginBtn').addEventListener('click', login);
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-        document.getElementById('postCommentBtn').addEventListener('click', postComment);
-        document.getElementById('banUserBtn').addEventListener('click', banUser);
+        const createAccountBtn = document.getElementById('createAccountBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const postCommentBtn = document.getElementById('postCommentBtn');
+        const banUserBtn = document.getElementById('banUserBtn');
+
+        if (createAccountBtn) {
+            createAccountBtn.addEventListener('click', createAccount);
+        } else {
+            console.error("Elemento createAccountBtn não encontrado");
+        }
+
+        if (loginBtn) {
+            loginBtn.addEventListener('click', login);
+        } else {
+            console.error("Elemento loginBtn não encontrado");
+        }
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', logout);
+        } else {
+            console.error("Elemento logoutBtn não encontrado");
+        }
+
+        if (postCommentBtn) {
+            postCommentBtn.addEventListener('click', postComment);
+        } else {
+            console.error("Elemento postCommentBtn não encontrado");
+        }
+
+        if (banUserBtn) {
+            banUserBtn.addEventListener('click', banUser);
+        } else {
+            console.error("Elemento banUserBtn não encontrado");
+        }
 
         // Verifica se há usuário logado ao carregar a página
         if (currentUser) {
@@ -273,6 +303,12 @@
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             const errorMessage = document.getElementById('errorMessage');
+
+            if (!username || !password) {
+                errorMessage.textContent = 'Preencha nome e senha.';
+                console.log("Campos de login vazios");
+                return;
+            }
 
             const user = users.find(user => user.username === username && user.password === password);
             if (user) {
@@ -462,26 +498,4 @@
                 console.log("Usuário banido com sucesso:", banUsername);
             } catch (error) {
                 console.error("Erro ao banir usuário:", error);
-                alert('Erro ao banir usuário. Veja o console.');
-            }
-        }
-
-        // Função para carregar comentários
-        async function loadComments() {
-            console.log("Carregando comentários...");
-            const commentsList = document.getElementById('commentsList');
-            commentsList.innerHTML = '';
-            if (!db) {
-                commentsList.innerHTML = '<p class="error">Erro: Servidor não inicializado.</p>';
-                console.error("Firestore não inicializado");
-                return;
-            }
-            try {
-                const threeDaysAgo = new Date();
-                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-                const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
-                const commentsSnapshot = await getDocs(q);
-                commentsSnapshot.forEach(doc => {
-                    const comment = doc.data();
-                    const commentDate = new Date(comment.timestamp);
-                    if (commentDate >= threeD
+               
