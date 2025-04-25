@@ -151,7 +151,7 @@
     <script type="module">
         // Importa as funções do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Configuração do Firebase
         const firebaseConfig = {
@@ -304,15 +304,27 @@
 
         // Função para apagar comentário
         async function deleteComment(commentId) {
-            console.log("Tentando apagar comentário:", commentId);
+            console.log("Tentando apagar comentário com ID:", commentId);
+            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
+                alert('Apenas moderadores e o dono podem apagar comentários.');
+                console.log("Usuário sem permissão para apagar:", currentUser?.username);
+                return;
+            }
             if (!db) {
                 alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
+                return;
+            }
+            if (!commentId) {
+                alert('Erro: Comentário inválido.');
+                console.error("ID do comentário inválido:", commentId);
                 return;
             }
             try {
                 await deleteDoc(doc(db, 'comments', commentId));
                 loadComments();
-                console.log("Comentário apagado:", commentId);
+                console.log("Comentário apagado com sucesso:", commentId);
+                alert('Comentário apagado com sucesso.');
             } catch (error) {
                 console.error("Erro ao apagar comentário:", error);
                 alert('Erro ao apagar comentário. Veja o console.');
@@ -324,6 +336,7 @@
             console.log("Tentando banir usuário...");
             if (!currentUser || currentUser.role !== 'owner') {
                 alert('Apenas o dono pode banir usuários.');
+                console.log("Usuário sem permissão para banir:", currentUser?.username);
                 return;
             }
             const banUsername = document.getElementById('banUsername').value.trim();
@@ -337,20 +350,27 @@
             }
             if (!db) {
                 alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
+                // Remove usuário do localStorage
                 users = users.filter(user => user.username !== banUsername);
                 localStorage.setItem('users', JSON.stringify(users));
+                console.log("Usuário removido do localStorage:", banUsername);
+
+                // Remove todos os comentários do usuário no Firestore
                 const q = query(collection(db, 'comments'), where('username', '==', banUsername));
                 const commentsSnapshot = await getDocs(q);
-                const batch = db.batch();
+                const batch = writeBatch(db);
                 commentsSnapshot.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
+                console.log("Comentários do usuário removidos:", commentsSnapshot.size);
+
                 document.getElementById('banUsername').value = '';
-                alert(`Usuário ${banUsername} banido.`);
+                alert(`Usuário ${banUsername} banido com sucesso.`);
                 loadComments();
-                console.log("Usuário banido:", banUsername);
+                console.log("Usuário banido com sucesso:", banUsername);
             } catch (error) {
                 console.error("Erro ao banir usuário:", error);
                 alert('Erro ao banir usuário. Veja o console.');
