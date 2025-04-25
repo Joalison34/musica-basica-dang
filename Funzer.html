@@ -191,76 +191,168 @@
         }
 
         // Inicializa dados do localStorage
-        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let users = [];
+        let mutes = {};
         let currentUser = null;
-        let mutes = JSON.parse(localStorage.getItem('mutes')) || {};
 
-        // Verifica sessão persistente ao carregar a página
-        const savedUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (savedUser) {
-            const userExists = users.find(user => user.username === savedUser.username && user.password === savedUser.password);
-            if (userExists) {
-                currentUser = userExists;
-                updateUIForLoggedInUser();
-                console.log("Sessão restaurada para:", currentUser.username);
-            } else {
-                localStorage.removeItem('currentUser');
-                console.log("Usuário salvo não existe mais (possivelmente banido)");
-            }
+        // Carrega dados do localStorage com tratamento de erro
+        try {
+            users = JSON.parse(localStorage.getItem('users')) || [];
+            mutes = JSON.parse(localStorage.getItem('mutes')) || {};
+        } catch (error) {
+            console.error("Erro ao carregar localStorage:", error);
+            localStorage.removeItem('users');
+            localStorage.removeItem('mutes');
+            users = [];
+            mutes = {};
         }
 
-        // Adiciona event listeners aos botões
-        document.getElementById('createAccountBtn').addEventListener('click', createAccount);
-        document.getElementById('loginBtn').addEventListener('click', login);
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-        document.getElementById('postCommentBtn').addEventListener('click', postComment);
-        document.getElementById('banUserBtn').addEventListener('click', banUser);
-        document.getElementById('muteUserBtn').addEventListener('click', muteUser);
+        // Verifica sessão persistente ao carregar a página
+        try {
+            const savedUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (savedUser) {
+                const userExists = users.find(user => user.username === savedUser.username && user.password === savedUser.password);
+                if (userExists) {
+                    currentUser = userExists;
+                    updateUIForLoggedInUser();
+                    console.log("Sessão restaurada para:", currentUser.username);
+                } else {
+                    localStorage.removeItem('currentUser');
+                    console.log("Usuário salvo não existe mais (possivelmente banido)");
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao verificar sessão persistente:", error);
+            localStorage.removeItem('currentUser');
+        }
 
-        // Carrega comentários ao iniciar
-        loadComments();
+        // Aguarda o DOM carregar pra adicionar event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const createAccountBtn = document.getElementById('createAccountBtn');
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const postCommentBtn = document.getElementById('postCommentBtn');
+            const banUserBtn = document.getElementById('banUserBtn');
+            const muteUserBtn = document.getElementById('muteUserBtn');
+
+            if (createAccountBtn) {
+                createAccountBtn.addEventListener('click', createAccount);
+                console.log("Event listener adicionado para createAccountBtn");
+            } else {
+                console.error("Elemento createAccountBtn não encontrado");
+            }
+
+            if (loginBtn) {
+                loginBtn.addEventListener('click', login);
+                console.log("Event listener adicionado para loginBtn");
+            } else {
+                console.error("Elemento loginBtn não encontrado");
+            }
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+                console.log("Event listener adicionado para logoutBtn");
+            } else {
+                console.error("Elemento logoutBtn não encontrado");
+            }
+
+            if (postCommentBtn) {
+                postCommentBtn.addEventListener('click', postComment);
+                console.log("Event listener adicionado para postCommentBtn");
+            } else {
+                console.error("Elemento postCommentBtn não encontrado");
+            }
+
+            if (banUserBtn) {
+                banUserBtn.addEventListener('click', banUser);
+                console.log("Event listener adicionado para banUserBtn");
+            } else {
+                console.error("Elemento banUserBtn não encontrado");
+            }
+
+            if (muteUserBtn) {
+                muteUserBtn.addEventListener('click', muteUser);
+                console.log("Event listener adicionado para muteUserBtn");
+            } else {
+                console.error("Elemento muteUserBtn não encontrado");
+            }
+
+            // Carrega comentários ao iniciar
+            loadComments();
+        });
 
         // Função para criar conta
         function createAccount() {
             console.log("Tentando criar conta...");
-            const username = document.getElementById('createUsername').value.trim();
-            const password = document.getElementById('createPassword').value.trim();
-            const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
+            const createUsername = document.getElementById('createUsername');
+            const createPassword = document.getElementById('createPassword');
+            const roleCode = document.getElementById('roleCode');
+
+            if (!createUsername || !createPassword || !roleCode) {
+                console.error("Elementos do formulário de criação de conta não encontrados");
+                alert('Erro no formulário. Veja o console.');
+                return;
+            }
+
+            const username = createUsername.value.trim();
+            const password = createPassword.value.trim();
+            const roleCodeValue = roleCode.value.trim().toUpperCase();
 
             if (!username || !password) {
                 alert('Preencha nome e senha.');
+                console.log("Campos obrigatórios vazios");
                 return;
             }
 
             if (users.some(user => user.username === username)) {
                 alert('Nome de usuário já existe.');
+                console.log("Nome de usuário já existe:", username);
                 return;
             }
 
-            const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
+            const role = roleCodeValue === '7733' ? 'moderator' : roleCodeValue === 'ABACATE' ? 'owner' : 'common';
             users.push({ username, password, role });
-            localStorage.setItem('users', JSON.stringify(users));
-            alert('Conta criada! Faça login.');
-            document.getElementById('createUsername').value = '';
-            document.getElementById('createPassword').value = '';
-            document.getElementById('roleCode').value = '';
-            console.log("Conta criada:", username, role);
+            try {
+                localStorage.setItem('users', JSON.stringify(users));
+                alert('Conta criada! Faça login.');
+                createUsername.value = '';
+                createPassword.value = '';
+                roleCode.value = '';
+                console.log("Conta criada:", username, role);
+            } catch (error) {
+                console.error("Erro ao salvar usuários no localStorage:", error);
+                alert('Erro ao criar conta. Veja o console.');
+            }
         }
 
         // Função para login
         function login() {
             console.log("Tentando logar...");
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
+            const loginUsername = document.getElementById('loginUsername');
+            const loginPassword = document.getElementById('loginPassword');
             const errorMessage = document.getElementById('errorMessage');
+
+            if (!loginUsername || !loginPassword || !errorMessage) {
+                console.error("Elementos do formulário de login não encontrados");
+                alert('Erro no formulário. Veja o console.');
+                return;
+            }
+
+            const username = loginUsername.value.trim();
+            const password = loginPassword.value.trim();
 
             const user = users.find(user => user.username === username && user.password === password);
             if (user) {
                 currentUser = user;
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                updateUIForLoggedInUser();
-                errorMessage.textContent = '';
-                console.log("Login bem-sucedido:", username);
+                try {
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    updateUIForLoggedInUser();
+                    errorMessage.textContent = '';
+                    console.log("Login bem-sucedido:", username);
+                } catch (error) {
+                    console.error("Erro ao salvar currentUser no localStorage:", error);
+                    alert('Erro ao logar. Veja o console.');
+                }
             } else {
                 errorMessage.textContent = 'Nome ou senha incorretos.';
                 console.log("Falha no login:", username);
@@ -269,12 +361,24 @@
 
         // Função para atualizar a UI após login
         function updateUIForLoggedInUser() {
-            document.getElementById('createAccountSection').classList.add('hidden');
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('commentSection').classList.remove('hidden');
-            document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
-            document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
-            document.getElementById('muteSection').classList.toggle('hidden', currentUser.role !== 'moderator' && currentUser.role !== 'owner');
+            const createAccountSection = document.getElementById('createAccountSection');
+            const loginSection = document.getElementById('loginSection');
+            const commentSection = document.getElementById('commentSection');
+            const currentUserSpan = document.getElementById('currentUser');
+            const banSection = document.getElementById('banSection');
+            const muteSection = document.getElementById('muteSection');
+
+            if (!createAccountSection || !loginSection || !commentSection || !currentUserSpan || !banSection || !muteSection) {
+                console.error("Elementos da UI não encontrados");
+                return;
+            }
+
+            createAccountSection.classList.add('hidden');
+            loginSection.classList.add('hidden');
+            commentSection.classList.remove('hidden');
+            currentUserSpan.innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
+            banSection.classList.toggle('hidden', currentUser.role !== 'owner');
+            muteSection.classList.toggle('hidden', currentUser.role !== 'moderator' && currentUser.role !== 'owner');
             loadComments();
         }
 
@@ -282,13 +386,18 @@
         function logout() {
             console.log("Saindo...");
             currentUser = null;
-            localStorage.removeItem('currentUser');
-            document.getElementById('createAccountSection').classList.remove('hidden');
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('commentSection').classList.add('hidden');
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
-            console.log("Logout concluído");
+            try {
+                localStorage.removeItem('currentUser');
+                document.getElementById('createAccountSection').classList.remove('hidden');
+                document.getElementById('loginSection').classList.remove('hidden');
+                document.getElementById('commentSection').classList.add('hidden');
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                console.log("Logout concluído");
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+                alert('Erro ao sair. Veja o console.');
+            }
         }
 
         // Função para postar comentário
@@ -296,6 +405,7 @@
             console.log("Tentando postar comentário...");
             if (!currentUser) {
                 alert('Faça login para comentar.');
+                console.log("Nenhum usuário logado");
                 return;
             }
 
@@ -308,9 +418,17 @@
                 return;
             }
 
-            const commentText = document.getElementById('commentInput').value.trim();
+            const commentInput = document.getElementById('commentInput');
+            if (!commentInput) {
+                console.error("Elemento commentInput não encontrado");
+                alert('Erro no formulário. Veja o console.');
+                return;
+            }
+
+            const commentText = commentInput.value.trim();
             if (!commentText) {
                 alert('Escreva um comentário.');
+                console.log("Comentário vazio");
                 return;
             }
 
@@ -343,7 +461,7 @@
                 };
 
                 await addDoc(collection(db, 'comments'), comment);
-                document.getElementById('commentInput').value = '';
+                commentInput.value = '';
                 loadComments();
                 console.log("Comentário postado:", commentText);
             } catch (error) {
@@ -376,104 +494,4 @@
                 console.log("Comentário apagado com sucesso:", commentId);
                 loadComments();
                 alert('Comentário apagado com sucesso.');
-            } catch (error) {
-                console.error("Erro ao apagar comentário:", error);
-                alert('Erro ao apagar comentário. Veja o console.');
-            }
-        }
-
-        // Função para banir usuário
-        async function banUser() {
-            console.log("Tentando banir usuário...");
-            if (!currentUser || currentUser.role !== 'owner') {
-                alert('Apenas o dono pode banir usuários.');
-                console.log("Usuário sem permissão para banir:", currentUser?.username);
-                return;
-            }
-            const banUsername = document.getElementById('banUsername').value.trim();
-            if (!banUsername) {
-                alert('Digite o nome do usuário a banir.');
-                return;
-            }
-            if (banUsername === currentUser.username) {
-                alert('Você não pode banir a si mesmo.');
-                return;
-            }
-            if (!db) {
-                alert('Erro: Servidor não inicializado.');
-                console.error("Firestore não inicializado");
-                return;
-            }
-            try {
-                // Remove usuário do localStorage
-                console.log("Removendo usuário do localStorage:", banUsername);
-                users = users.filter(user => user.username !== banUsername);
-                localStorage.setItem('users', JSON.stringify(users));
-                console.log("Usuário removido do localStorage:", banUsername);
-
-                // Remove todos os comentários do usuário no Firestore
-                console.log("Buscando comentários do usuário:", banUsername);
-                const q = query(collection(db, 'comments'), where('username', '==', banUsername));
-                const commentsSnapshot = await getDocs(q);
-                console.log("Comentários encontrados:", commentsSnapshot.size);
-                const batch = writeBatch(db);
-                commentsSnapshot.forEach(doc => {
-                    console.log("Marcando comentário para exclusão:", doc.id);
-                    batch.delete(doc.ref);
-                });
-                await batch.commit();
-                console.log("Comentários do usuário removidos:", commentsSnapshot.size);
-
-                // Remove mute, se existir
-                delete mutes[banUsername];
-                localStorage.setItem('mutes', JSON.stringify(mutes));
-
-                // Desloga se o usuário banido for o atual
-                if (currentUser && currentUser.username === banUsername) {
-                    logout();
-                }
-
-                document.getElementById('banUsername').value = '';
-                alert(`Usuário ${banUsername} banido com sucesso.`);
-                loadComments();
-                console.log("Usuário banido com sucesso:", banUsername);
-            } catch (error) {
-                console.error("Erro ao banir usuário:", error);
-                alert('Erro ao banir usuário. Veja o console.');
-            }
-        }
-
-        // Função para mutar usuário
-        function muteUser() {
-            console.log("Tentando mutar usuário...");
-            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
-                alert('Apenas moderadores e o dono podem mutar usuários.');
-                console.log("Usuário sem permissão para mutar:", currentUser?.username);
-                return;
-            }
-            const muteUsername = document.getElementById('muteUsername').value.trim();
-            const muteDuration = parseInt(document.getElementById('muteDuration').value);
-            if (!muteUsername) {
-                alert('Digite o nome do usuário a mutar.');
-                return;
-            }
-            if (!muteDuration || muteDuration <= 0) {
-                alert('Digite uma duração válida em segundos.');
-                return;
-            }
-            try {
-                const expires = Date.now() + muteDuration * 1000;
-                mutes[muteUsername] = { expires };
-                localStorage.setItem('mutes', JSON.stringify(mutes));
-                document.getElementById('muteUsername').value = '';
-                document.getElementById('muteDuration').value = '';
-                alert(`Usuário ${muteUsername} mutado por ${muteDuration} segundos.`);
-                console.log("Usuário mutado:", muteUsername, "Expira em:", expires);
-            } catch (error) {
-                console.error("Erro ao mutar usuário:", error);
-                alert('Erro ao mutar usuário. Veja o console.');
-            }
-        }
-
-        // Função para carregar comentários
-        async function loadCommen
+            } catch
