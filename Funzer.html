@@ -176,7 +176,7 @@
 
         // Inicializa dados do localStorage
         let users = JSON.parse(localStorage.getItem('users')) || [];
-        let currentUser = null;
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
         // Adiciona event listeners aos botões
         document.getElementById('createAccountBtn').addEventListener('click', createAccount);
@@ -185,8 +185,24 @@
         document.getElementById('postCommentBtn').addEventListener('click', postComment);
         document.getElementById('banUserBtn').addEventListener('click', banUser);
 
+        // Verifica se há usuário logado ao carregar a página
+        if (currentUser) {
+            updateUIForLoggedInUser();
+        }
+
         // Carrega comentários ao iniciar
         loadComments();
+
+        // Função para atualizar a interface para usuário logado
+        function updateUIForLoggedInUser() {
+            document.getElementById('createAccountSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('commentSection').classList.remove('hidden');
+            document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
+            document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
+            loadComments();
+            console.log("Usuário restaurado do localStorage:", currentUser.username);
+        }
 
         // Função para criar conta
         function createAccount() {
@@ -225,13 +241,9 @@
             const user = users.find(user => user.username === username && user.password === password);
             if (user) {
                 currentUser = user;
-                document.getElementById('createAccountSection').classList.add('hidden');
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('commentSection').classList.remove('hidden');
-                document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}">${username}</span> (${user.role})`;
-                document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateUIForLoggedInUser();
                 errorMessage.textContent = '';
-                loadComments();
                 console.log("Login bem-sucedido:", username);
             } else {
                 errorMessage.textContent = 'Nome ou senha incorretos.';
@@ -243,6 +255,7 @@
         function logout() {
             console.log("Saindo...");
             currentUser = null;
+            localStorage.removeItem('currentUser');
             document.getElementById('createAccountSection').classList.remove('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('commentSection').classList.add('hidden');
