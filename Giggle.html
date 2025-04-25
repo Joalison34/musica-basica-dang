@@ -4,193 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Site de Comentários</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #74ebd5, #acb6e5);
-            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
             padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
         }
         .container {
-            max-width: 700px;
+            max-width: 600px;
             width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        .container:hover {
-            transform: translateY(-5px);
-        }
-        h1 {
+        h1, h2 {
             text-align: center;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        h2 {
-            color: #34495e;
-            margin-bottom: 15px;
-            font-size: 1.5em;
+            color: #333;
         }
         .form-section, .comment-section {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         input, button, textarea {
             width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: all 0.3s;
-        }
-        input, textarea {
-            background: #f1f3f5;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        input:focus, textarea:focus {
-            outline: none;
-            background: #fff;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
         }
         button {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            background-color: #28a745;
             color: white;
+            border: none;
             cursor: pointer;
-            font-weight: 600;
         }
         button:hover {
-            background: linear-gradient(45deg, #ff8787, #6be7e0);
-            transform: scale(1.05);
+            background-color: #218838;
         }
         .delete-btn {
-            background: linear-gradient(45deg, #dc3545, #c82333);
+            background-color: #dc3545;
             width: auto;
-            padding: 8px 15px;
+            padding: 5px 10px;
             margin-left: 10px;
-            font-size: 0.9em;
+            display: inline-block;
         }
         .delete-btn:hover {
-            background: linear-gradient(45deg, #c82333, #b21f2d);
-            transform: scale(1.05);
+            background-color: #c82333;
         }
         .ban-section {
             margin-top: 20px;
-            padding: 15px;
-            background: #f8e1e1;
-            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
         .comment {
-            border: none;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-        .comment:hover {
-            transform: translateY(-3px);
+            align-items: center;
         }
         .comment.common {
-            background: #ffffff;
+            background-color: #f9f9f9;
         }
         .comment.moderator {
-            background: #e6f3ff;
+            background-color: #e6f3ff;
             border: 2px solid #007bff;
         }
         .comment.owner {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
-            background-size: 200%;
-            animation: gradientFlow 5s ease infinite;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
             color: white;
-        }
-        @keyframes gradientFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
         .username.moderator {
             display: inline-block;
             border: 2px solid #007bff;
-            padding: 3px 8px;
-            border-radius: 5px;
-            animation: modBlink 2s infinite;
+            padding: 2px 5px;
+            animation: blink 1.5s infinite;
         }
         .username.owner {
             display: inline-block;
-            padding: 3px 8px;
-            border-radius: 5px;
-            position: relative;
-            color: #fff;
-            text-shadow: 0 0 10px #ff6b6b, 0 0 20px #4ecdc4;
-            animation: neonGlow 1.5s ease-in-out infinite alternate;
+            padding: 2px 5px;
+            animation: shine 2s infinite;
         }
-        .username.owner::before {
-            content: '👑';
-            position: absolute;
-            left: -25px;
-            top: 50%;
-            transform: translateY(-50%) rotate(0deg);
-            animation: crownSpin 4s linear infinite;
+        @keyframes blink {
+            0%, 100% { border-color: #007bff; }
+            50% { border-color: transparent; }
         }
-        .username.owner::after {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            background: radial-gradient(circle, rgba(255, 107, 107, 0.3) 0%, transparent 70%);
-            animation: particlePulse 3s ease-in-out infinite;
-            z-index: -1;
-        }
-        @keyframes modBlink {
-            0%, 100% { border-color: #007bff; background: #e6f3ff; }
-            50% { border-color: #00c4b4; background: #d1e8ff; }
-        }
-        @keyframes neonGlow {
-            from { text-shadow: 0 0 10px #ff6b6b, 0 0 20px #ff6b6b, 0 0 30px #4ecdc4; }
-            to { text-shadow: 0 0 20px #4ecdc4, 0 0 30px #4ecdc4, 0 0 40px #ff6b6b; }
-        }
-        @keyframes crownSpin {
-            0% { transform: translateY(-50%) rotate(0deg); }
-            100% { transform: translateY(-50%) rotate(360deg); }
-        }
-        @keyframes particlePulse {
-            0% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.2); }
-            100% { opacity: 0.3; transform: scale(1); }
+        @keyframes shine {
+            0% { color: #ff6b6b; text-shadow: 0 0 5px #ff6b6b; }
+            50% { color: #4ecdc4; text-shadow: 0 0 10px #4ecdc4; }
+            100% { color: #ff6b6b; text-shadow: 0 0 5px #ff6b6b; }
         }
         .hidden {
             display: none;
         }
         .error {
-            color: #dc3545;
+            color: red;
             text-align: center;
-            margin: 10px 0;
-        }
-        .media {
-            max-width: 100%;
-            margin-top: 10px;
-            border-radius: 8px;
-            display: block;
-        }
-        video.media {
-            max-height: 300px;
         }
     </style>
 </head>
@@ -222,7 +138,6 @@
             <p>Logado como: <span id="currentUser"></span></p>
             <button onclick="logout()">Sair</button>
             <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
-            <input type="file" id="mediaInput" accept="image/png,image/jpeg,video/mp4" title="Adicione uma imagem (PNG/JPG) ou vídeo (MP4, máx. 5 min)">
             <button onclick="postComment()">Postar Comentário</button>
             <div id="banSection" class="ban-section hidden">
                 <h3>Banir Usuário (Apenas Dono)</h3>
@@ -233,10 +148,23 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
     <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+            authDomain: "funzer.firebaseapp.com",
+            projectId: "funzer",
+            storageBucket: "funzer.firebasestorage.app",
+            messagingSenderId: "723068647417",
+            appId: "1:723068647417:web:7ae58205191b0099a1ef28"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         // Inicializa dados do localStorage
         let users = JSON.parse(localStorage.getItem('users')) || [];
-        let comments = JSON.parse(localStorage.getItem('comments')) || [];
         let currentUser = null;
 
         // Função para criar conta
@@ -302,13 +230,21 @@
         }
 
         // Função para postar comentário
-        function postComment() {
+        async function postComment() {
             const commentText = document.getElementById('commentInput').value.trim();
-            const mediaInput = document.getElementById('mediaInput');
-            const file = mediaInput.files[0];
+            if (!commentText) {
+                alert('Escreva um comentário antes de postar.');
+                return;
+            }
 
-            if (!commentText && !file) {
-                alert('Escreva um comentário ou adicione uma mídia.');
+            // Verifica limite de 10 comentários por dia
+            const today = new Date().toISOString().split('T')[0];
+            const userComments = await db.collection('comments')
+                .where('username', '==', currentUser.username)
+                .where('date', '==', today)
+                .get();
+            if (userComments.size >= 10) {
+                alert('Você atingiu o limite de 10 comentários por dia.');
                 return;
             }
 
@@ -316,63 +252,23 @@
                 username: currentUser.username,
                 role: currentUser.role,
                 text: commentText,
-                timestamp: new Date().toLocaleString('pt-BR'),
-                media: null,
-                mediaType: null
+                timestamp: new Date().toISOString(),
+                date: today
             };
 
-            if (file) {
-                const maxVideoDuration = 300; // 5 minutos em segundos
-                if (file.type.startsWith('video/')) {
-                    const video = document.createElement('video');
-                    video.src = URL.createObjectURL(file);
-                    video.onloadedmetadata = () => {
-                        if (video.duration > maxVideoDuration) {
-                            alert('O vídeo deve ter no máximo 5 minutos.');
-                            URL.revokeObjectURL(video.src);
-                            return;
-                        }
-                        processFile(file, comment);
-                    };
-                } else {
-                    processFile(file, comment);
-                }
-            } else {
-                saveComment(comment);
-            }
-
-            function processFile(file, comment) {
-                if (!file.type.match('image/png|image/jpeg|video/mp4')) {
-                    alert('Apenas imagens PNG/JPG ou vídeos MP4 são permitidos.');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = () => {
-                    comment.media = reader.result;
-                    comment.mediaType = file.type;
-                    saveComment(comment);
-                };
-                reader.readAsDataURL(file);
-            }
-
-            function saveComment(comment) {
-                comments.push(comment);
-                localStorage.setItem('comments', JSON.stringify(comments));
-                document.getElementById('commentInput').value = '';
-                mediaInput.value = '';
-                loadComments();
-            }
+            await db.collection('comments').add(comment);
+            document.getElementById('commentInput').value = '';
+            loadComments();
         }
 
         // Função para apagar comentário
-        function deleteComment(index) {
-            comments.splice(index, 1);
-            localStorage.setItem('comments', JSON.stringify(comments));
+        async function deleteComment(commentId) {
+            await db.collection('comments').doc(commentId).delete();
             loadComments();
         }
 
         // Função para banir usuário
-        function banUser() {
+        async function banUser() {
             const banUsername = document.getElementById('banUsername').value.trim();
             if (!banUsername) {
                 alert('Digite o nome do usuário a banir.');
@@ -383,42 +279,46 @@
                 return;
             }
             users = users.filter(user => user.username !== banUsername);
-            comments = comments.filter(comment => comment.username !== banUsername);
             localStorage.setItem('users', JSON.stringify(users));
-            localStorage.setItem('comments', JSON.stringify(comments));
+            const commentsSnapshot = await db.collection('comments')
+                .where('username', '==', banUsername)
+                .get();
+            const batch = db.batch();
+            commentsSnapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
             document.getElementById('banUsername').value = '';
             alert(`Usuário ${banUsername} foi banido.`);
             loadComments();
         }
 
         // Função para carregar comentários
-        function loadComments() {
+        async function loadComments() {
             const commentsList = document.getElementById('commentsList');
             commentsList.innerHTML = '';
-            comments.forEach((comment, index) => {
-                const commentDiv = document.createElement('div');
-                commentDiv.className = `comment ${comment.role}`;
-                let deleteButton = '';
-                if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
-                    deleteButton = `<button class="delete-btn" onclick="deleteComment(${index})">Apagar</button>`;
-                }
-                let mediaContent = '';
-                if (comment.media) {
-                    if (comment.mediaType.startsWith('image/')) {
-                        mediaContent = `<img src="${comment.media}" class="media" alt="Imagem do comentário">`;
-                    } else if (comment.mediaType.startsWith('video/')) {
-                        mediaContent = `<video src="${comment.media}" class="media" controls></video>`;
+            const threeDaysAgo = new Date();
+            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+            const commentsSnapshot = await db.collection('comments')
+                .orderBy('timestamp', 'desc')
+                .get();
+            commentsSnapshot.forEach(doc => {
+                const comment = doc.data();
+                const commentDate = new Date(comment.timestamp);
+                if (commentDate >= threeDaysAgo) {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = `comment ${comment.role}`;
+                    let deleteButton = '';
+                    if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
+                        deleteButton = `<button class="delete-btn" onclick="deleteComment('${doc.id}')">Apagar</button>`;
                     }
+                    commentDiv.innerHTML = `
+                        <div>
+                            <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
+                            ${comment.text}
+                        </div>
+                        ${deleteButton}
+                    `;
+                    commentsList.appendChild(commentDiv);
                 }
-                commentDiv.innerHTML = `
-                    <div>
-                        <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${comment.timestamp}<br>
-                        ${comment.text}
-                        ${mediaContent}
-                    </div>
-                    ${deleteButton}
-                `;
-                commentsList.appendChild(commentDiv);
             });
         }
     </script>
