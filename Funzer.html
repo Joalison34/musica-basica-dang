@@ -120,7 +120,7 @@
             <input type="text" id="createUsername" placeholder="Nome de usuário" required>
             <input type="password" id="createPassword" placeholder="Senha" required>
             <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
-            <button onclick="createAccount()">Criar Conta</button>
+            <button id="createAccountBtn">Criar Conta</button>
         </div>
 
         <!-- Formulário de Login -->
@@ -128,7 +128,7 @@
             <h2>Login</h2>
             <input type="text" id="loginUsername" placeholder="Nome de usuário" required>
             <input type="password" id="loginPassword" placeholder="Senha" required>
-            <button onclick="login()">Entrar</button>
+            <button id="loginBtn">Entrar</button>
             <p class="error" id="errorMessage"></p>
         </div>
 
@@ -136,57 +136,88 @@
         <div id="commentSection" class="comment-section hidden">
             <h2>Comentários</h2>
             <p>Logado como: <span id="currentUser"></span></p>
-            <button onclick="logout()">Sair</button>
+            <button id="logoutBtn">Sair</button>
             <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
-            <button onclick="postComment()">Postar Comentário</button>
+            <button id="postCommentBtn">Postar Comentário</button>
             <div id="banSection" class="ban-section hidden">
                 <h3>Banir Usuário (Apenas Dono)</h3>
                 <input type="text" id="banUsername" placeholder="Nome do usuário a banir">
-                <button onclick="banUser()">Banir</button>
+                <button id="banUserBtn">Banir</button>
             </div>
             <div id="commentsList"></div>
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Importa as funções do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+            authDomain: "funzer.firebaseapp.com",
+            projectId: "funzer",
+            storageBucket: "funzer.firebasestorage.app",
+            messagingSenderId: "723068647417",
+            appId: "1:723068647417:web:7ae58205191b0099a1ef28"
+        };
+
+        // Inicializa o Firebase
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            console.log("Firebase inicializado com sucesso");
+        } catch (error) {
+            console.error("Erro ao inicializar Firebase:", error);
+            alert("Erro ao conectar com o servidor. Verifique o console.");
+        }
+
         // Inicializa dados do localStorage
         let users = JSON.parse(localStorage.getItem('users')) || [];
-        let comments = JSON.parse(localStorage.getItem('comments')) || [];
         let currentUser = null;
+
+        // Adiciona event listeners aos botões
+        document.getElementById('createAccountBtn').addEventListener('click', createAccount);
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('postCommentBtn').addEventListener('click', postComment);
+        document.getElementById('banUserBtn').addEventListener('click', banUser);
+
+        // Carrega comentários ao iniciar
+        loadComments();
 
         // Função para criar conta
         function createAccount() {
+            console.log("Tentando criar conta...");
             const username = document.getElementById('createUsername').value.trim();
             const password = document.getElementById('createPassword').value.trim();
             const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
 
             if (!username || !password) {
-                alert('Por favor, preencha nome e senha.');
+                alert('Preencha nome e senha.');
                 return;
             }
 
-            if (users.find(user => user.username === username)) {
-                alert('Este nome de usuário já existe.');
+            if (users.some(user => user.username === username)) {
+                alert('Nome de usuário já existe.');
                 return;
             }
 
-            let role = 'common';
-            if (roleCode === '7733') {
-                role = 'moderator';
-            } else if (roleCode === 'ABACATE') {
-                role = 'owner';
-            }
-
+            const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
             users.push({ username, password, role });
             localStorage.setItem('users', JSON.stringify(users));
-            alert('Conta criada com sucesso! Faça login.');
+            alert('Conta criada! Faça login.');
             document.getElementById('createUsername').value = '';
             document.getElementById('createPassword').value = '';
             document.getElementById('roleCode').value = '';
+            console.log("Conta criada:", username, role);
         }
 
         // Função para login
         function login() {
+            console.log("Tentando logar...");
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             const errorMessage = document.getElementById('errorMessage');
@@ -199,53 +230,109 @@
                 document.getElementById('commentSection').classList.remove('hidden');
                 document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}">${username}</span> (${user.role})`;
                 document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
-                document.getElementById('errorMessage').textContent = '';
+                errorMessage.textContent = '';
                 loadComments();
+                console.log("Login bem-sucedido:", username);
             } else {
-                errorMessage.textContent = 'Nome de usuário ou senha incorretos.';
+                errorMessage.textContent = 'Nome ou senha incorretos.';
+                console.log("Falha no login:", username);
             }
         }
 
         // Função para logout
         function logout() {
+            console.log("Saindo...");
             currentUser = null;
             document.getElementById('createAccountSection').classList.remove('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('commentSection').classList.add('hidden');
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
+            console.log("Logout concluído");
         }
 
         // Função para postar comentário
-        function postComment() {
+        async function postComment() {
+            console.log("Tentando postar comentário...");
+            if (!currentUser) {
+                alert('Faça login para comentar.');
+                return;
+            }
             const commentText = document.getElementById('commentInput').value.trim();
             if (!commentText) {
-                alert('Escreva um comentário antes de postar.');
+                alert('Escreva um comentário.');
                 return;
             }
 
-            const comment = {
-                username: currentUser.username,
-                role: currentUser.role,
-                text: commentText,
-                timestamp: new Date().toLocaleString('pt-BR')
-            };
+            if (!db) {
+                alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
+                return;
+            }
 
-            comments.push(comment);
-            localStorage.setItem('comments', JSON.stringify(comments));
-            document.getElementById('commentInput').value = '';
-            loadComments();
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const q = query(
+                    collection(db, 'comments'),
+                    where('username', '==', currentUser.username),
+                    where('date', '==', today)
+                );
+                const userComments = await getDocs(q);
+                if (userComments.size >= 10) {
+                    alert('Limite de 10 comentários por dia atingido.');
+                    console.log("Limite de comentários atingido:", currentUser.username);
+                    return;
+                }
+
+                const comment = {
+                    username: currentUser.username,
+                    role: currentUser.role,
+                    text: commentText,
+                    timestamp: new Date().toISOString(),
+                    date: today
+                };
+
+                await addDoc(collection(db, 'comments'), comment);
+                document.getElementById('commentInput').value = '';
+                loadComments();
+                console.log("Comentário postado:", commentText);
+            } catch (error) {
+                console.error("Erro ao postar comentário:", error);
+                alert('Erro ao postar comentário. Veja o console.');
+            }
         }
 
         // Função para apagar comentário
-        function deleteComment(index) {
-            comments.splice(index, 1);
-            localStorage.setItem('comments', JSON.stringify(comments));
-            loadComments();
+        async function deleteComment(commentId) {
+            console.log("Tentando apagar comentário com ID:", commentId);
+            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
+                alert('Apenas moderadores e o dono podem apagar comentários.');
+                console.log("Usuário sem permissão para apagar:", currentUser?.username);
+                return;
+            }
+            if (!db) {
+                alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
+                return;
+            }
+            try {
+                await deleteDoc(doc(db, 'comments', commentId));
+                loadComments();
+                console.log("Comentário apagado com sucesso:", commentId);
+            } catch (error) {
+                console.error("Erro ao apagar comentário:", error);
+                alert('Erro ao apagar comentário. Veja o console.');
+            }
         }
 
         // Função para banir usuário
-        function banUser() {
+        async function banUser() {
+            console.log("Tentando banir usuário...");
+            if (!currentUser || currentUser.role !== 'owner') {
+                alert('Apenas o dono pode banir usuários.');
+                console.log("Usuário sem permissão para banir:", currentUser?.username);
+                return;
+            }
             const banUsername = document.getElementById('banUsername').value.trim();
             if (!banUsername) {
                 alert('Digite o nome do usuário a banir.');
@@ -255,36 +342,76 @@
                 alert('Você não pode banir a si mesmo.');
                 return;
             }
-            users = users.filter(user => user.username !== banUsername);
-            comments = comments.filter(comment => comment.username !== banUsername);
-            localStorage.setItem('users', JSON.stringify(users));
-            localStorage.setItem('comments', JSON.stringify(comments));
-            document.getElementById('banUsername').value = '';
-            alert(`Usuário ${banUsername} foi banido.`);
-            loadComments();
+            if (!db) {
+                alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
+                return;
+            }
+            try {
+                // Remove usuário do localStorage
+                users = users.filter(user => user.username !== banUsername);
+                localStorage.setItem('users', JSON.stringify(users));
+                console.log("Usuário removido do localStorage:", banUsername);
+
+                // Remove todos os comentários do usuário no Firestore
+                const q = query(collection(db, 'comments'), where('username', '==', banUsername));
+                const commentsSnapshot = await getDocs(q);
+                const batch = writeBatch(db);
+                commentsSnapshot.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                console.log("Comentários do usuário removidos:", commentsSnapshot.size);
+
+                document.getElementById('banUsername').value = '';
+                alert(`Usuário ${banUsername} banido com sucesso.`);
+                loadComments();
+                console.log("Usuário banido com sucesso:", banUsername);
+            } catch (error) {
+                console.error("Erro ao banir usuário:", error);
+                alert('Erro ao banir usuário. Veja o console.');
+            }
         }
 
         // Função para carregar comentários
-        function loadComments() {
+        async function loadComments() {
+            console.log("Carregando comentários...");
             const commentsList = document.getElementById('commentsList');
             commentsList.innerHTML = '';
-            comments.forEach((comment, index) => {
-                const commentDiv = document.createElement('div');
-                commentDiv.className = `comment ${comment.role}`;
-                let deleteButton = '';
-                if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
-                    deleteButton = `<button class="delete-btn" onclick="deleteComment(${index})">Apagar</button>`;
-                }
-                commentDiv.innerHTML = `
-                    <div>
-                        <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${comment.timestamp}<br>
-                        ${comment.text}
-                    </div>
-                    ${deleteButton}
-                `;
-                commentsList.appendChild(commentDiv);
-            });
+            if (!db) {
+                commentsList.innerHTML = '<p class="error">Erro: Servidor não inicializado.</p>';
+                console.error("Firestore não inicializado");
+                return;
+            }
+            try {
+                const threeDaysAgo = new Date();
+                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+                const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
+                const commentsSnapshot = await getDocs(q);
+                commentsSnapshot.forEach(doc => {
+                    const comment = doc.data();
+                    const commentDate = new Date(comment.timestamp);
+                    if (commentDate >= threeDaysAgo) {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = `comment ${comment.role}`;
+                        let deleteButton = '';
+                        if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
+                            deleteButton = `<button class="delete-btn" onclick="deleteComment('${doc.id}')">Apagar</button>`;
+                        }
+                        commentDiv.innerHTML = `
+                            <div>
+                                <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
+                                ${comment.text}
+                            </div>
+                            ${deleteButton}
+                        `;
+                        commentsList.appendChild(commentDiv);
+                    }
+                });
+                console.log("Comentários carregados:", commentsSnapshot.size);
+            } catch (error) {
+                console.error("Erro ao carregar comentários:", error);
+                commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
+            }
         }
     </script>
 </body>
-              </html>
+</html>
