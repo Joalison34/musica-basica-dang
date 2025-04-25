@@ -164,13 +164,13 @@
         </div>
     </div>
 
-    <script type="module">
+    <!-- Inclui Firebase via CDN -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+
+    <script>
         // Teste inicial pra confirmar que o script tá rodando
         console.log("Script JavaScript iniciado");
-
-        // Importa as funções do Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Configuração do Firebase
         const firebaseConfig = {
@@ -184,55 +184,63 @@
 
         // Inicializa o Firebase
         let db = null;
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            console.log("Firebase inicializado com sucesso");
-        } catch (error) {
-            console.error("Erro ao inicializar Firebase:", error);
-            alert("Erro ao conectar com o servidor. Algumas funções podem não funcionar. Veja o console.");
+        function initFirebase() {
+            try {
+                const app = firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore(app);
+                console.log("Firebase inicializado com sucesso");
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase:", error);
+                alert("Erro ao conectar com o servidor. Algumas funções podem não funcionar. Veja o console.");
+            }
         }
+        initFirebase();
 
         // Inicializa dados do localStorage
         let users = [];
         let mutes = {};
         let currentUser = null;
 
-        // Carrega dados do localStorage com tratamento de erro
-        try {
-            users = JSON.parse(localStorage.getItem('users')) || [];
-            mutes = JSON.parse(localStorage.getItem('mutes')) || {};
-            console.log("Dados do localStorage carregados:", users.length, "usuários,", Object.keys(mutes).length, "mutes");
-        } catch (error) {
-            console.error("Erro ao carregar localStorage:", error);
-            localStorage.clear(); // Limpa localStorage pra evitar dados corrompidos
-            users = [];
-            mutes = {};
-            console.log("localStorage limpo devido a erro");
+        function initLocalStorage() {
+            try {
+                users = JSON.parse(localStorage.getItem('users')) || [];
+                mutes = JSON.parse(localStorage.getItem('mutes')) || {};
+                console.log("Dados do localStorage carregados:", users.length, "usuários,", Object.keys(mutes).length, "mutes");
+            } catch (error) {
+                console.error("Erro ao carregar localStorage:", error);
+                localStorage.clear();
+                users = [];
+                mutes = {};
+                console.log("localStorage limpo devido a erro");
+            }
         }
+        initLocalStorage();
 
         // Verifica sessão persistente
-        try {
-            const savedUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (savedUser) {
-                const userExists = users.find(user => user.username === savedUser.username && user.password === savedUser.password);
-                if (userExists) {
-                    currentUser = userExists;
-                    updateUIForLoggedInUser();
-                    console.log("Sessão restaurada para:", currentUser.username);
-                } else {
-                    localStorage.removeItem('currentUser');
-                    console.log("Usuário salvo não existe mais (possivelmente banido)");
+        function checkSession() {
+            try {
+                const savedUser = JSON.parse(localStorage.getItem('currentUser'));
+                if (savedUser) {
+                    const userExists = users.find(user => user.username === savedUser.username && user.password === savedUser.password);
+                    if (userExists) {
+                        currentUser = userExists;
+                        updateUIForLoggedInUser();
+                        console.log("Sessão restaurada para:", currentUser.username);
+                    } else {
+                        localStorage.removeItem('currentUser');
+                        console.log("Usuário salvo não existe mais (possivelmente banido)");
+                    }
                 }
+            } catch (error) {
+                console.error("Erro ao verificar sessão persistente:", error);
+                localStorage.removeItem('currentUser');
+                console.log("Sessão persistente limpa devido a erro");
             }
-        } catch (error) {
-            console.error("Erro ao verificar sessão persistente:", error);
-            localStorage.removeItem('currentUser');
-            console.log("Sessão persistente limpa devido a erro");
         }
+        checkSession();
 
-        // Adiciona event listeners após o carregamento completo
-        window.onload = () => {
+        // Adiciona event listeners
+        window.onload = function() {
             console.log("window.onload disparado");
 
             const createAccountBtn = document.getElementById('createAccountBtn');
@@ -286,7 +294,6 @@
                 console.error("Elemento muteUserBtn não encontrado");
             }
 
-            // Carrega comentários ao iniciar
             loadComments();
         };
 
@@ -462,12 +469,10 @@
 
             try {
                 const today = new Date().toISOString().split('T')[0];
-                const q = query(
-                    collection(db, 'comments'),
-                    where('username', '==', currentUser.username),
-                    where('date', '==', today)
-                );
-                const userComments = await getDocs(q);
+                const q = db.collection('comments')
+                    .where('username', '==', currentUser.username)
+                    .where('date', '==', today);
+                const userComments = await q.get();
                 if (userComments.size >= 10) {
                     alert('Limite de 10 comentários por dia atingido.');
                     console.log("Limite de comentários atingido:", currentUser.username);
@@ -482,10 +487,10 @@
                     date: today
                 };
 
-                await addDoc(collection(db, 'comments'), comment);
+                await db.collection('comments').add(comment);
                 commentInput.value = '';
                 loadComments();
                 console.log("Comentário postado:", commentText);
             } catch (error) {
                 console.error("Erro ao postar comentário:", error);
-                alert('Erro ao postar comentário. Veja o
+                alert('Erro ao postar coment
