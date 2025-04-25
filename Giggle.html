@@ -153,22 +153,27 @@
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
-            authDomain: "funzer.firebaseapp.com",
-            projectId: "funzer",
-            storageBucket: "funzer.firebasestorage.app",
-            messagingSenderId: "723068647417",
-            appId: "1:723068647417:web:7ae58205191b0099a1ef28"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+্র
+
+        // Inicializa o Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+            console.log("Firebase inicializado com sucesso");
+        } catch (error) {
+            console.error("Erro ao inicializar Firebase:", error);
+        }
 
         // Inicializa dados do localStorage
         let users = JSON.parse(localStorage.getItem('users')) || [];
         let currentUser = null;
 
+        // Carrega comentários ao iniciar
+        loadComments();
+
         // Função para criar conta
         function createAccount() {
+            console.log("Função createAccount chamada");
             const username = document.getElementById('createUsername').value.trim();
             const password = document.getElementById('createPassword').value.trim();
             const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
@@ -200,6 +205,7 @@
 
         // Função para login
         function login() {
+            console.log("Função login chamada");
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             const errorMessage = document.getElementById('errorMessage');
@@ -221,6 +227,7 @@
 
         // Função para logout
         function logout() {
+            console.log("Função logout chamada");
             currentUser = null;
             document.getElementById('createAccountSection').classList.remove('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
@@ -231,6 +238,11 @@
 
         // Função para postar comentário
         async function postComment() {
+            console.log("Função postComment chamada");
+            if (!currentUser) {
+                alert('Faça login para postar comentários.');
+                return;
+            }
             const commentText = document.getElementById('commentInput').value.trim();
             if (!commentText) {
                 alert('Escreva um comentário antes de postar.');
@@ -239,36 +251,48 @@
 
             // Verifica limite de 10 comentários por dia
             const today = new Date().toISOString().split('T')[0];
-            const userComments = await db.collection('comments')
-                .where('username', '==', currentUser.username)
-                .where('date', '==', today)
-                .get();
-            if (userComments.size >= 10) {
-                alert('Você atingiu o limite de 10 comentários por dia.');
-                return;
+            try {
+                const userComments = await db.collection('comments')
+                    .where('username', '==', currentUser.username)
+                    .where('date', '==', today)
+                    .get();
+                if (userComments.size >= 10) {
+                    alert('Você atingiu o limite de 10 comentários por dia.');
+                    return;
+                }
+
+                const comment = {
+                    username: currentUser.username,
+                    role: currentUser.role,
+                    text: commentText,
+                    timestamp: new Date().toISOString(),
+                    date: today
+                };
+
+                await db.collection('comments').add(comment);
+                document.getElementById('commentInput').value = '';
+                loadComments();
+            } catch (error) {
+                console.error("Erro ao postar comentário:", error);
+                alert('Erro ao postar comentário. Verifique o console para detalhes.');
             }
-
-            const comment = {
-                username: currentUser.username,
-                role: currentUser.role,
-                text: commentText,
-                timestamp: new Date().toISOString(),
-                date: today
-            };
-
-            await db.collection('comments').add(comment);
-            document.getElementById('commentInput').value = '';
-            loadComments();
         }
 
         // Função para apagar comentário
         async function deleteComment(commentId) {
-            await db.collection('comments').doc(commentId).delete();
-            loadComments();
+            console.log("Função deleteComment chamada com ID:", commentId);
+            try {
+                await db.collection('comments').doc(commentId).delete();
+                loadComments();
+            } catch (error) {
+                console.error("Erro ao apagar comentário:", error);
+                alert('Erro ao apagar comentário. Verifique o console para detalhes.');
+            }
         }
 
         // Função para banir usuário
         async function banUser() {
+            console.log("Função banUser chamada");
             const banUsername = document.getElementById('banUsername').value.trim();
             if (!banUsername) {
                 alert('Digite o nome do usuário a banir.');
@@ -280,46 +304,57 @@
             }
             users = users.filter(user => user.username !== banUsername);
             localStorage.setItem('users', JSON.stringify(users));
-            const commentsSnapshot = await db.collection('comments')
-                .where('username', '==', banUsername)
-                .get();
-            const batch = db.batch();
-            commentsSnapshot.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            document.getElementById('banUsername').value = '';
-            alert(`Usuário ${banUsername} foi banido.`);
-            loadComments();
+            try {
+                const commentsSnapshot = await db.collection('comments')
+                    .where('username', '==', banUsername)
+                    .get();
+                const batch = db.batch();
+                commentsSnapshot.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                document.getElementById('banUsername').value = '';
+                alert(`Usuário ${banUsername} foi banido.`);
+                loadComments();
+            } catch (error) {
+                console.error("Erro ao banir usuário:", error);
+                alert('Erro ao banir usuário. Verifique o console para detalhes.');
+            }
         }
 
         // Função para carregar comentários
         async function loadComments() {
+            console.log("Função loadComments chamada");
             const commentsList = document.getElementById('commentsList');
             commentsList.innerHTML = '';
             const threeDaysAgo = new Date();
             threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-            const commentsSnapshot = await db.collection('comments')
-                .orderBy('timestamp', 'desc')
-                .get();
-            commentsSnapshot.forEach(doc => {
-                const comment = doc.data();
-                const commentDate = new Date(comment.timestamp);
-                if (commentDate >= threeDaysAgo) {
-                    const commentDiv = document.createElement('div');
-                    commentDiv.className = `comment ${comment.role}`;
-                    let deleteButton = '';
-                    if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
-                        deleteButton = `<button class="delete-btn" onclick="deleteComment('${doc.id}')">Apagar</button>`;
+            try {
+                const commentsSnapshot = await db.collection('comments')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                commentsSnapshot.forEach(doc => {
+                    const comment = doc.data();
+                    const commentDate = new Date(comment.timestamp);
+                    if (commentDate >= threeDaysAgo) {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = `comment ${comment.role}`;
+                        let deleteButton = '';
+                        if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
+                            deleteButton = `<button class="delete-btn" onclick="deleteComment('${doc.id}')">Apagar</button>`;
+                        }
+                        commentDiv.innerHTML = `
+                            <div>
+                                <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
+                                ${comment.text}
+                            </div>
+                            ${deleteButton}
+                        `;
+                        commentsList.appendChild(commentDiv);
                     }
-                    commentDiv.innerHTML = `
-                        <div>
-                            <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
-                            ${comment.text}
-                        </div>
-                        ${deleteButton}
-                    `;
-                    commentsList.appendChild(commentDiv);
-                }
-            });
+                });
+            } catch (error) {
+                console.error("Erro ao carregar comentários:", error);
+                commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Verifique o console para detalhes.</p>';
+            }
         }
     </script>
 </body>
