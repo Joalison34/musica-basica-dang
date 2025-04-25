@@ -21,7 +21,7 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        h1, h2 {
+        h1, h2, h3 {
             text-align: center;
             color: #333;
         }
@@ -55,7 +55,17 @@
         .delete-btn:hover {
             background-color: #c82333;
         }
-        .ban-section {
+        .mute-btn {
+            background-color: #ffc107;
+            width: auto;
+            padding: 5px 10px;
+            margin-left: 10px;
+            display: inline-block;
+        }
+        .mute-btn:hover {
+            background-color: #e0a800;
+        }
+        .ban-section, .mute-section {
             margin-top: 20px;
             padding: 10px;
             border: 1px solid #ddd;
@@ -144,6 +154,12 @@
                 <input type="text" id="banUsername" placeholder="Nome do usuário a banir">
                 <button id="banUserBtn">Banir</button>
             </div>
+            <div id="muteSection" class="mute-section hidden">
+                <h3>Mutar Usuário (Apenas Moderadores)</h3>
+                <input type="text" id="muteUsername" placeholder="Nome do usuário a mutar">
+                <input type="number" id="muteDuration" placeholder="Duração em segundos" min="1">
+                <button id="muteUserBtn">Mutar</button>
+            </div>
             <div id="commentsList"></div>
         </div>
     </div>
@@ -177,6 +193,21 @@
         // Inicializa dados do localStorage
         let users = JSON.parse(localStorage.getItem('users')) || [];
         let currentUser = null;
+        let mutes = JSON.parse(localStorage.getItem('mutes')) || {};
+
+        // Verifica sessão persistente ao carregar a página
+        const savedUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (savedUser) {
+            const userExists = users.find(user => user.username === savedUser.username && user.password === savedUser.password);
+            if (userExists) {
+                currentUser = userExists;
+                updateUIForLoggedInUser();
+                console.log("Sessão restaurada para:", currentUser.username);
+            } else {
+                localStorage.removeItem('currentUser');
+                console.log("Usuário salvo não existe mais (possivelmente banido)");
+            }
+        }
 
         // Adiciona event listeners aos botões
         document.getElementById('createAccountBtn').addEventListener('click', createAccount);
@@ -184,6 +215,7 @@
         document.getElementById('logoutBtn').addEventListener('click', logout);
         document.getElementById('postCommentBtn').addEventListener('click', postComment);
         document.getElementById('banUserBtn').addEventListener('click', banUser);
+        document.getElementById('muteUserBtn').addEventListener('click', muteUser);
 
         // Carrega comentários ao iniciar
         loadComments();
@@ -225,13 +257,9 @@
             const user = users.find(user => user.username === username && user.password === password);
             if (user) {
                 currentUser = user;
-                document.getElementById('createAccountSection').classList.add('hidden');
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('commentSection').classList.remove('hidden');
-                document.getElementById('currentUser').innerHTML = `<span class="username ${user.role}">${username}</span> (${user.role})`;
-                document.getElementById('banSection').classList.toggle('hidden', user.role !== 'owner');
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                updateUIForLoggedInUser();
                 errorMessage.textContent = '';
-                loadComments();
                 console.log("Login bem-sucedido:", username);
             } else {
                 errorMessage.textContent = 'Nome ou senha incorretos.';
@@ -239,10 +267,22 @@
             }
         }
 
+        // Função para atualizar a UI após login
+        function updateUIForLoggedInUser() {
+            document.getElementById('createAccountSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('commentSection').classList.remove('hidden');
+            document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
+            document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
+            document.getElementById('muteSection').classList.toggle('hidden', currentUser.role !== 'moderator' && currentUser.role !== 'owner');
+            loadComments();
+        }
+
         // Função para logout
         function logout() {
             console.log("Saindo...");
             currentUser = null;
+            localStorage.removeItem('currentUser');
             document.getElementById('createAccountSection').classList.remove('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('commentSection').classList.add('hidden');
@@ -258,6 +298,16 @@
                 alert('Faça login para comentar.');
                 return;
             }
+
+            // Verifica se o usuário está mutado
+            const mute = mutes[currentUser.username];
+            if (mute && Date.now() < mute.expires) {
+                const remainingSeconds = Math.ceil((mute.expires - Date.now()) / 1000);
+                alert(`Você está mutado por mais ${remainingSeconds} segundos.`);
+                console.log("Usuário mutado:", currentUser.username, "Expira em:", mute.expires);
+                return;
+            }
+
             const commentText = document.getElementById('commentInput').value.trim();
             if (!commentText) {
                 alert('Escreva um comentário.');
@@ -374,6 +424,15 @@
                 await batch.commit();
                 console.log("Comentários do usuário removidos:", commentsSnapshot.size);
 
+                // Remove mute, se existir
+                delete mutes[banUsername];
+                localStorage.setItem('mutes', JSON.stringify(mutes));
+
+                // Desloga se o usuário banido for o atual
+                if (currentUser && currentUser.username === banUsername) {
+                    logout();
+                }
+
                 document.getElementById('banUsername').value = '';
                 alert(`Usuário ${banUsername} banido com sucesso.`);
                 loadComments();
@@ -384,55 +443,37 @@
             }
         }
 
-        // Função para carregar comentários
-        async function loadComments() {
-            console.log("Carregando comentários...");
-            const commentsList = document.getElementById('commentsList');
-            commentsList.innerHTML = '';
-            if (!db) {
-                commentsList.innerHTML = '<p class="error">Erro: Servidor não inicializado.</p>';
-                console.error("Firestore não inicializado");
+        // Função para mutar usuário
+        function muteUser() {
+            console.log("Tentando mutar usuário...");
+            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
+                alert('Apenas moderadores e o dono podem mutar usuários.');
+                console.log("Usuário sem permissão para mutar:", currentUser?.username);
+                return;
+            }
+            const muteUsername = document.getElementById('muteUsername').value.trim();
+            const muteDuration = parseInt(document.getElementById('muteDuration').value);
+            if (!muteUsername) {
+                alert('Digite o nome do usuário a mutar.');
+                return;
+            }
+            if (!muteDuration || muteDuration <= 0) {
+                alert('Digite uma duração válida em segundos.');
                 return;
             }
             try {
-                const threeDaysAgo = new Date();
-                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-                const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
-                const commentsSnapshot = await getDocs(q);
-                commentsSnapshot.forEach(doc => {
-                    const comment = doc.data();
-                    const commentDate = new Date(comment.timestamp);
-                    if (commentDate >= threeDaysAgo) {
-                        const commentDiv = document.createElement('div');
-                        commentDiv.className = `comment ${comment.role}`;
-                        let deleteButton = '';
-                        if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
-                            deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
-                        }
-                        commentDiv.innerHTML = `
-                            <div>
-                                <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
-                                ${comment.text}
-                            </div>
-                            ${deleteButton}
-                        `;
-                        commentsList.appendChild(commentDiv);
-                    }
-                });
-                // Adiciona event listeners aos botões de apagar
-                document.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const commentId = button.getAttribute('data-comment-id');
-                        console.log("Botão Apagar clicado para comentário:", commentId);
-                        deleteComment(commentId);
-                    });
-                });
-                console.log("Comentários carregados:", commentsSnapshot.size);
+                const expires = Date.now() + muteDuration * 1000;
+                mutes[muteUsername] = { expires };
+                localStorage.setItem('mutes', JSON.stringify(mutes));
+                document.getElementById('muteUsername').value = '';
+                document.getElementById('muteDuration').value = '';
+                alert(`Usuário ${muteUsername} mutado por ${muteDuration} segundos.`);
+                console.log("Usuário mutado:", muteUsername, "Expira em:", expires);
             } catch (error) {
-                console.error("Erro ao carregar comentários:", error);
-                commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
+                console.error("Erro ao mutar usuário:", error);
+                alert('Erro ao mutar usuário. Veja o console.');
             }
         }
-    </script>
-</body>
-</html>
+
+        // Função para carregar comentários
+        async function loadCommen
