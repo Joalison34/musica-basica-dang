@@ -108,6 +108,13 @@
             color: red;
             text-align: center;
         }
+        .comment img, .comment video {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 10px;
+            border-radius: 5px;
+            loading: lazy;
+        }
     </style>
 </head>
 <body>
@@ -121,6 +128,7 @@
             <input type="password" id="createPassword" placeholder="Senha" required>
             <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
             <button id="createAccountBtn">Criar Conta</button>
+            <p class="error" id="createErrorMessage"></p>
         </div>
 
         <!-- Formulário de Login -->
@@ -129,7 +137,7 @@
             <input type="text" id="loginUsername" placeholder="Nome de usuário" required>
             <input type="password" id="loginPassword" placeholder="Senha" required>
             <button id="loginBtn">Entrar</button>
-            <p class="error" id="errorMessage"></p>
+            <p class="error" id="loginErrorMessage"></p>
         </div>
 
         <!-- Seção de Comentários -->
@@ -138,11 +146,12 @@
             <p>Logado como: <span id="currentUser"></span></p>
             <button id="logoutBtn">Sair</button>
             <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
+            <input type="file" id="mediaInput" accept="image/jpeg,image/png,video/mp4,video/webm" style="margin: 10px 0;">
             <button id="postCommentBtn">Postar Comentário</button>
             <div id="banSection" class="ban-section hidden">
-                <h3>Banir Usuário (Apenas Dono)</h3>
-                <input type="text" id="banUsername" placeholder="Nome do usuário a banir">
-                <button id="banUserBtn">Banir</button>
+                <h3>Excluir Usuário (Apenas Dono)</h3>
+                <input type="text" id="banUsername" placeholder="Nome do usuário a excluir">
+                <button id="banUserBtn">Excluir</button>
             </div>
             <div id="commentsList"></div>
         </div>
@@ -151,7 +160,7 @@
     <script type="module">
         // Importa as funções do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Configuração do Firebase
         const firebaseConfig = {
@@ -168,14 +177,19 @@
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            console.log("Firebase inicializado com sucesso");
+            console.log("Firebase e Firestore inicializados com sucesso");
         } catch (error) {
             console.error("Erro ao inicializar Firebase:", error);
-            alert("Erro ao conectar com o servidor. Verifique o console.");
+            document.getElementById('createErrorMessage').textContent = 'Erro ao conectar com o servidor.';
+            document.getElementById('loginErrorMessage').textContent = 'Erro ao conectar com o servidor.';
         }
 
-        // Inicializa dados do localStorage
-        let users = JSON.parse(localStorage.getItem('users')) || [];
+        // Configuração do Cloudinary
+        const CLOUDINARY_CLOUD_NAME = 'dofskhwxw';
+        const CLOUDINARY_UPLOAD_PRESET = 'comment_media';
+        const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+
+        // Inicializa currentUser do localStorage
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
         // Adiciona event listeners aos botões
@@ -183,7 +197,7 @@
         document.getElementById('loginBtn').addEventListener('click', login);
         document.getElementById('logoutBtn').addEventListener('click', logout);
         document.getElementById('postCommentBtn').addEventListener('click', postComment);
-        document.getElementById('banUserBtn').addEventListener('click', banUser);
+        document.getElementById('banUserBtn').addEventListener('click', deleteUser);
 
         // Verifica se há usuário logado ao carregar a página
         if (currentUser) {
@@ -193,6 +207,25 @@
         // Carrega comentários ao iniciar
         loadComments();
 
+        // Função para gerar hash da senha
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Função para validar nome de usuário
+        function validateUsername(username) {
+            const regex = /^[a-zA-Z0-9_]{3,20}$/;
+            return regex.test(username);
+        }
+
+        // Função para validar senha
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
         // Função para atualizar a interface para usuário logado
         function updateUIForLoggedInUser() {
             document.getElementById('createAccountSection').classList.add('hidden');
@@ -201,53 +234,117 @@
             document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
             document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
             loadComments();
-            console.log("Usuário restaurado do localStorage:", currentUser.username);
+            console.log("Usuário restaurado:", currentUser.username);
         }
 
         // Função para criar conta
-        function createAccount() {
+        async function createAccount() {
             console.log("Tentando criar conta...");
             const username = document.getElementById('createUsername').value.trim();
             const password = document.getElementById('createPassword').value.trim();
             const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
+            const createErrorMessage = document.getElementById('createErrorMessage');
 
-            if (!username || !password) {
-                alert('Preencha nome e senha.');
+            if (!validateUsername(username)) {
+                createErrorMessage.textContent = 'Nome de usuário deve ter 3-20 caracteres alfanuméricos ou sublinhado.';
                 return;
             }
 
-            if (users.some(user => user.username === username)) {
-                alert('Nome de usuário já existe.');
+            if (!validatePassword(password)) {
+                createErrorMessage.textContent = 'Senha deve ter pelo menos 6 caracteres.';
                 return;
             }
 
-            const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
-            users.push({ username, password, role });
-            localStorage.setItem('users', JSON.stringify(users));
-            alert('Conta criada! Faça login.');
-            document.getElementById('createUsername').value = '';
-            document.getElementById('createPassword').value = '';
-            document.getElementById('roleCode').value = '';
-            console.log("Conta criada:", username, role);
+            if (!db) {
+                createErrorMessage.textContent = 'Erro: Servidor não inicializado.';
+                console.error("Firestore não inicializado");
+                return;
+            }
+
+            try {
+                // Verifica se o nome de usuário já existe
+                const userQuery = query(collection(db, 'users'), where('username', '==', username));
+                const userSnapshot = await getDocs(userQuery);
+                if (!userSnapshot.empty) {
+                    createErrorMessage.textContent = 'Nome de usuário já existe.';
+                    return;
+                }
+
+                const hashedPassword = await hashPassword(password);
+                const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
+                const userData = {
+                    username,
+                    password: hashedPassword,
+                    role
+                };
+
+                // Salva o usuário no Firestore usando o username como ID do documento
+                await setDoc(doc(db, 'users', username), userData);
+                createErrorMessage.textContent = '';
+                alert('Conta criada! Faça login.');
+                document.getElementById('createUsername').value = '';
+                document.getElementById('createPassword').value = '';
+                document.getElementById('roleCode').value = '';
+                console.log("Conta criada:", username, role);
+            } catch (error) {
+                console.error("Erro ao criar conta:", error);
+                createErrorMessage.textContent = 'Erro ao criar conta. Veja o console.';
+            }
         }
 
         // Função para login
-        function login() {
+        async function login() {
             console.log("Tentando logar...");
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
-            const errorMessage = document.getElementById('errorMessage');
+            const loginErrorMessage = document.getElementById('loginErrorMessage');
 
-            const user = users.find(user => user.username === username && user.password === password);
-            if (user) {
-                currentUser = user;
+            if (!validateUsername(username)) {
+                loginErrorMessage.textContent = 'Nome de usuário inválido.';
+                return;
+            }
+
+            if (!validatePassword(password)) {
+                loginErrorMessage.textContent = 'Senha deve ter pelo menos 6 caracteres.';
+                return;
+            }
+
+            if (!db) {
+                loginErrorMessage.textContent = 'Erro: Servidor não inicializado.';
+                console.error("Firestore não inicializado");
+                return;
+            }
+
+            try {
+                const userQuery = query(collection(db, 'users'), where('username', '==', username));
+                const userSnapshot = await getDocs(userQuery);
+                if (userSnapshot.empty) {
+                    loginErrorMessage.textContent = 'Nome ou senha incorretos.';
+                    console.log("Usuário não encontrado:", username);
+                    return;
+                }
+
+                const userDoc = userSnapshot.docs[0];
+                const userData = userDoc.data();
+                const hashedPassword = await hashPassword(password);
+
+                if (userData.password !== hashedPassword) {
+                    loginErrorMessage.textContent = 'Nome ou senha incorretos.';
+                    console.log("Senha incorreta para:", username);
+                    return;
+                }
+
+                currentUser = {
+                    username: userData.username,
+                    role: userData.role
+                };
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 updateUIForLoggedInUser();
-                errorMessage.textContent = '';
+                loginErrorMessage.textContent = '';
                 console.log("Login bem-sucedido:", username);
-            } else {
-                errorMessage.textContent = 'Nome ou senha incorretos.';
-                console.log("Falha no login:", username);
+            } catch (error) {
+                console.error("Erro ao fazer login:", error);
+                loginErrorMessage.textContent = 'Erro ao fazer login. Veja o console.';
             }
         }
 
@@ -264,6 +361,32 @@
             console.log("Logout concluído");
         }
 
+        // Função para fazer upload para o Cloudinary
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                console.log("Arquivo enviado ao Cloudinary:", result.secure_url);
+                return {
+                    url: result.secure_url,
+                    type: result.resource_type === 'image' ? 'image' : 'video'
+                };
+            } catch (error) {
+                console.error("Erro ao enviar para Cloudinary:", error);
+                throw error;
+            }
+        }
+
         // Função para postar comentário
         async function postComment() {
             console.log("Tentando postar comentário...");
@@ -272,8 +395,10 @@
                 return;
             }
             const commentText = document.getElementById('commentInput').value.trim();
-            if (!commentText) {
-                alert('Escreva um comentário.');
+            const mediaInput = document.getElementById('mediaInput').files[0];
+
+            if (!commentText && !mediaInput) {
+                alert('Escreva um comentário ou selecione uma imagem/vídeo.');
                 return;
             }
 
@@ -297,18 +422,43 @@
                     return;
                 }
 
+                let mediaURL = null;
+                let mediaType = null;
+
+                if (mediaInput) {
+                    const fileSizeLimit = 10 * 1024 * 1024; // 10 MB
+                    if (mediaInput.size > fileSizeLimit) {
+                        alert('O arquivo deve ter no máximo 10 MB.');
+                        return;
+                    }
+
+                    const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'video/webm'];
+                    if (!allowedTypes.includes(mediaInput.type)) {
+                        alert('Apenas imagens (JPEG, PNG) ou vídeos (MP4, WebM) são permitidos.');
+                        return;
+                    }
+
+                    const uploadResult = await uploadToCloudinary(mediaInput);
+                    mediaURL = uploadResult.url;
+                    mediaType = uploadResult.type;
+                    console.log("Arquivo enviado:", mediaURL);
+                }
+
                 const comment = {
                     username: currentUser.username,
                     role: currentUser.role,
                     text: commentText,
                     timestamp: new Date().toISOString(),
-                    date: today
+                    date: today,
+                    mediaURL: mediaURL || null,
+                    mediaType: mediaType || null
                 };
 
                 await addDoc(collection(db, 'comments'), comment);
                 document.getElementById('commentInput').value = '';
+                document.getElementById('mediaInput').value = '';
                 loadComments();
-                console.log("Comentário postado:", commentText);
+                console.log("Comentário postado:", commentText, mediaURL);
             } catch (error) {
                 console.error("Erro ao postar comentário:", error);
                 alert('Erro ao postar comentário. Veja o console.');
@@ -334,7 +484,6 @@
                 return;
             }
             try {
-                console.log("Executando deleteDoc para comentário:", commentId);
                 await deleteDoc(doc(db, 'comments', commentId));
                 console.log("Comentário apagado com sucesso:", commentId);
                 loadComments();
@@ -345,21 +494,21 @@
             }
         }
 
-        // Função para banir usuário
-        async function banUser() {
-            console.log("Tentando banir usuário...");
+        // Função para excluir usuário completamente
+        async function deleteUser() {
+            console.log("Tentando excluir usuário...");
             if (!currentUser || currentUser.role !== 'owner') {
-                alert('Apenas o dono pode banir usuários.');
-                console.log("Usuário sem permissão para banir:", currentUser?.username);
+                alert('Apenas o dono pode excluir usuários.');
+                console.log("Usuário sem permissão para excluir:", currentUser?.username);
                 return;
             }
-            const banUsername = document.getElementById('banUsername').value.trim();
-            if (!banUsername) {
-                alert('Digite o nome do usuário a banir.');
+            const deleteUsername = document.getElementById('banUsername').value.trim();
+            if (!deleteUsername) {
+                alert('Digite o nome do usuário a excluir.');
                 return;
             }
-            if (banUsername === currentUser.username) {
-                alert('Você não pode banir a si mesmo.');
+            if (deleteUsername === currentUser.username) {
+                alert('Você não pode excluir a si mesmo.');
                 return;
             }
             if (!db) {
@@ -368,32 +517,40 @@
                 return;
             }
             try {
-                // Remove usuário do localStorage
-                console.log("Removendo usuário do localStorage:", banUsername);
-                users = users.filter(user => user.username !== banUsername);
-                localStorage.setItem('users', JSON.stringify(users));
-                console.log("Usuário removido do localStorage:", banUsername);
+                // Verifica se o usuário existe
+                const userQuery = query(collection(db, 'users'), where('username', '==', deleteUsername));
+                const userSnapshot = await getDocs(userQuery);
+                if (userSnapshot.empty) {
+                    alert('Usuário não encontrado.');
+                    console.log("Usuário não encontrado para excluir:", deleteUsername);
+                    return;
+                }
 
-                // Remove todos os comentários do usuário no Firestore
-                console.log("Buscando comentários do usuário:", banUsername);
-                const q = query(collection(db, 'comments'), where('username', '==', banUsername));
-                const commentsSnapshot = await getDocs(q);
-                console.log("Comentários encontrados:", commentsSnapshot.size);
+                // Inicia um batch para excluir usuário e comentários
                 const batch = writeBatch(db);
+
+                // Exclui o documento do usuário
+                const userDocRef = doc(db, 'users', deleteUsername);
+                batch.delete(userDocRef);
+
+                // Exclui todos os comentários do usuário
+                const commentsQuery = query(collection(db, 'comments'), where('username', '==', deleteUsername));
+                const commentsSnapshot = await getDocs(commentsQuery);
                 commentsSnapshot.forEach(doc => {
-                    console.log("Marcando comentário para exclusão:", doc.id);
                     batch.delete(doc.ref);
                 });
+
+                // Executa o batch
                 await batch.commit();
-                console.log("Comentários do usuário removidos:", commentsSnapshot.size);
+                console.log("Usuário e comentários excluídos:", deleteUsername, commentsSnapshot.size);
 
                 document.getElementById('banUsername').value = '';
-                alert(`Usuário ${banUsername} banido com sucesso.`);
+                alert(`Usuário ${deleteUsername} excluído com sucesso.`);
                 loadComments();
-                console.log("Usuário banido com sucesso:", banUsername);
+                console.log("Usuário excluído com sucesso:", deleteUsername);
             } catch (error) {
-                console.error("Erro ao banir usuário:", error);
-                alert('Erro ao banir usuário. Veja o console.');
+                console.error("Erro ao excluir usuário:", error);
+                alert('Erro ao excluir usuário. Veja o console.');
             }
         }
 
@@ -422,17 +579,27 @@
                         if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
                             deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
                         }
+
+                        let mediaContent = '';
+                        if (comment.mediaURL && comment.mediaType) {
+                            if (comment.mediaType === 'image') {
+                                mediaContent = `<img src="${comment.mediaURL}" alt="Imagem do comentário">`;
+                            } else if (comment.mediaType === 'video') {
+                                mediaContent = `<video controls src="${comment.mediaURL}" alt="Vídeo do comentário"></video>`;
+                            }
+                        }
+
                         commentDiv.innerHTML = `
                             <div>
                                 <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
                                 ${comment.text}
+                                ${mediaContent}
                             </div>
                             ${deleteButton}
                         `;
                         commentsList.appendChild(commentDiv);
                     }
                 });
-                // Adiciona event listeners aos botões de apagar
                 document.querySelectorAll('.delete-btn').forEach(button => {
                     button.addEventListener('click', () => {
                         const commentId = button.getAttribute('data-comment-id');
@@ -449,3 +616,4 @@
     </script>
 </body>
 </html>
+ 
