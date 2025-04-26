@@ -467,4 +467,34 @@
                             if (comment.mediaType === 'image') {
                                 mediaContent = `<img src="${comment.mediaURL}" alt="Imagem do comentário">`;
                             } else if (comment.mediaType === 'video') {
-                                mediaContent 
+                                mediaContent = `<video controls src="${comment.mediaURL}" alt="Vídeo do comentário"></video>`;
+                            }
+                        }
+
+                        commentDiv.innerHTML = `
+                            <div>
+                                <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
+                                ${comment.text}
+                                ${mediaContent}
+                            </div>
+                            ${deleteButton}
+                        `;
+                        commentsList.appendChild(commentDiv);
+                    }
+                });
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const commentId = button.getAttribute('data-comment-id');
+                        console.log("Botão Apagar clicado para comentário:", commentId);
+                        deleteComment(commentId);
+                    });
+                });
+                console.log("Comentários carregados:", commentsSnapshot.size);
+            } catch (error) {
+                console.error("Erro ao carregar comentários:", error);
+                commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
