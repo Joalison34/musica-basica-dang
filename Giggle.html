@@ -45,10 +45,6 @@
         button:hover {
             background-color: #218838;
         }
-        button:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
         .delete-btn {
             background-color: #dc3545;
             width: auto;
@@ -72,7 +68,7 @@
             border-radius: 5px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
         }
         .comment.common {
             background-color: #f9f9f9;
@@ -112,40 +108,11 @@
             color: red;
             text-align: center;
         }
-        .file-input {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px dashed #ccc;
-            border-radius: 5px;
-            background-color: #fafafa;
-        }
-        .file-input label {
-            display: block;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        .file-input input[type="file"] {
-            padding: 0;
-            border: none;
-        }
-        .comment-media {
+        .comment img, .comment video {
+            max-width: 100%;
+            max-height: 300px;
             margin-top: 10px;
-            max-width: 100%;
-        }
-        .comment-media img, .comment-media video {
-            max-width: 100%;
-            height: auto;
             border-radius: 5px;
-            display: block;
-            margin-top: 5px;
-        }
-        .comment-content {
-            flex: 1;
-        }
-        .upload-progress {
-            margin-top: 5px;
-            font-size: 0.9em;
-            color: #555;
         }
     </style>
 </head>
@@ -177,11 +144,7 @@
             <p>Logado como: <span id="currentUser"></span></p>
             <button id="logoutBtn">Sair</button>
             <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
-            <div class="file-input">
-                <label for="mediaInput">Anexar imagem ou vídeo (PNG, JPEG, MP4, WEBM, vídeos até 500MB):</label>
-                <input type="file" id="mediaInput" accept="image/png,image/jpeg,video/mp4,video/webm">
-                <p class="upload-progress" id="uploadProgress"></p>
-            </div>
+            <input type="file" id="mediaInput" accept="image/jpeg,image/png,video/mp4,video/webm" style="margin: 10px 0;">
             <button id="postCommentBtn">Postar Comentário</button>
             <div id="banSection" class="ban-section hidden">
                 <h3>Banir Usuário (Apenas Dono)</h3>
@@ -209,12 +172,13 @@
         };
 
         // Inicializa o Firebase
-        let db, storage;
+        let db;
+        let storage;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             storage = getStorage(app);
-            console.log("Firebase inicializado com sucesso");
+            console.log("Firebase e Storage inicializados com sucesso");
         } catch (error) {
             console.error("Erro ao inicializar Firebase:", error);
             alert("Erro ao conectar com o servidor. Verifique o console.");
@@ -225,41 +189,11 @@
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
         // Adiciona event listeners aos botões
-        const createAccountBtn = document.getElementById('createAccountBtn');
-        const loginBtn = document.getElementById('loginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const postCommentBtn = document.getElementById('postCommentBtn');
-        const banUserBtn = document.getElementById('banUserBtn');
-
-        if (createAccountBtn) {
-            createAccountBtn.addEventListener('click', createAccount);
-        } else {
-            console.error("Elemento createAccountBtn não encontrado");
-        }
-
-        if (loginBtn) {
-            loginBtn.addEventListener('click', login);
-        } else {
-            console.error("Elemento loginBtn não encontrado");
-        }
-
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', logout);
-        } else {
-            console.error("Elemento logoutBtn não encontrado");
-        }
-
-        if (postCommentBtn) {
-            postCommentBtn.addEventListener('click', postComment);
-        } else {
-            console.error("Elemento postCommentBtn não encontrado");
-        }
-
-        if (banUserBtn) {
-            banUserBtn.addEventListener('click', banUser);
-        } else {
-            console.error("Elemento banUserBtn não encontrado");
-        }
+        document.getElementById('createAccountBtn').addEventListener('click', createAccount);
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('postCommentBtn').addEventListener('click', postComment);
+        document.getElementById('banUserBtn').addEventListener('click', banUser);
 
         // Verifica se há usuário logado ao carregar a página
         if (currentUser) {
@@ -314,12 +248,6 @@
             const password = document.getElementById('loginPassword').value.trim();
             const errorMessage = document.getElementById('errorMessage');
 
-            if (!username || !password) {
-                errorMessage.textContent = 'Preencha nome e senha.';
-                console.log("Campos de login vazios");
-                return;
-            }
-
             const user = users.find(user => user.username === username && user.password === password);
             if (user) {
                 currentUser = user;
@@ -354,13 +282,10 @@
                 return;
             }
             const commentText = document.getElementById('commentInput').value.trim();
-            const mediaInput = document.getElementById('mediaInput');
-            const file = mediaInput.files[0];
-            const postButton = document.getElementById('postCommentBtn');
-            const uploadProgress = document.getElementById('uploadProgress');
+            const mediaInput = document.getElementById('mediaInput').files[0];
 
-            if (!commentText && !file) {
-                alert('Escreva um comentário ou anexe uma mídia.');
+            if (!commentText && !mediaInput) {
+                alert('Escreva um comentário ou selecione uma imagem/vídeo.');
                 return;
             }
 
@@ -371,11 +296,6 @@
             }
 
             try {
-                // Desativa o botão durante o processamento
-                postButton.disabled = true;
-                uploadProgress.textContent = file ? 'Enviando arquivo...' : '';
-
-                // Verifica limite de comentários diários
                 const today = new Date().toISOString().split('T')[0];
                 const q = query(
                     collection(db, 'comments'),
@@ -386,75 +306,51 @@
                 if (userComments.size >= 10) {
                     alert('Limite de 10 comentários por dia atingido.');
                     console.log("Limite de comentários atingido:", currentUser.username);
-                    postButton.disabled = false;
-                    uploadProgress.textContent = '';
                     return;
                 }
 
-                let mediaUrl = null;
+                let mediaURL = null;
                 let mediaType = null;
 
-                // Processa upload de arquivo, se houver
-                if (file) {
-                    const validImageTypes = ['image/png', 'image/jpeg'];
-                    const validVideoTypes = ['video/mp4', 'video/webm'];
-                    const maxVideoSize = 500 * 1024 * 1024; // 500MB em bytes
-
-                    if (!validImageTypes.includes(file.type) && !validVideoTypes.includes(file.type)) {
-                        alert('Arquivo inválido. Use PNG, JPEG, MP4 ou WEBM.');
-                        postButton.disabled = false;
-                        uploadProgress.textContent = '';
+                // Faz upload do arquivo, se existir
+                if (mediaInput) {
+                    const fileSizeLimit = 10 * 1024 * 1024; // 10 MB
+                    if (mediaInput.size > fileSizeLimit) {
+                        alert('O arquivo deve ter no máximo 10 MB.');
                         return;
                     }
 
-                    if (validVideoTypes.includes(file.type) && file.size > maxVideoSize) {
-                        alert('Vídeo excede o limite de 500MB.');
-                        postButton.disabled = false;
-                        uploadProgress.textContent = '';
+                    const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'video/webm'];
+                    if (!allowedTypes.includes(mediaInput.type)) {
+                        alert('Apenas imagens (JPEG, PNG) ou vídeos (MP4, WebM) são permitidos.');
                         return;
                     }
 
-                    const fileExtension = file.name.split('.').pop().toLowerCase();
-                    const storagePath = `media/${currentUser.username}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-                    const storageRef = ref(storage, storagePath);
-
-                    try {
-                        await uploadBytes(storageRef, file);
-                        mediaUrl = await getDownloadURL(storageRef);
-                        mediaType = validImageTypes.includes(file.type) ? 'image' : 'video';
-                        console.log("Arquivo enviado:", mediaUrl);
-                    } catch (uploadError) {
-                        console.error("Erro ao enviar arquivo:", uploadError);
-                        alert('Erro ao enviar arquivo. Verifique o console.');
-                        postButton.disabled = false;
-                        uploadProgress.textContent = '';
-                        return;
-                    }
+                    const storageRef = ref(storage, `media/${currentUser.username}/${Date.now()}_${mediaInput.name}`);
+                    await uploadBytes(storageRef, mediaInput);
+                    mediaURL = await getDownloadURL(storageRef);
+                    mediaType = mediaInput.type.startsWith('image') ? 'image' : 'video';
+                    console.log("Arquivo enviado:", mediaURL);
                 }
 
                 const comment = {
                     username: currentUser.username,
                     role: currentUser.role,
-                    text: commentText || '',
+                    text: commentText,
                     timestamp: new Date().toISOString(),
                     date: today,
-                    mediaUrl: mediaUrl || null,
+                    mediaURL: mediaURL || null,
                     mediaType: mediaType || null
                 };
 
                 await addDoc(collection(db, 'comments'), comment);
                 document.getElementById('commentInput').value = '';
-                mediaInput.value = '';
-                uploadProgress.textContent = 'Comentário postado com sucesso!';
-                setTimeout(() => { uploadProgress.textContent = ''; }, 3000);
+                document.getElementById('mediaInput').value = '';
                 loadComments();
-                console.log("Comentário postado:", comment);
+                console.log("Comentário postado:", commentText, mediaURL);
             } catch (error) {
                 console.error("Erro ao postar comentário:", error);
                 alert('Erro ao postar comentário. Veja o console.');
-                uploadProgress.textContent = '';
-            } finally {
-                postButton.disabled = false;
             }
         }
 
@@ -565,18 +461,20 @@
                         if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
                             deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
                         }
+
                         let mediaContent = '';
-                        if (comment.mediaUrl && comment.mediaType) {
+                        if (comment.mediaURL && comment.mediaType) {
                             if (comment.mediaType === 'image') {
-                                mediaContent = `<div class="comment-media"><img src="${comment.mediaUrl}" alt="Imagem do comentário" loading="lazy"></div>`;
+                                mediaContent = `<img src="${comment.mediaURL}" alt="Imagem do comentário">`;
                             } else if (comment.mediaType === 'video') {
-                                mediaContent = `<div class="comment-media"><video controls><source src="${comment.mediaUrl}" type="video/${comment.mediaUrl.split('.').pop().toLowerCase()}"></video></div>`;
+                                mediaContent = `<video controls src="${comment.mediaURL}" alt="Vídeo do comentário"></video>`;
                             }
                         }
+
                         commentDiv.innerHTML = `
-                            <div class="comment-content">
+                            <div>
                                 <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
-                                ${comment.text ? `<p>${comment.text}</p>` : ''}
+                                ${comment.text}
                                 ${mediaContent}
                             </div>
                             ${deleteButton}
@@ -584,7 +482,6 @@
                         commentsList.appendChild(commentDiv);
                     }
                 });
-                // Adiciona event listeners aos botões de apagar
                 document.querySelectorAll('.delete-btn').forEach(button => {
                     button.addEventListener('click', () => {
                         const commentId = button.getAttribute('data-comment-id');
