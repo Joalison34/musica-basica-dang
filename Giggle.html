@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site de Comentários Leve</title>
+    <title>Site de Comentários</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f8f8f8;
+            background-color: #f0f2f5;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -17,142 +17,135 @@
             max-width: 600px;
             width: 100%;
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         h1, h2 {
             text-align: center;
-            color: #222;
-            margin: 10px 0;
+            color: #333;
         }
         .form-section, .comment-section {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         input, button, textarea {
             width: 100%;
-            padding: 8px;
-            margin: 4px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             box-sizing: border-box;
-            font-size: 14px;
         }
         button {
-            background-color: #2ecc71;
+            background-color: #28a745;
             color: white;
             border: none;
             cursor: pointer;
-            transition: background 0.2s;
         }
         button:hover {
-            background-color: #27ae60;
+            background-color: #218838;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
         }
         .delete-btn {
-            background-color: #e74c3c;
+            background-color: #dc3545;
             width: auto;
             padding: 5px 10px;
-            margin-left: 8px;
+            margin-left: 10px;
             display: inline-block;
         }
         .delete-btn:hover {
-            background-color: #c0392b;
+            background-color: #c82333;
         }
         .ban-section {
-            margin-top: 15px;
-            padding: 8px;
+            margin-top: 20px;
+            padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 5px;
         }
         .comment {
             border: 1px solid #ddd;
             padding: 10px;
-            margin: 8px 0;
-            border-radius: 4px;
+            margin: 10px 0;
+            border-radius: 5px;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+        }
+        .comment.common {
             background-color: #f9f9f9;
         }
         .comment.moderator {
-            background-color: #e8f4f8;
-            border: 2px solid #3498db;
+            background-color: #e6f3ff;
+            border: 2px solid #007bff;
         }
         .comment.owner {
-            background: linear-gradient(45deg, #e91e63, #8e44ad);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
             color: white;
         }
         .username.moderator {
-            color: #3498db;
-            font-weight: bold;
+            display: inline-block;
+            border: 2px solid #007bff;
+            padding: 2px 5px;
+            animation: blink 1.5s infinite;
         }
         .username.owner {
-            color: #fff;
-            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            display: inline-block;
+            padding: 2px 5px;
+            animation: shine 2s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { border-color: #007bff; }
+            50% { border-color: transparent; }
+        }
+        @keyframes shine {
+            0% { color: #ff6b6b; text-shadow: 0 0 5px #ff6b6b; }
+            50% { color: #4ecdc4; text-shadow: 0 0 10px #4ecdc4; }
+            100% { color: #ff6b6b; text-shadow: 0 0 5px #ff6b6b; }
         }
         .hidden {
             display: none;
         }
         .error {
-            color: #e74c3c;
+            color: red;
             text-align: center;
-            font-size: 14px;
         }
         .file-input {
-            margin: 8px 0;
-            padding: 8px;
-            border: 1px dashed #ddd;
-            border-radius: 4px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
             background-color: #fafafa;
         }
         .file-input label {
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
             color: #333;
-            font-size: 14px;
         }
         .file-input input[type="file"] {
             padding: 0;
             border: none;
         }
         .comment-media {
-            margin-top: 8px;
+            margin-top: 10px;
             max-width: 100%;
         }
         .comment-media img, .comment-media video {
             max-width: 100%;
-            max-height: 200px;
-            border-radius: 4px;
+            height: auto;
+            border-radius: 5px;
             display: block;
-            margin-top: 4px;
-            object-fit: contain;
+            margin-top: 5px;
         }
         .comment-content {
             flex: 1;
         }
-        .media-preview {
-            margin-top: 8px;
-            max-width: 100%;
-        }
-        .media-preview img, .media-preview video {
-            max-width: 150px;
-            max-height: 150px;
-            border-radius: 4px;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 5px;
-            background-color: #ddd;
-            border-radius: 3px;
+        .upload-progress {
             margin-top: 5px;
-            display: none;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            background-color: #2ecc71;
-            border-radius: 3px;
-            width: 0;
-            transition: width 0.2s;
+            font-size: 0.9em;
+            color: #555;
         }
     </style>
 </head>
@@ -185,12 +178,9 @@
             <button id="logoutBtn">Sair</button>
             <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
             <div class="file-input">
-                <label for="mediaInput">Anexar imagem ou vídeo (PNG, JPEG, MP4, WEBM, até 10MB):</label>
+                <label for="mediaInput">Anexar imagem ou vídeo (PNG, JPEG, MP4, WEBM, vídeos até 500MB):</label>
                 <input type="file" id="mediaInput" accept="image/png,image/jpeg,video/mp4,video/webm">
-            </div>
-            <div id="mediaPreview" class="media-preview hidden"></div>
-            <div id="progressBar" class="progress-bar">
-                <div id="progressBarFill" class="progress-bar-fill"></div>
+                <p class="upload-progress" id="uploadProgress"></p>
             </div>
             <button id="postCommentBtn">Postar Comentário</button>
             <div id="banSection" class="ban-section hidden">
@@ -201,391 +191,413 @@
             <div id="commentsList"></div>
         </div>
     </div>
-    // Importa as funções do Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-    // Configuração do Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
-        authDomain: "funzer.firebaseapp.com",
-        projectId: "funzer",
-        storageBucket: "funzer.firebasestorage.app",
-        messagingSenderId: "723068647417",
-        appId: "1:723068647417:web:7ae58205191b0099a1ef28"
-    };
+    <script type="module">
+        // Importa as funções do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-    // Inicializa o Firebase
-    let db, storage;
-    try {
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        storage = getStorage(app);
-        console.log("Firebase inicializado com sucesso");
-    } catch (error) {
-        console.error("Erro ao inicializar Firebase:", error);
-        alert("Erro ao conectar com o servidor. Verifique o console.");
-    }
-
-    // Inicializa dados do localStorage
-    let users = JSON.parse(localStorage.getItem('users')) || [];
-    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-
-    // Adiciona event listeners
-    document.getElementById('createAccountBtn').addEventListener('click', createAccount);
-    document.getElementById('loginBtn').addEventListener('click', login);
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-    document.getElementById('postCommentBtn').addEventListener('click', postComment);
-    document.getElementById('banUserBtn').addEventListener('click', banUser);
-    document.getElementById('mediaInput').addEventListener('change', previewMedia);
-
-    // Verifica usuário logado ao carregar
-    if (currentUser) {
-        updateUIForLoggedInUser();
-    }
-
-    // Carrega comentários
-    loadComments();
-
-    // Função para atualizar UI para usuário logado
-    function updateUIForLoggedInUser() {
-        document.getElementById('createAccountSection').classList.add('hidden');
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('commentSection').classList.remove('hidden');
-        document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
-        document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
-        loadComments();
-    }
-
-    // Função para criar conta
-    function createAccount() {
-        const username = document.getElementById('createUsername').value.trim();
-        const password = document.getElementById('createPassword').value.trim();
-        const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
-
-        if (!username || !password) {
-            alert('Preencha nome e senha.');
-            return;
-        }
-
-        if (users.some(user => user.username === username)) {
-            alert('Nome de usuário já existe.');
-            return;
-        }
-
-        const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
-        users.push({ username, password, role });
-        localStorage.setItem('users', JSON.stringify(users));
-        alert('Conta criada! Faça login.');
-        document.getElementById('createUsername').value = '';
-        document.getElementById('createPassword').value = '';
-        document.getElementById('roleCode').value = '';
-    }
-
-    // Função para login
-    function login() {
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value.trim();
-        const errorMessage = document.getElementById('errorMessage');
-
-        if (!username || !password) {
-            errorMessage.textContent = 'Preencha nome e senha.';
-            return;
-        }
-
-        const user = users.find(user => user.username === username && user.password === password);
-        if (user) {
-            currentUser = user;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            updateUIForLoggedInUser();
-            errorMessage.textContent = '';
-        } else {
-            errorMessage.textContent = 'Nome ou senha incorretos.';
-        }
-    }
-
-    // Função para logout
-    function logout() {
-        currentUser = null;
-        localStorage.removeItem('currentUser');
-        document.getElementById('createAccountSection').classList.remove('hidden');
-        document.getElementById('loginSection').classList.remove('hidden');
-        document.getElementById('commentSection').classList.add('hidden');
-        document.getElementById('loginUsername').value = '';
-        document.getElementById('loginPassword').value = '';
-    }
-
-    // Função para pré-visualizar mídia
-    function previewMedia(event) {
-        const file = event.target.files[0];
-        const preview = document.getElementById('mediaPreview');
-        preview.innerHTML = '';
-        preview.classList.add('hidden');
-
-        if (!file) return;
-
-        const validTypes = ['image/png', 'image/jpeg', 'video/mp4', 'video/webm'];
-        const maxSize = 10 * 1024 * 1024; // 10MB
-
-        if (!validTypes.includes(file.type)) {
-            alert('Use PNG, JPEG, MP4 ou WEBM.');
-            return;
-        }
-
-        if (file.size > maxSize) {
-            alert('Arquivo excede 10MB.');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const mediaElement = file.type.startsWith('image')
-                ? `<img src="${e.target.result}" alt="Pré-visualização">`
-                : `<video src="${e.target.result}" controls></video>`;
-            preview.innerHTML = mediaElement;
-            preview.classList.remove('hidden');
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+            authDomain: "funzer.firebaseapp.com",
+            projectId: "funzer",
+            storageBucket: "funzer.firebasestorage.app",
+            messagingSenderId: "723068647417",
+            appId: "1:723068647417:web:7ae58205191b0099a1ef28"
         };
-        reader.readAsDataURL(file);
-    }
 
-    // Função para postar comentário
-    async function postComment() {
-        if (!currentUser) {
-            alert('Faça login para comentar.');
-            return;
-        }
-
-        const commentText = document.getElementById('commentInput').value.trim();
-        const mediaInput = document.getElementById('mediaInput');
-        const file = mediaInput.files[0];
-        const progressBar = document.getElementById('progressBar');
-        const progressBarFill = document.getElementById('progressBarFill');
-
-        if (!commentText && !file) {
-            alert('Escreva um comentário ou anexe uma mídia.');
-            return;
-        }
-
-        if (!db || !storage) {
-            alert('Erro: Servidor não inicializado.');
-            return;
-        }
-
+        // Inicializa o Firebase
+        let db, storage;
         try {
-            // Verifica limite de comentários diários
-            const today = new Date().toISOString().split('T')[0];
-            const q = query(
-                collection(db, 'comments'),
-                where('username', '==', currentUser.username),
-                where('date', '==', today)
-            );
-            const userComments = await getDocs(q);
-            if (userComments.size >= 10) {
-                alert('Limite de 10 comentários por dia atingido.');
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            storage = getStorage(app);
+            console.log("Firebase inicializado com sucesso");
+        } catch (error) {
+            console.error("Erro ao inicializar Firebase:", error);
+            alert("Erro ao conectar com o servidor. Verifique o console.");
+        }
+
+        // Inicializa dados do localStorage
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+
+        // Adiciona event listeners aos botões
+        const createAccountBtn = document.getElementById('createAccountBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const postCommentBtn = document.getElementById('postCommentBtn');
+        const banUserBtn = document.getElementById('banUserBtn');
+
+        if (createAccountBtn) {
+            createAccountBtn.addEventListener('click', createAccount);
+        } else {
+            console.error("Elemento createAccountBtn não encontrado");
+        }
+
+        if (loginBtn) {
+            loginBtn.addEventListener('click', login);
+        } else {
+            console.error("Elemento loginBtn não encontrado");
+        }
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', logout);
+        } else {
+            console.error("Elemento logoutBtn não encontrado");
+        }
+
+        if (postCommentBtn) {
+            postCommentBtn.addEventListener('click', postComment);
+        } else {
+            console.error("Elemento postCommentBtn não encontrado");
+        }
+
+        if (banUserBtn) {
+            banUserBtn.addEventListener('click', banUser);
+        } else {
+            console.error("Elemento banUserBtn não encontrado");
+        }
+
+        // Verifica se há usuário logado ao carregar a página
+        if (currentUser) {
+            updateUIForLoggedInUser();
+        }
+
+        // Carrega comentários ao iniciar
+        loadComments();
+
+        // Função para atualizar a interface para usuário logado
+        function updateUIForLoggedInUser() {
+            document.getElementById('createAccountSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('commentSection').classList.remove('hidden');
+            document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
+            document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
+            loadComments();
+            console.log("Usuário restaurado do localStorage:", currentUser.username);
+        }
+
+        // Função para criar conta
+        function createAccount() {
+            console.log("Tentando criar conta...");
+            const username = document.getElementById('createUsername').value.trim();
+            const password = document.getElementById('createPassword').value.trim();
+            const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
+
+            if (!username || !password) {
+                alert('Preencha nome e senha.');
                 return;
             }
 
-            let mediaUrl = null;
-            let mediaType = null;
-
-            // Processa upload de arquivo, se houver
-            if (file) {
-                const validTypes = ['image/png', 'image/jpeg', 'video/mp4', 'video/webm'];
-                const maxSize = 10 * 1024 * 1024; // 10MB
-
-                if (!validTypes.includes(file.type)) {
-                    alert('Use PNG, JPEG, MP4 ou WEBM.');
-                    return;
-                }
-
-                if (file.size > maxSize) {
-                    alert('Arquivo excede 10MB.');
-                    return;
-                }
-
-                const storageRef = ref(storage, `media/${currentUser.username}/${Date.now()}_${file.name}`);
-                const uploadTask = uploadBytesResumable(storageRef, file);
-
-                // Mostra barra de progresso
-                progressBar.style.display = 'block';
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        progressBarFill.style.width = `${progress}%`;
-                    },
-                    (error) => {
-                        console.error("Erro no upload:", error);
-                        alert('Erro ao fazer upload da mídia.');
-                        progressBar.style.display = 'none';
-                    },
-                    async () => {
-                        mediaUrl = await getDownloadURL(storageRef);
-                        mediaType = file.type.startsWith('image') ? 'image' : 'video';
-                        progressBar.style.display = 'none';
-                        progressBarFill.style.width = '0%';
-
-                        // Salva comentário após upload
-                        await saveComment(commentText, today, mediaUrl, mediaType);
-                    }
-                );
-            } else {
-                // Salva comentário sem mídia
-                await saveComment(commentText, today, mediaUrl, mediaType);
+            if (users.some(user => user.username === username)) {
+                alert('Nome de usuário já existe.');
+                return;
             }
-        } catch (error) {
-            console.error("Erro ao postar comentário:", error);
-            alert('Erro ao postar comentário. Veja o console.');
-            progressBar.style.display = 'none';
-        }
-    }
 
-    // Função auxiliar para salvar comentário
-    async function saveComment(commentText, today, mediaUrl, mediaType) {
-        const comment = {
-            username: currentUser.username,
-            role: currentUser.role,
-            text: commentText || '',
-            timestamp: new Date().toISOString(),
-            date: today,
-            mediaUrl: mediaUrl || null,
-            mediaType: mediaType || null
-        };
-
-        await addDoc(collection(db, 'comments'), comment);
-        document.getElementById('commentInput').value = '';
-        document.getElementById('mediaInput').value = '';
-        document.getElementById('mediaPreview').innerHTML = '';
-        document.getElementById('mediaPreview').classList.add('hidden');
-        loadComments();
-    }
-
-    // Função para apagar comentário
-    async function deleteComment(commentId) {
-        if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
-            alert('Apenas moderadores e o dono podem apagar comentários.');
-            return;
-        }
-
-        if (!db) {
-            alert('Erro: Servidor não inicializado.');
-            return;
-        }
-
-        try {
-            await deleteDoc(doc(db, 'comments', commentId));
-            loadComments();
-            alert('Comentário apagado com sucesso.');
-        } catch (error) {
-            console.error("Erro ao apagar comentário:", error);
-            alert('Erro ao apagar comentário. Veja o console.');
-        }
-    }
-
-    // Função para banir usuário
-    async function banUser() {
-        if (!currentUser || currentUser.role !== 'owner') {
-            alert('Apenas o dono pode banir usuários.');
-            return;
-        }
-
-        const banUsername = document.getElementById('banUsername').value.trim();
-        if (!banUsername) {
-            alert('Digite o nome do usuário a banir.');
-            return;
-        }
-
-        if (banUsername === currentUser.username) {
-            alert('Você não pode banir a si mesmo.');
-            return;
-        }
-
-        if (!db) {
-            alert('Erro: Servidor não inicializado.');
-            return;
-        }
-
-        try {
-            // Remove usuário do localStorage
-            users = users.filter(user => user.username !== banUsername);
+            const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
+            users.push({ username, password, role });
             localStorage.setItem('users', JSON.stringify(users));
-
-            // Remove comentários do usuário no Firestore
-            const q = query(collection(db, 'comments'), where('username', '==', banUsername));
-            const commentsSnapshot = await getDocs(q);
-            const batch = writeBatch(db);
-            commentsSnapshot.forEach(doc => {
-                batch.delete(doc.ref);
-            });
-            await batch.commit();
-
-            document.getElementById('banUsername').value = '';
-            alert(`Usuário ${banUsername} banido com sucesso.`);
-            loadComments();
-        } catch (error) {
-            console.error("Erro ao banir usuário:", error);
-            alert('Erro ao banir usuário. Veja o console.');
-        }
-    }
-
-    // Função para carregar comentários
-    async function loadComments() {
-        const commentsList = document.getElementById('commentsList');
-        commentsList.innerHTML = '';
-
-        if (!db) {
-            commentsList.innerHTML = '<p class="error">Erro: Servidor não inicializado.</p>';
-            return;
+            alert('Conta criada! Faça login.');
+            document.getElementById('createUsername').value = '';
+            document.getElementById('createPassword').value = '';
+            document.getElementById('roleCode').value = '';
+            console.log("Conta criada:", username, role);
         }
 
-        try {
-            const threeDaysAgo = new Date();
-            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-            const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
-            const commentsSnapshot = await getDocs(q);
-            commentsSnapshot.forEach(doc => {
-                const comment = doc.data();
-                const commentDate = new Date(comment.timestamp);
-                if (commentDate >= threeDaysAgo) {
-                    const commentDiv = document.createElement('div');
-                    commentDiv.className = `comment ${comment.role}`;
-                    let deleteButton = '';
-                    if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
-                        deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
-                    }
+        // Função para login
+        function login() {
+            console.log("Tentando logar...");
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorMessage = document.getElementById('errorMessage');
 
-                    let mediaContent = '';
-                    if (comment.mediaUrl && comment.mediaType) {
-                        mediaContent = comment.mediaType === 'image'
-                            ? `<img src="${comment.mediaUrl}" alt="Mídia do comentário">`
-                            : `<video src="${comment.mediaUrl}" controls></video>`;
-                    }
+            if (!username || !password) {
+                errorMessage.textContent = 'Preencha nome e senha.';
+                console.log("Campos de login vazios");
+                return;
+            }
 
-                    commentDiv.innerHTML = `
-                        <div class="comment-content">
-                            <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
-                            ${comment.text}
-                            <div class="comment-media">${mediaContent}</div>
-                        </div>
-                        ${deleteButton}
-                    `;
-                    commentsList.appendChild(commentDiv);
+            const user = users.find(user => user.username === username && user.password === password);
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateUIForLoggedInUser();
+                errorMessage.textContent = '';
+                console.log("Login bem-sucedido:", username);
+            } else {
+                errorMessage.textContent = 'Nome ou senha incorretos.';
+                console.log("Falha no login:", username);
+            }
+        }
+
+        // Função para logout
+        function logout() {
+            console.log("Saindo...");
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('createAccountSection').classList.remove('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('commentSection').classList.add('hidden');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            console.log("Logout concluído");
+        }
+
+        // Função para postar comentário
+        async function postComment() {
+            console.log("Tentando postar comentário...");
+            if (!currentUser) {
+                alert('Faça login para comentar.');
+                return;
+            }
+            const commentText = document.getElementById('commentInput').value.trim();
+            const mediaInput = document.getElementById('mediaInput');
+            const file = mediaInput.files[0];
+            const postButton = document.getElementById('postCommentBtn');
+            const uploadProgress = document.getElementById('uploadProgress');
+
+            if (!commentText && !file) {
+                alert('Escreva um comentário ou anexe uma mídia.');
+                return;
+            }
+
+            if (!db || !storage) {
+                alert('Erro: Servidor não inicializado.');
+                console.error("Firestore ou Storage não inicializado");
+                return;
+            }
+
+            try {
+                // Desativa o botão durante o processamento
+                postButton.disabled = true;
+                uploadProgress.textContent = file ? 'Enviando arquivo...' : '';
+
+                // Verifica limite de comentários diários
+                const today = new Date().toISOString().split('T')[0];
+                const q = query(
+                    collection(db, 'comments'),
+                    where('username', '==', currentUser.username),
+                    where('date', '==', today)
+                );
+                const userComments = await getDocs(q);
+                if (userComments.size >= 10) {
+                    alert('Limite de 10 comentários por dia atingido.');
+                    console.log("Limite de comentários atingido:", currentUser.username);
+                    postButton.disabled = false;
+                    uploadProgress.textContent = '';
+                    return;
                 }
-            });
 
-            // Adiciona event listeners aos botões de apagar
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    const commentId = button.getAttribute('data-comment-id');
-                    deleteComment(commentId);
-                });
-            });
-        } catch (error) {
-            console.error("Erro ao carregar comentários:", error);
-            commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
+                let mediaUrl = null;
+                let mediaType = null;
+
+                // Processa upload de arquivo, se houver
+                if (file) {
+                    const validImageTypes = ['image/png', 'image/jpeg'];
+                    const validVideoTypes = ['video/mp4', 'video/webm'];
+                    const maxVideoSize = 500 * 1024 * 1024; // 500MB em bytes
+
+                    if (!validImageTypes.includes(file.type) && !validVideoTypes.includes(file.type)) {
+                        alert('Arquivo inválido. Use PNG, JPEG, MP4 ou WEBM.');
+                        postButton.disabled = false;
+                        uploadProgress.textContent = '';
+                        return;
+                    }
+
+                    if (validVideoTypes.includes(file.type) && file.size > maxVideoSize) {
+                        alert('Vídeo excede o limite de 500MB.');
+                        postButton.disabled = false;
+                        uploadProgress.textContent = '';
+                        return;
+                    }
+
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+                    const storagePath = `media/${currentUser.username}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                    const storageRef = ref(storage, storagePath);
+
+                    try {
+                        await uploadBytes(storageRef, file);
+                        mediaUrl = await getDownloadURL(storageRef);
+                        mediaType = validImageTypes.includes(file.type) ? 'image' : 'video';
+                        console.log("Arquivo enviado:", mediaUrl);
+                    } catch (uploadError) {
+                        console.error("Erro ao enviar arquivo:", uploadError);
+                        alert('Erro ao enviar arquivo. Verifique o console.');
+                        postButton.disabled = false;
+                        uploadProgress.textContent = '';
+                        return;
+                    }
+                }
+
+                const comment = {
+                    username: currentUser.username,
+                    role: currentUser.role,
+                    text: commentText || '',
+                    timestamp: new Date().toISOString(),
+                    date: today,
+                    mediaUrl: mediaUrl || null,
+                    mediaType: mediaType || null
+                };
+
+                await addDoc(collection(db, 'comments'), comment);
+                document.getElementById('commentInput').value = '';
+                mediaInput.value = '';
+                uploadProgress.textContent = 'Comentário postado com sucesso!';
+                setTimeout(() => { uploadProgress.textContent = ''; }, 3000);
+                loadComments();
+                console.log("Comentário postado:", comment);
+            } catch (error) {
+                console.error("Erro ao postar comentário:", error);
+                alert('Erro ao postar comentário. Veja o console.');
+                uploadProgress.textContent = '';
+            } finally {
+                postButton.disabled = false;
+            }
         }
-    }
+
+        // Função para apagar comentário
+        async function deleteComment(commentId) {
+            console.log("Tentando apagar comentário com ID:", commentId);
+            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
+                alert('Apenas moderadores e o dono podem apagar comentários.');
+                console.log("Usuário sem permissão para apagar:", currentUser?.username);
+                return;
+            }
+            if (!db) {
+                alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
+                return;
+            }
+            if (!commentId || typeof commentId !== 'string') {
+                alert('Erro: Comentário inválido.');
+                console.error("ID do comentário inválido:", commentId);
+                return;
+            }
+            try {
+                console.log("Executando deleteDoc para comentário:", commentId);
+                await deleteDoc(doc(db, 'comments', commentId));
+                console.log("Comentário apagado com sucesso:", commentId);
+                loadComments();
+                alert('Comentário apagado com sucesso.');
+            } catch (error) {
+                console.error("Erro ao apagar comentário:", error);
+                alert('Erro ao apagar comentário. Veja o console.');
+            }
+        }
+
+        // Função para banir usuário
+        async function banUser() {
+            console.log("Tentando banir usuário...");
+            if (!currentUser || currentUser.role !== 'owner') {
+                alert('Apenas o dono pode banir usuários.');
+                console.log("Usuário sem permissão para banir:", currentUser?.username);
+                return;
+            }
+            const banUsername = document.getElementById('banUsername').value.trim();
+            if (!banUsername) {
+                alert('Digite o nome do usuário a banir.');
+                return;
+            }
+            if (banUsername === currentUser.username) {
+                alert('Você não pode banir a si mesmo.');
+                return;
+            }
+            if (!db) {
+                alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
+                return;
+            }
+            try {
+                // Remove usuário do localStorage
+                console.log("Removendo usuário do localStorage:", banUsername);
+                users = users.filter(user => user.username !== banUsername);
+                localStorage.setItem('users', JSON.stringify(users));
+                console.log("Usuário removido do localStorage:", banUsername);
+
+                // Remove todos os comentários do usuário no Firestore
+                console.log("Buscando comentários do usuário:", banUsername);
+                const q = query(collection(db, 'comments'), where('username', '==', banUsername));
+                const commentsSnapshot = await getDocs(q);
+                console.log("Comentários encontrados:", commentsSnapshot.size);
+                const batch = writeBatch(db);
+                commentsSnapshot.forEach(doc => {
+                    console.log("Marcando comentário para exclusão:", doc.id);
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+                console.log("Comentários do usuário removidos:", commentsSnapshot.size);
+
+                document.getElementById('banUsername').value = '';
+                alert(`Usuário ${banUsername} banido com sucesso.`);
+                loadComments();
+                console.log("Usuário banido com sucesso:", banUsername);
+            } catch (error) {
+                console.error("Erro ao banir usuário:", error);
+                alert('Erro ao banir usuário. Veja o console.');
+            }
+        }
+
+        // Função para carregar comentários
+        async function loadComments() {
+            console.log("Carregando comentários...");
+            const commentsList = document.getElementById('commentsList');
+            commentsList.innerHTML = '';
+            if (!db) {
+                commentsList.innerHTML = '<p class="error">Erro: Servidor não inicializado.</p>';
+                console.error("Firestore não inicializado");
+                return;
+            }
+            try {
+                const threeDaysAgo = new Date();
+                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+                const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
+                const commentsSnapshot = await getDocs(q);
+                commentsSnapshot.forEach(doc => {
+                    const comment = doc.data();
+                    const commentDate = new Date(comment.timestamp);
+                    if (commentDate >= threeDaysAgo) {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = `comment ${comment.role}`;
+                        let deleteButton = '';
+                        if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
+                            deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
+                        }
+                        let mediaContent = '';
+                        if (comment.mediaUrl && comment.mediaType) {
+                            if (comment.mediaType === 'image') {
+                                mediaContent = `<div class="comment-media"><img src="${comment.mediaUrl}" alt="Imagem do comentário" loading="lazy"></div>`;
+                            } else if (comment.mediaType === 'video') {
+                                mediaContent = `<div class="comment-media"><video controls><source src="${comment.mediaUrl}" type="video/${comment.mediaUrl.split('.').pop().toLowerCase()}"></video></div>`;
+                            }
+                        }
+                        commentDiv.innerHTML = `
+                            <div class="comment-content">
+                                <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
+                                ${comment.text ? `<p>${comment.text}</p>` : ''}
+                                ${mediaContent}
+                            </div>
+                            ${deleteButton}
+                        `;
+                        commentsList.appendChild(commentDiv);
+                    }
+                });
+                // Adiciona event listeners aos botões de apagar
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const commentId = button.getAttribute('data-comment-id');
+                        console.log("Botão Apagar clicado para comentário:", commentId);
+                        deleteComment(commentId);
+                    });
+                });
+                console.log("Comentários carregados:", commentsSnapshot.size);
+            } catch (error) {
+                console.error("Erro ao carregar comentários:", error);
+                commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
+            }
+        }
     </script>
 </body>
 </html>
-
