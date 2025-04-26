@@ -113,7 +113,7 @@
             max-height: 300px;
             margin-top: 10px;
             border-radius: 5px;
-            loading: lazy; /* Adicionado para otimizar carregamento */
+            loading: lazy;
         }
     </style>
 </head>
@@ -157,9 +157,9 @@
     </div>
 
     <script type="module">
-        // Importa as funções do Firebase (apenas Firestore)
+        // Importa as funções do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Configuração do Firebase
         const firebaseConfig = {
@@ -183,12 +183,11 @@
         }
 
         // Configuração do Cloudinary
-        const CLOUDINARY_CLOUD_NAME = 'dofskhwxw'; // Seu Cloud Name, já correto
-        const CLOUDINARY_UPLOAD_PRESET = 'comment_media'; // ALTERAR AQUI: Confirme o nome exato do preset no Cloudinary (ex.: 'comment_media' ou 'comentario_midia')
+        const CLOUDINARY_CLOUD_NAME = 'dofskhwxw';
+        const CLOUDINARY_UPLOAD_PRESET = 'comment_media';
         const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
-        // Inicializa dados do localStorage
-        let users = JSON.parse(localStorage.getItem('users')) || [];
+        // Inicializa currentUser do localStorage (mantido para sessão atual)
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
         // Adiciona event listeners aos botões
@@ -214,11 +213,11 @@
             document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
             document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
             loadComments();
-            console.log("Usuário restaurado do localStorage:", currentUser.username);
+            console.log("Usuário restaurado:", currentUser.username);
         }
 
         // Função para criar conta
-        function createAccount() {
+        async function createAccount() {
             console.log("Tentando criar conta...");
             const username = document.getElementById('createUsername').value.trim();
             const password = document.getElementById('createPassword').value.trim();
@@ -229,38 +228,89 @@
                 return;
             }
 
-            if (users.some(user => user.username === username)) {
-                alert('Nome de usuário já existe.');
+            if (!db) {
+                alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
                 return;
             }
 
-            const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
-            users.push({ username, password, role });
-            localStorage.setItem('users', JSON.stringify(users));
-            alert('Conta criada! Faça login.');
-            document.getElementById('createUsername').value = '';
-            document.getElementById('createPassword').value = '';
-            document.getElementById('roleCode').value = '';
-            console.log("Conta criada:", username, role);
+            try {
+                // Verifica se o nome de usuário já existe
+                const userQuery = query(collection(db, 'users'), where('username', '==', username));
+                const userSnapshot = await getDocs(userQuery);
+                if (!userSnapshot.empty) {
+                    alert('Nome de usuário já existe.');
+                    return;
+                }
+
+                const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
+                const userData = {
+                    username,
+                    password, // Armazenado diretamente, conforme o código original
+                    role,
+                    isBanned: false
+                };
+
+                // Salva o usuário no Firestore usando o username como ID do documento
+                await setDoc(doc(db, 'users', username), userData);
+                alert('Conta criada! Faça login.');
+                document.getElementById('createUsername').value = '';
+                document.getElementById('createPassword').value = '';
+                document.getElementById('roleCode').value = '';
+                console.log("Conta criada:", username, role);
+            } catch (error) {
+                console.error("Erro ao criar conta:", error);
+                alert('Erro ao criar conta. Veja o console.');
+            }
         }
 
         // Função para login
-        function login() {
+        async function login() {
             console.log("Tentando logar...");
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             const errorMessage = document.getElementById('errorMessage');
 
-            const user = users.find(user => user.username === username && user.password === password);
-            if (user) {
-                currentUser = user;
+            if (!db) {
+                errorMessage.textContent = 'Erro: Servidor não inicializado.';
+                console.error("Firestore não inicializado");
+                return;
+            }
+
+            try {
+                const userQuery = query(collection(db, 'users'), where('username', '==', username));
+                const userSnapshot = await getDocs(userQuery);
+                if (userSnapshot.empty) {
+                    errorMessage.textContent = 'Nome ou senha incorretos.';
+                    console.log("Usuário não encontrado:", username);
+                    return;
+                }
+
+                const userDoc = userSnapshot.docs[0];
+                const userData = userDoc.data();
+                if (userData.isBanned) {
+                    errorMessage.textContent = 'Esta conta foi banida permanentemente.';
+                    console.log("Tentativa de login com conta banida:", username);
+                    return;
+                }
+
+                if (userData.password !== password) {
+                    errorMessage.textContent = 'Nome ou senha incorretos.';
+                    console.log("Senha incorreta para:", username);
+                    return;
+                }
+
+                currentUser = {
+                    username: userData.username,
+                    role: userData.role
+                };
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 updateUIForLoggedInUser();
                 errorMessage.textContent = '';
                 console.log("Login bem-sucedido:", username);
-            } else {
-                errorMessage.textContent = 'Nome ou senha incorretos.';
-                console.log("Falha no login:", username);
+            } catch (error) {
+                console.error("Erro ao fazer login:", error);
+                errorMessage.textContent = 'Erro ao fazer login. Veja o console.';
             }
         }
 
@@ -434,10 +484,15 @@
                 return;
             }
             try {
-                // Remove usuário do localStorage
-                users = users.filter(user => user.username !== banUsername);
-                localStorage.setItem('users', JSON.stringify(users));
-                console.log("Usuário removido do localStorage:", banUsername);
+                // Verifica se o usuário existe
+                const userQuery = query(collection(db, 'users'), where('username', '==', banUsername));
+                const userSnapshot = await getDocs(userQuery);
+                if (userSnapshot.empty) {
+                    alert('Usuário não encontrado.');
+                    console.log("Usuário não encontrado para banir:", banUsername);
+                    return;
+                    // Marca o usuário como banido
+                await setDoc(doc(db, 'users', banUsername), { isBanned: true }, { merge: true });
 
                 // Remove todos os comentários do usuário no Firestore
                 const q = query(collection(db, 'comments'), where('username', '==', banUsername));
@@ -521,3 +576,4 @@
     </script>
 </body>
 </html>
+              
