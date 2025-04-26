@@ -416,8 +416,8 @@
                     where('date', '==', today)
                 );
                 const userComments = await getDocs(q);
-                if (userComments.size >= 10) {
-                    alert('Limite de 10 comentários por dia atingido.');
+                if (userComments.size >= 50) {
+                    alert('Limite de 50 comentários por dia atingido.');
                     console.log("Limite de comentários atingido:", currentUser.username);
                     return;
                 }
@@ -428,7 +428,7 @@
                 if (mediaInput) {
                     const fileSizeLimit = 10 * 1024 * 1024; // 10 MB
                     if (mediaInput.size > fileSizeLimit) {
-                        alert('O arquivo deve ter no máximo 10 MB.');
+                        alert('O arquivo deve ter no máximo 100 MB.');
                         return;
                     }
 
