@@ -113,6 +113,7 @@
             max-height: 300px;
             margin-top: 10px;
             border-radius: 5px;
+            loading: lazy; /* Adicionado para otimizar carregamento */
         }
     </style>
 </head>
@@ -156,10 +157,9 @@
     </div>
 
     <script type="module">
-        // Importa as funções do Firebase
+        // Importa as funções do Firebase (apenas Firestore)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // Configuração do Firebase
         const firebaseConfig = {
@@ -173,16 +173,19 @@
 
         // Inicializa o Firebase
         let db;
-        let storage;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            storage = getStorage(app);
-            console.log("Firebase e Storage inicializados com sucesso");
+            console.log("Firebase e Firestore inicializados com sucesso");
         } catch (error) {
             console.error("Erro ao inicializar Firebase:", error);
             alert("Erro ao conectar com o servidor. Verifique o console.");
         }
+
+        // Configuração do Cloudinary
+        const CLOUDINARY_CLOUD_NAME = 'dofskhwxw'; // Seu Cloud Name, já correto
+        const CLOUDINARY_UPLOAD_PRESET = 'comment_media'; // ALTERAR AQUI: Confirme o nome exato do preset no Cloudinary (ex.: 'comment_media' ou 'comentario_midia')
+        const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
         // Inicializa dados do localStorage
         let users = JSON.parse(localStorage.getItem('users')) || [];
@@ -274,6 +277,32 @@
             console.log("Logout concluído");
         }
 
+        // Função para fazer upload para o Cloudinary
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                console.log("Arquivo enviado ao Cloudinary:", result.secure_url);
+                return {
+                    url: result.secure_url,
+                    type: result.resource_type === 'image' ? 'image' : 'video'
+                };
+            } catch (error) {
+                console.error("Erro ao enviar para Cloudinary:", error);
+                throw error;
+            }
+        }
+
         // Função para postar comentário
         async function postComment() {
             console.log("Tentando postar comentário...");
@@ -289,9 +318,9 @@
                 return;
             }
 
-            if (!db || !storage) {
+            if (!db) {
                 alert('Erro: Servidor não inicializado.');
-                console.error("Firestore ou Storage não inicializado");
+                console.error("Firestore não inicializado");
                 return;
             }
 
@@ -312,7 +341,7 @@
                 let mediaURL = null;
                 let mediaType = null;
 
-                // Faz upload do arquivo, se existir
+                // Faz upload do arquivo para o Cloudinary, se existir
                 if (mediaInput) {
                     const fileSizeLimit = 10 * 1024 * 1024; // 10 MB
                     if (mediaInput.size > fileSizeLimit) {
@@ -326,10 +355,9 @@
                         return;
                     }
 
-                    const storageRef = ref(storage, `media/${currentUser.username}/${Date.now()}_${mediaInput.name}`);
-                    await uploadBytes(storageRef, mediaInput);
-                    mediaURL = await getDownloadURL(storageRef);
-                    mediaType = mediaInput.type.startsWith('image') ? 'image' : 'video';
+                    const uploadResult = await uploadToCloudinary(mediaInput);
+                    mediaURL = uploadResult.url;
+                    mediaType = uploadResult.type;
                     console.log("Arquivo enviado:", mediaURL);
                 }
 
@@ -373,7 +401,6 @@
                 return;
             }
             try {
-                console.log("Executando deleteDoc para comentário:", commentId);
                 await deleteDoc(doc(db, 'comments', commentId));
                 console.log("Comentário apagado com sucesso:", commentId);
                 loadComments();
@@ -408,19 +435,15 @@
             }
             try {
                 // Remove usuário do localStorage
-                console.log("Removendo usuário do localStorage:", banUsername);
                 users = users.filter(user => user.username !== banUsername);
                 localStorage.setItem('users', JSON.stringify(users));
                 console.log("Usuário removido do localStorage:", banUsername);
 
                 // Remove todos os comentários do usuário no Firestore
-                console.log("Buscando comentários do usuário:", banUsername);
                 const q = query(collection(db, 'comments'), where('username', '==', banUsername));
                 const commentsSnapshot = await getDocs(q);
-                console.log("Comentários encontrados:", commentsSnapshot.size);
                 const batch = writeBatch(db);
                 commentsSnapshot.forEach(doc => {
-                    console.log("Marcando comentário para exclusão:", doc.id);
                     batch.delete(doc.ref);
                 });
                 await batch.commit();
@@ -456,45 +479,4 @@
                     const commentDate = new Date(comment.timestamp);
                     if (commentDate >= threeDaysAgo) {
                         const commentDiv = document.createElement('div');
-                        commentDiv.className = `comment ${comment.role}`;
-                        let deleteButton = '';
-                        if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
-                            deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
-                        }
-
-                        let mediaContent = '';
-                        if (comment.mediaURL && comment.mediaType) {
-                            if (comment.mediaType === 'image') {
-                                mediaContent = `<img src="${comment.mediaURL}" alt="Imagem do comentário">`;
-                            } else if (comment.mediaType === 'video') {
-                                mediaContent = `<video controls src="${comment.mediaURL}" alt="Vídeo do comentário"></video>`;
-                            }
-                        }
-
-                        commentDiv.innerHTML = `
-                            <div>
-                                <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
-                                ${comment.text}
-                                ${mediaContent}
-                            </div>
-                            ${deleteButton}
-                        `;
-                        commentsList.appendChild(commentDiv);
-                    }
-                });
-                document.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const commentId = button.getAttribute('data-comment-id');
-                        console.log("Botão Apagar clicado para comentário:", commentId);
-                        deleteComment(commentId);
-                    });
-                });
-                console.log("Comentários carregados:", commentsSnapshot.size);
-            } catch (error) {
-                console.error("Erro ao carregar comentários:", error);
-                commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
-            }
-        }
-    </script>
-</body>
-</html>
+                        commentDiv
