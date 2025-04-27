@@ -246,6 +246,7 @@
     </div>
 
     <script type="module">
+        console.log("Script inicializado");
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch, setDoc, updateDoc, getDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -262,12 +263,12 @@
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            console.log("Firebase inicializado");
+            console.log("Firebase inicializado com sucesso");
         } catch (error) {
-            console.error("Erro ao inicializar Firebase:", error);
-            document.getElementById('createErrorMessage').textContent = 'Erro ao conectar com o servidor.';
-            document.getElementById('loginErrorMessage').textContent = 'Erro ao conectar com o servidor.';
-            document.getElementById('settingsErrorMessage').textContent = 'Erro ao conectar com o servidor.';
+            console.error("Erro ao inicializar Firebase:", error.message, error.code);
+            document.getElementById('createErrorMessage').textContent = `Erro ao conectar com o servidor: ${error.message}`;
+            document.getElementById('loginErrorMessage').textContent = `Erro ao conectar com o servidor: ${error.message}`;
+            document.getElementById('settingsErrorMessage').textContent = `Erro ao conectar com o servidor: ${error.message}`;
         }
 
         const CLOUDINARY_CLOUD_NAME = 'dofskhwxw';
@@ -278,8 +279,20 @@
         let viewingProfile = null;
 
         // Event Listeners
-        document.getElementById('createAccountBtn').addEventListener('click', createAccount);
-        document.getElementById('loginBtn').addEventListener('click', login);
+        const createAccountBtn = document.getElementById('createAccountBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        if (createAccountBtn) {
+            createAccountBtn.addEventListener('click', createAccount);
+            console.log("Event listener para createAccountBtn registrado");
+        } else {
+            console.error("Elemento createAccountBtn não encontrado");
+        }
+        if (loginBtn) {
+            loginBtn.addEventListener('click', login);
+            console.log("Event listener para loginBtn registrado");
+        } else {
+            console.error("Elemento loginBtn não encontrado");
+        }
         document.getElementById('logoutBtn').addEventListener('click', logout);
         document.getElementById('postCommentBtn').addEventListener('click', postComment);
         document.getElementById('banUserBtn').addEventListener('click', deleteUser);
@@ -334,6 +347,7 @@
         }
 
         async function uploadToCloudinary(file) {
+            console.log("Iniciando upload para Cloudinary");
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
@@ -341,14 +355,16 @@
                 const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: 'POST', body: formData });
                 const result = await response.json();
                 if (result.error) throw new Error(result.error.message);
+                console.log("Upload para Cloudinary concluído:", result.secure_url);
                 return { url: result.secure_url, type: result.resource_type === 'image' ? 'image' : 'video' };
             } catch (error) {
-                console.error("Erro ao enviar para Cloudinary:", error);
+                console.error("Erro ao enviar para Cloudinary:", error.message);
                 throw error;
             }
         }
 
         function updateUIForLoggedInUser() {
+            console.log("Atualizando UI para usuário logado:", currentUser.username);
             document.getElementById('createAccountSection').classList.add('hidden');
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('commentSection').classList.remove('hidden');
@@ -363,51 +379,66 @@
         }
 
         async function createAccount() {
+            console.log("Função createAccount iniciada");
+            const createErrorMessage = document.getElementById('createErrorMessage');
+            if (!createErrorMessage) {
+                console.error("Elemento createErrorMessage não encontrado");
+                return;
+            }
             const username = document.getElementById('createUsername').value.trim();
             const password = document.getElementById('createPassword').value.trim();
             const bio = document.getElementById('createBio').value.trim();
             const profilePicture = document.getElementById('createProfilePicture').files[0];
             const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
-            const createErrorMessage = document.getElementById('createErrorMessage');
 
             if (!validateUsername(username)) {
                 createErrorMessage.textContent = 'Nome de usuário deve ter 3-20 caracteres alfanuméricos ou sublinhado.';
+                console.log("Validação de username falhou:", username);
                 return;
             }
             if (!validatePassword(password)) {
                 createErrorMessage.textContent = 'Senha deve ter pelo menos 6 caracteres.';
+                console.log("Validação de senha falhou");
                 return;
             }
             if (bio && !validateBio(bio)) {
                 createErrorMessage.textContent = 'Bio deve ter no máximo 150 caracteres.';
+                console.log("Validação de bio falhou:", bio);
                 return;
             }
             if (profilePicture) {
                 const allowedTypes = ['image/jpeg', 'image/png'];
                 if (!allowedTypes.includes(profilePicture.type)) {
                     createErrorMessage.textContent = 'Apenas JPEG ou PNG para foto de perfil.';
+                    console.log("Tipo de arquivo inválido:", profilePicture.type);
                     return;
                 }
                 if (profilePicture.size > 5 * 1024 * 1024) {
                     createErrorMessage.textContent = 'Foto de perfil deve ter no máximo 5 MB.';
+                    console.log("Arquivo muito grande:", profilePicture.size);
                     return;
                 }
             }
             if (!db) {
                 createErrorMessage.textContent = 'Erro: Servidor não inicializado.';
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
+                console.log("Verificando se username existe:", username);
                 const userQuery = query(collection(db, 'users'), where('username', '==', username));
                 const userSnapshot = await getDocs(userQuery);
                 if (!userSnapshot.empty) {
                     createErrorMessage.textContent = 'Nome de usuário já existe.';
+                    console.log("Username já existe:", username);
                     return;
                 }
+              console.log("Hashing senha");
                 const hashedPassword = await hashPassword(password);
                 const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
                 let profilePictureURL = null;
                 if (profilePicture) {
+                    console.log("Enviando foto de perfil para Cloudinary");
                     const uploadResult = await uploadToCloudinary(profilePicture);
                     profilePictureURL = uploadResult.url;
                 }
@@ -421,122 +452,63 @@
                     following: [],
                     theme: 'dark'
                 };
+                console.log("Criando documento do usuário:", username);
                 await setDoc(doc(db, 'users', username), userData);
                 createErrorMessage.textContent = '';
                 alert('Conta criada! Faça login.');
+                console.log("Conta criada com sucesso:", username);
                 document.getElementById('createUsername').value = '';
                 document.getElementById('createPassword').value = '';
                 document.getElementById('createBio').value = '';
                 document.getElementById('createProfilePicture').value = '';
                 document.getElementById('roleCode').value = '';
             } catch (error) {
-                console.error("Erro ao criar conta:", error);
-                createErrorMessage.textContent = 'Erro ao criar conta.';
+                console.error("Erro ao criar conta:", error.message, error.code);
+                createErrorMessage.textContent = `Erro ao criar conta: ${error.message}`;
             }
         }
 
         async function login() {
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('createPassword').value.trim();
-            const bio = document.getElementById('createBio').value.trim();
-            const profilePicture = document.getElementById('createProfilePicture').files[0];
-            const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
-            const createErrorMessage = document.getElementById('createErrorMessage');
-
-            if (!validateUsername(username)) {
-                createErrorMessage.textContent = 'Nome de usuário deve ter 3-20 caracteres alfanuméricos ou sublinhado.';
+            console.log("Função login iniciada");
+            const loginErrorMessage = document.getElementById('loginErrorMessage');
+            if (!loginErrorMessage) {
+                console.error("Elemento loginErrorMessage não encontrado");
                 return;
             }
-            if (!validatePassword(password)) {
-                createErrorMessage.textContent = 'Senha deve ter pelo menos 6 caracteres.';
-                return;
-            }
-            if (bio && !validateBio(bio)) {
-                createErrorMessage.textContent = 'Bio deve ter no máximo 150 caracteres.';
-                return;
-            }
-            if (profilePicture) {
-                const allowedTypes = ['image/jpeg', 'image/png'];
-                if (!allowedTypes.includes(profilePicture.type)) {
-                    createErrorMessage.textContent = 'Apenas JPEG ou PNG para foto de perfil.';
-                    return;
-                }
-                if (profilePicture.size > 5 * 1024 * 1024) {
-                    createErrorMessage.textContent = 'Foto de perfil deve ter no máximo 5 MB.';
-                    return;
-                }
-            }
-            if (!db) {
-                createErrorMessage.textContent = 'Erro: Servidor não inicializado.';
-                return;
-            }
-            try {
-                const userQuery = query(collection(db, 'users'), where('username', '==', username));
-                const userSnapshot = await getDocs(userQuery);
-                if (!userSnapshot.empty) {
-                    createErrorMessage.textContent = 'Nome de usuário já existe.';
-                    return;
-                }
-                const hashedPassword = await hashPassword(password);
-                const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
-                let profilePictureURL = null;
-                if (profilePicture) {
-                    const uploadResult = await uploadToCloudinary(profilePicture);
-                    profilePictureURL = uploadResult.url;
-                }
-                const userData = {
-                    username,
-                    password: hashedPassword,
-                    role,
-                    bio: bio || '',
-                    profilePictureURL: profilePictureURL || null,
-                    followers: [],
-                    following: [],
-                    theme: 'dark'
-                };
-                await setDoc(doc(db, 'users', username), userData);
-                createErrorMessage.textContent = '';
-                alert('Conta criada! Faça login.');
-                document.getElementById('createUsername').value = '';
-                document.getElementById('createPassword').value = '';
-                document.getElementById('createBio').value = '';
-                document.getElementById('createProfilePicture').value = '';
-                document.getElementById('roleCode').value = '';
-            } catch (error) {
-                console.error("Erro ao criar conta:", error);
-                createErrorMessage.textContent = 'Erro ao criar conta.';
-            }
-        }
-
-        async function login() {
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
-            const loginErrorMessage = document.getElementById('loginErrorMessage');
 
             if (!validateUsername(username)) {
                 loginErrorMessage.textContent = 'Nome de usuário inválido.';
+                console.log("Validação de username falhou:", username);
                 return;
             }
             if (!validatePassword(password)) {
                 loginErrorMessage.textContent = 'Senha deve ter pelo menos 6 caracteres.';
+                console.log("Validação de senha falhou");
                 return;
             }
             if (!db) {
                 loginErrorMessage.textContent = 'Erro: Servidor não inicializado.';
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
+                console.log("Buscando usuário:", username);
                 const userQuery = query(collection(db, 'users'), where('username', '==', username));
                 const userSnapshot = await getDocs(userQuery);
                 if (userSnapshot.empty) {
                     loginErrorMessage.textContent = 'Nome ou senha incorretos.';
+                    console.log("Usuário não encontrado:", username);
                     return;
                 }
                 const userDoc = userSnapshot.docs[0];
                 const userData = userDoc.data();
+                console.log("Hashing senha para login");
                 const hashedPassword = await hashPassword(password);
                 if (userData.password !== hashedPassword) {
                     loginErrorMessage.textContent = 'Nome ou senha incorretos.';
+                    console.log("Senha incorreta para:", username);
                     return;
                 }
                 currentUser = {
@@ -548,16 +520,20 @@
                     following: userData.following || [],
                     theme: userData.theme || 'dark'
                 };
+                console.log("Usuário logado:", currentUser.username);
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 updateUIForLoggedInUser();
                 loginErrorMessage.textContent = '';
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
             } catch (error) {
-                console.error("Erro ao fazer login:", error);
-                loginErrorMessage.textContent = 'Erro ao fazer login.';
+                console.error("Erro ao fazer login:", error.message, error.code);
+                loginErrorMessage.textContent = `Erro ao fazer login: ${error.message}`;
             }
         }
 
         async function updateProfile() {
+            console.log("Função updateProfile iniciada");
             if (!currentUser) {
                 alert('Faça login para atualizar o perfil.');
                 return;
@@ -568,30 +544,36 @@
 
             if (bio && !validateBio(bio)) {
                 settingsErrorMessage.textContent = 'Bio deve ter no máximo 150 caracteres.';
+                console.log("Validação de bio falhou:", bio);
                 return;
             }
             if (profilePicture) {
                 const allowedTypes = ['image/jpeg', 'image/png'];
                 if (!allowedTypes.includes(profilePicture.type)) {
                     settingsErrorMessage.textContent = 'Apenas JPEG ou PNG para foto de perfil.';
+                    console.log("Tipo de arquivo inválido:", profilePicture.type);
                     return;
                 }
                 if (profilePicture.size > 5 * 1024 * 1024) {
                     settingsErrorMessage.textContent = 'Foto de perfil deve ter no máximo 5 MB.';
+                    console.log("Arquivo muito grande:", profilePicture.size);
                     return;
                 }
             }
             if (!db) {
                 settingsErrorMessage.textContent = 'Erro: Servidor não inicializado.';
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
                 let profilePictureURL = currentUser.profilePictureURL;
                 if (profilePicture) {
+                    console.log("Enviando nova foto de perfil para Cloudinary");
                     const uploadResult = await uploadToCloudinary(profilePicture);
                     profilePictureURL = uploadResult.url;
                 }
                 const userData = { bio: bio || '', profilePictureURL: profilePictureURL || null };
+                console.log("Atualizando perfil do usuário:", currentUser.username);
                 await updateDoc(doc(db, 'users', currentUser.username), userData);
                 currentUser.bio = bio || '';
                 currentUser.profilePictureURL = profilePictureURL || null;
@@ -600,25 +582,28 @@
                 document.getElementById('editBio').value = bio;
                 document.getElementById('editProfilePicture').value = '';
                 alert('Perfil atualizado com sucesso!');
+                console.log("Perfil atualizado com sucesso");
                 loadComments();
             } catch (error) {
-                console.error("Erro ao atualizar perfil:", error);
-                settingsErrorMessage.textContent = 'Erro ao atualizar perfil.';
+                console.error("Erro ao atualizar perfil:", error.message, error.code);
+                settingsErrorMessage.textContent = `Erro ao atualizar perfil: ${error.message}`;
             }
         }
 
         function changeTheme(event) {
+            console.log("Alterando tema para:", event.target.value);
             const theme = event.target.value;
             document.body.className = theme;
             if (currentUser) {
                 currentUser.theme = theme;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 updateDoc(doc(db, 'users', currentUser.username), { theme })
-                    .catch(error => console.error("Erro ao salvar tema:", error));
+                    .catch(error => console.error("Erro ao salvar tema:", error.message, error.code));
             }
         }
 
         async function toggleFollow() {
+            console.log("Função toggleFollow iniciada");
             if (!currentUser) {
                 alert('Faça login para seguir usuários.');
                 return;
@@ -629,11 +614,13 @@
                 const userRef = doc(db, 'users', currentUser.username);
                 const profileRef = doc(db, 'users', viewingProfile.username);
                 if (isFollowing) {
+                    console.log(`Deixando de seguir: ${viewingProfile.username}`);
                     await updateDoc(userRef, { following: arrayRemove(viewingProfile.username) });
                     await updateDoc(profileRef, { followers: arrayRemove(currentUser.username) });
                     currentUser.following = currentUser.following.filter(u => u !== viewingProfile.username);
                     viewingProfile.followers = viewingProfile.followers.filter(u => u !== currentUser.username);
                 } else {
+                    console.log(`Seguindo: ${viewingProfile.username}`);
                     await updateDoc(userRef, { following: arrayUnion(viewingProfile.username) });
                     await updateDoc(profileRef, { followers: arrayUnion(currentUser.username) });
                     currentUser.following.push(viewingProfile.username);
@@ -641,13 +628,15 @@
                 }
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 document.getElementById('followBtn').textContent = isFollowing ? 'Seguir' : 'Deixar de Seguir';
+                console.log("Ação de seguir/deixar de seguir concluída");
             } catch (error) {
-                console.error("Erro ao seguir/deixar de seguir:", error);
-                alert('Erro ao atualizar status de seguir.');
+                console.error("Erro ao seguir/deixar de seguir:", error.message, error.code);
+                alert(`Erro ao atualizar status de seguir: ${error.message}`);
             }
         }
 
         function logout() {
+            console.log("Função logout iniciada");
             currentUser = null;
             viewingProfile = null;
             localStorage.removeItem('currentUser');
@@ -660,9 +649,11 @@
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
             loadComments();
+            console.log("Logout concluído");
         }
 
         async function postComment() {
+            console.log("Função postComment iniciada");
             if (!currentUser) {
                 alert('Faça login para postar.');
                 return;
@@ -671,18 +662,22 @@
             const mediaInput = document.getElementById('mediaInput').files[0];
             if (!commentText && !mediaInput) {
                 alert('Escreva um post ou selecione uma imagem/vídeo.');
+                console.log("Postagem vazia");
                 return;
             }
             if (!db) {
                 alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
                 const today = new Date().toISOString().split('T')[0];
+                console.log("Verificando limite de posts do dia:", today);
                 const q = query(collection(db, 'comments'), where('username', '==', currentUser.username), where('date', '==', today));
                 const userComments = await getDocs(q);
                 if (userComments.size >= 50) {
                     alert('Limite de 50 posts por dia atingido.');
+                    console.log("Limite de posts atingido:", userComments.size);
                     return;
                 }
                 let mediaURL = null;
@@ -690,13 +685,16 @@
                 if (mediaInput) {
                     if (mediaInput.size > 50 * 1024 * 1024) {
                         alert('O arquivo deve ter no máximo 50 MB.');
+                        console.log("Arquivo muito grande:", mediaInput.size);
                         return;
                     }
                     const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'video/webm'];
                     if (!allowedTypes.includes(mediaInput.type)) {
                         alert('Apenas JPEG, PNG, MP4 ou WebM são permitidos.');
+                        console.log("Tipo de arquivo inválido:", mediaInput.type);
                         return;
                     }
+                    console.log("Enviando mídia para Cloudinary");
                     const uploadResult = await uploadToCloudinary(mediaInput);
                     mediaURL = uploadResult.url;
                     mediaType = uploadResult.type;
@@ -718,17 +716,20 @@
                     isShared: false,
                     originalPostId: null
                 };
+                console.log("Postando comentário:", comment);
                 const docRef = await addDoc(collection(db, 'comments'), comment);
                 document.getElementById('commentInput').value = '';
                 document.getElementById('mediaInput').value = '';
                 loadComments();
+                console.log("Comentário postado com sucesso:", docRef.id);
             } catch (error) {
-                console.error("Erro ao postar:", error);
-                alert('Erro ao postar.');
+                console.error("Erro ao postar:", error.message, error.code);
+                alert(`Erro ao postar: ${error.message}`);
             }
         }
 
         async function postReply(parentId) {
+            console.log("Função postReply iniciada para parentId:", parentId);
             if (!currentUser) {
                 alert('Faça login para responder.');
                 return;
@@ -736,18 +737,22 @@
             const replyText = document.getElementById(`replyInput-${parentId}`).value.trim();
             if (!replyText) {
                 alert('Escreva uma resposta.');
+                console.log("Resposta vazia");
                 return;
             }
             if (!db) {
                 alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
                 const today = new Date().toISOString().split('T')[0];
+                console.log("Verificando limite de posts do dia:", today);
                 const q = query(collection(db, 'comments'), where('username', '==', currentUser.username), where('date', '==', today));
                 const userComments = await getDocs(q);
                 if (userComments.size >= 50) {
                     alert('Limite de 50 posts por dia atingido.');
+                    console.log("Limite de posts atingido:", userComments.size);
                     return;
                 }
                 const reply = {
@@ -767,16 +772,19 @@
                     isShared: false,
                     originalPostId: null
                 };
+                console.log("Postando resposta:", reply);
                 const docRef = await addDoc(collection(db, 'comments'), reply);
                 await updateDoc(doc(db, 'comments', parentId), { replies: arrayUnion(docRef.id) });
                 loadComments();
+                console.log("Resposta postada com sucesso:", docRef.id);
             } catch (error) {
-                console.error("Erro ao postar resposta:", error);
-                alert('Erro ao postar resposta.');
+                console.error("Erro ao postar resposta:", error.message, error.code);
+                alert(`Erro ao postar resposta: ${error.message}`);
             }
         }
 
         async function toggleLike(commentId, type) {
+            console.log("Função toggleLike iniciada para commentId:", commentId, "tipo:", type);
             if (!currentUser) {
                 alert('Faça login para curtir/descurtir.');
                 return;
@@ -784,7 +792,10 @@
             try {
                 const commentRef = doc(db, 'comments', commentId);
                 const commentSnap = await getDoc(commentRef);
-                if (!commentSnap.exists()) return;
+                if (!commentSnap.exists()) {
+                    console.log("Comentário não encontrado:", commentId);
+                    return;
+                }
                 const commentData = commentSnap.data();
                 const likes = commentData.likes || [];
                 const dislikes = commentData.dislikes || [];
@@ -792,8 +803,10 @@
                 const hasDisliked = dislikes.includes(currentUser.username);
                 if (type === 'like') {
                     if (hasLiked) {
+                        console.log("Removendo like:", commentId);
                         await updateDoc(commentRef, { likes: arrayRemove(currentUser.username) });
                     } else {
+                        console.log("Adicionando like:", commentId);
                         await updateDoc(commentRef, {
                             likes: arrayUnion(currentUser.username),
                             dislikes: hasDisliked ? arrayRemove(currentUser.username) : dislikes
@@ -801,8 +814,10 @@
                     }
                 } else {
                     if (hasDisliked) {
+                        console.log("Removendo dislike:", commentId);
                         await updateDoc(commentRef, { dislikes: arrayRemove(currentUser.username) });
                     } else {
+                        console.log("Adicionando dislike:", commentId);
                         await updateDoc(commentRef, {
                             dislikes: arrayUnion(currentUser.username),
                             likes: hasLiked ? arrayRemove(currentUser.username) : likes
@@ -810,13 +825,15 @@
                     }
                 }
                 loadComments();
+                console.log("Ação de like/dislike concluída");
             } catch (error) {
-                console.error("Erro ao curtir/descurtir:", error);
-                alert('Erro ao curtir/descurtir.');
+                console.error("Erro ao curtir/descurtir:", error.message, error.code);
+               alert(`Erro ao curtir/descurtir: ${error.message}`);
             }
         }
 
         async function sharePost(commentId) {
+            console.log("Função sharePost iniciada para commentId:", commentId);
             if (!currentUser) {
                 alert('Faça login para compartilhar.');
                 return;
@@ -824,13 +841,18 @@
             try {
                 const commentRef = doc(db, 'comments', commentId);
                 const commentSnap = await getDoc(commentRef);
-                if (!commentSnap.exists()) return;
+                if (!commentSnap.exists()) {
+                    console.log("Comentário não encontrado:", commentId);
+                    return;
+                }
                 const commentData = commentSnap.data();
                 const today = new Date().toISOString().split('T')[0];
+                console.log("Verificando limite de posts do dia:", today);
                 const q = query(collection(db, 'comments'), where('username', '==', currentUser.username), where('date', '==', today));
                 const userComments = await getDocs(q);
                 if (userComments.size >= 50) {
                     alert('Limite de 50 posts por dia atingido.');
+                    console.log("Limite de posts atingido:", userComments.size);
                     return;
                 }
                 const sharedPost = {
@@ -850,28 +872,35 @@
                     isShared: true,
                     originalPostId: commentId
                 };
+                console.log("Compartilhando post:", sharedPost);
                 await addDoc(collection(db, 'comments'), sharedPost);
                 alert('Post compartilhado com sucesso!');
                 loadComments();
+                console.log("Post compartilhado com sucesso");
             } catch (error) {
-                console.error("Erro ao compartilhar:", error);
-                alert('Erro ao compartilhar.');
+                console.error("Erro ao compartilhar:", error.message, error.code);
+                alert(`Erro ao compartilhar: ${error.message}`);
             }
         }
 
         async function deleteComment(commentId) {
-            if (!currentUser || (currentUse.role !== 'moderator' && currentUser.role !== 'owner')) {
+            console.log("Função deleteComment iniciada para commentId:", commentId);
+            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
                 alert('Apenas moderadores e o dono podem apagar posts.');
                 return;
             }
             if (!db) {
                 alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
                 const commentRef = doc(db, 'comments', commentId);
                 const commentSnap = await getDoc(commentRef);
-                if (!commentSnap.exists()) return;
+                if (!commentSnap.exists()) {
+                    console.log("Comentário não encontrado:", commentId);
+                    return;
+                }
                 const commentData = commentSnap.data();
                 const batch = writeBatch(db);
                 batch.delete(commentRef);
@@ -880,16 +909,19 @@
                         batch.delete(doc(db, 'comments', replyId));
                     }
                 }
+                console.log("Apagando comentário e respostas:", commentId);
                 await batch.commit();
                 loadComments();
                 alert('Post apagado com sucesso.');
+                console.log("Comentário apagado com sucesso");
             } catch (error) {
-                console.error("Erro ao apagar post:", error);
-                alert('Erro ao apagar post.');
+                console.error("Erro ao apagar post:", error.message, error.code);
+                alert(`Erro ao apagar post: ${error.message}`);
             }
         }
 
         async function deleteUser() {
+            console.log("Função deleteUser iniciada");
             if (!currentUser || currentUser.role !== 'owner') {
                 alert('Apenas o dono pode excluir usuários.');
                 return;
@@ -897,21 +929,26 @@
             const deleteUsername = document.getElementById('banUsername').value.trim();
             if (!deleteUsername) {
                 alert('Digite o nome do usuário a excluir.');
+                console.log("Nome de usuário vazio");
                 return;
             }
             if (deleteUsername === currentUser.username) {
                 alert('Você não pode excluir a si mesmo.');
+                console.log("Tentativa de excluir o próprio usuário");
                 return;
             }
             if (!db) {
-                alert('Erro: Servidor não inicializado.';
+                alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
+                console.log("Buscando usuário para exclusão:", deleteUsername);
                 const userQuery = query(collection(db, 'users'), where('username', '==', deleteUsername));
                 const userSnapshot = await getDocs(userQuery);
                 if (userSnapshot.empty) {
                     alert('Usuário não encontrado.');
+                    console.log("Usuário não encontrado:", deleteUsername);
                     return;
                 }
                 const batch = writeBatch(db);
@@ -930,20 +967,24 @@
                 followingSnapshot.forEach(doc => {
                     batch.update(doc.ref, { followers: arrayRemove(deleteUsername) });
                 });
+                console.log("Excluindo usuário e dados associados:", deleteUsername);
                 await batch.commit();
                 document.getElementById('banUsername').value = '';
                 alert(`Usuário ${deleteUsername} excluído com sucesso.`);
                 loadComments();
+                console.log("Usuário excluído com sucesso");
             } catch (error) {
-                console.error("Erro ao excluir usuário:", error);
-                alert('Erro ao excluir usuário.');
+                console.error("Erro ao excluir usuário:", error.message, error.code);
+                alert(`Erro ao excluir usuário: ${error.message}`);
             }
         }
 
         function showReplyForm(commentId) {
+            console.log("Função showReplyForm iniciada para commentId:", commentId);
             const existingForm = document.getElementById(`replyForm-${commentId}`);
             if (existingForm) {
                 existingForm.remove();
+                console.log("Formulário de resposta removido");
                 return;
             }
             const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
@@ -955,17 +996,22 @@
                 <button class="submit-reply-btn" data-comment-id="${commentId}">Enviar Resposta</button>
             `;
             commentDiv.appendChild(replyForm);
+            console.log("Formulário de resposta adicionado");
         }
 
         async function viewProfile(username) {
+            console.log("Função viewProfile iniciada para username:", username);
             if (!db) {
                 alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
+                console.log("Buscando perfil:", username);
                 const userDoc = await getDoc(doc(db, 'users', username));
                 if (!userDoc.exists()) {
                     alert('Usuário não encontrado.');
+                    console.log("Usuário não encontrado:", username);
                     return;
                 }
                 const userData = userDoc.data();
@@ -993,6 +1039,7 @@
                 document.getElementById('followBtn').classList.toggle('hidden', !currentUser || currentUser.username === username);
                 const userPostsDiv = document.getElementById('userPosts');
                 userPostsDiv.innerHTML = '';
+                console.log("Carregando posts do usuário:", username);
                 const postsQuery = query(collection(db, 'comments'), where('username', '==', username), where('parentId', '==', null), orderBy('timestamp', 'desc'));
                 const postsSnapshot = await getDocs(postsQuery);
                 postsSnapshot.forEach(doc => {
@@ -1019,13 +1066,15 @@
                 document.getElementById('profileSection').classList.add('hidden');
                 document.getElementById('settingsSection').classList.add('hidden');
                 document.getElementById('viewProfileSection').classList.remove('hidden');
+                console.log("Perfil carregado com sucesso");
             } catch (error) {
-                console.error("Erro ao visualizar perfil:", error);
-                alert('Erro ao carregar perfil.');
+                console.error("Erro ao visualizar perfil:", error.message, error.code);
+                alert(`Erro ao carregar perfil: ${error.message}`);
             }
         }
 
         function showMainSection() {
+            console.log("Função showMainSection iniciada");
             viewingProfile = null;
             document.getElementById('createAccountSection').classList.toggle('hidden', !!currentUser);
             document.getElementById('loginSection').classList.toggle('hidden', !!currentUser);
@@ -1034,22 +1083,27 @@
             document.getElementById('settingsSection').classList.toggle('hidden', !currentUser);
             document.getElementById('viewProfileSection').classList.add('hidden');
             loadComments();
+            console.log("Seção principal exibida");
         }
 
         async function loadComments() {
+            console.log("Função loadComments iniciada");
             const commentsList = document.getElementById('commentsList');
             commentsList.innerHTML = '';
             if (!db) {
                 commentsList.innerHTML = '<p class="error">Erro: Servidor não inicializado.</p>';
+                console.error("Firestore não inicializado");
                 return;
             }
             try {
                 const threeDaysAgo = new Date();
                 threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+                console.log("Buscando comentários dos últimos 3 dias");
                 const q = query(collection(db, 'comments'), where('parentId', '==', null), orderBy('timestamp', 'desc'));
                 const commentsSnapshot = await getDocs(q);
                 if (commentsSnapshot.empty) {
                     commentsList.innerHTML = '<p>Nenhum post encontrado.</p>';
+                    console.log("Nenhum comentário encontrado");
                     return;
                 }
                 for (const doc of commentsSnapshot.docs) {
@@ -1102,6 +1156,7 @@
                             repliesDiv.className = 'replies';
                             for (const replyId of comment.replies) {
                                 try {
+                                    console.log("Carregando resposta:", replyId);
                                     const replyDoc = await getDoc(doc(db, 'comments', replyId));
                                     if (replyDoc.exists()) {
                                         const reply = replyDoc.data();
@@ -1145,7 +1200,7 @@
                                         console.warn(`Resposta ${replyId} não encontrada`);
                                     }
                                 } catch (e) {
-                                    console.warn(`Erro ao carregar resposta ${replyId}:`, e);
+                                    console.warn(`Erro ao carregar resposta ${replyId}:`, e.message);
                                 }
                             }
                             commentDiv.appendChild(repliesDiv);
@@ -1153,14 +1208,16 @@
                     }
                 }
             } catch (error) {
-                console.error("Erro ao carregar posts:", error.message, error.stack);
-                commentsList.innerHTML = '<p class="error">Erro ao carregar posts: ' + error.message + '</p>';
+                console.error("Erro ao carregar posts:", error.message, error.code);
+                commentsList.innerHTML = `<p class="error">Erro ao carregar posts: ${error.message}</p>`;
             }
         }
 
         if (currentUser) {
+            console.log("Usuário já logado, atualizando UI");
             updateUIForLoggedInUser();
         } else {
+            console.log("Nenhum usuário logado, carregando comentários");
             loadComments();
         }
     </script>
