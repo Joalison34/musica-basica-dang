@@ -1,4 +1,43 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -412,77 +451,6 @@
                 return;
             }
 
-            if (!db) {
-                alert('Erro: Servidor não inicializado.');
-                console.error("Firestore não inicializado");
-                return;
-            }
-
-            try {
-                const today = new Date().toISOString().split('T')[0];
-                const q = query(
-                    collection(db, 'comments'),
-                    where('username', '==', currentUser.username),
-                    where('date', '==', today)
-                );
-                const userComments = await getDocs(q);
-                if (userComments.size >= 50) {
-                    alert('Limite de 50 comentários por dia atingido.');
-                    console.log("Limite de comentários atingido:", currentUser.username);
-                    return;
-                }
-
-                let mediaURL = null;
-                let mediaType = null;
-
-                if (mediaInput) {
-                    const fileSizeLimit = 10 * 1024 * 1024; // 10 MB
-                    if (mediaInput.size > fileSizeLimit) {
-                        alert('O arquivo deve ter no máximo 100 MB.');
-                        return;
-                    }
-
-                    const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'video/webm'];
-                    if (!allowedTypes.includes(mediaInput.type)) {
-                        alert('Apenas imagens (JPEG, PNG) ou vídeos (MP4, WebM) são permitidos.');
-                        return;
-                    }
-
-                    const uploadResult = await uploadToCloudinary(mediaInput);
-                    mediaURL = uploadResult.url;
-                    mediaType = uploadResult.type;
-                    console.log("Arquivo enviado:", mediaURL);
-                }
-
-                const comment = {
-                    username: currentUser.username,
-                    role: currentUser.role,
-                    text: commentText,
-                    timestamp: new Date().toISOString(),
-                    date: today,
-                    mediaURL: mediaURL || null,
-                    mediaType: mediaType || null
-                };
-
-                await addDoc(collection(db, 'comments'), comment);
-                document.getElementById('commentInput').value = '';
-                document.getElementById('mediaInput').value = '';
-                loadComments();
-                console.log("Comentário postado:", commentText, mediaURL);
-            } catch (error) {
-                console.error("Erro ao postar comentário:", error);
-                alert('Erro ao postar comentário. Veja o console.');
-            }
-        }
-
-        // Função para apagar comentário
-        async function deleteComment(commentId) {
-            console.log("Tentando apagar comentário com ID:", commentId);
-            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
-                alert('Apenas moderadores e o dono podem apagar comentários.');
-                console.log("Usuário sem permissão para apagar:", currentUser?.username);
-                return;
-            }
             if (!db) {
                 alert('Erro: Servidor não inicializado.');
                 console.error("Firestore não inicializado");
