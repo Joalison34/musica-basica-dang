@@ -1,4 +1,43 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -199,13 +238,22 @@
         document.getElementById('postCommentBtn').addEventListener('click', postComment);
         document.getElementById('banUserBtn').addEventListener('click', deleteUser);
 
-        // Verifica se há usuário logado ao carregar a página
+        // Verifica se há usuário logado ao carregar a página e carrega comentários
+        // Alteração: Removida a chamada direta a loadComments() e consolidada a lógica
         if (currentUser) {
             updateUIForLoggedInUser();
+        } else {
+            loadComments(); // Carrega comentários para usuários não logados
         }
 
-        // Carrega comentários ao iniciar
-        loadComments();
+        // Alteração: Adiciona um listener de delegação de eventos para os botões delete-btn
+        document.getElementById('commentsList').addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-btn')) {
+                const commentId = event.target.getAttribute('data-comment-id');
+                console.log("Botão Apagar clicado para comentário:", commentId);
+                deleteComment(commentId);
+            }
+        });
 
         // Função para gerar hash da senha
         async function hashPassword(password) {
@@ -359,6 +407,7 @@
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
             console.log("Logout concluído");
+            loadComments(); // Mantém a lista de comentários visível após logout
         }
 
         // Função para fazer upload para o Cloudinary
@@ -600,13 +649,7 @@
                         commentsList.appendChild(commentDiv);
                     }
                 });
-                document.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const commentId = button.getAttribute('data-comment-id');
-                        console.log("Botão Apagar clicado para comentário:", commentId);
-                        deleteComment(commentId);
-                    });
-                });
+                // Alteração: Removida a adição de event listeners aqui, pois agora usamos delegação de eventos
                 console.log("Comentários carregados:", commentsSnapshot.size);
             } catch (error) {
                 console.error("Erro ao carregar comentários:", error);
@@ -616,4 +659,3 @@
     </script>
 </body>
 </html>
- 
