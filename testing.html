@@ -64,7 +64,7 @@
             text-align: center;
             color: #333;
         }
-        .form-section, .comment-section {
+        .form-section, .comment-section, .profile-section {
             margin-bottom: 20px;
         }
         input, button, textarea {
@@ -107,7 +107,7 @@
             border-radius: 5px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
         }
         .comment.common {
             background-color: #f9f9f9;
@@ -154,6 +154,27 @@
             border-radius: 5px;
             loading: lazy;
         }
+        .profile-picture {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        .default-profile {
+            background-color: #ccc;
+            display: inline-block;
+            text-align: center;
+            line-height: 40px;
+            color: white;
+            font-size: 18px;
+        }
+        .bio {
+            font-style: italic;
+            color: #555;
+            margin-top: 5px;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body>
@@ -165,6 +186,8 @@
             <h2>Criar Conta</h2>
             <input type="text" id="createUsername" placeholder="Nome de usuário" required>
             <input type="password" id="createPassword" placeholder="Senha" required>
+            <input type="text" id="createBio" placeholder="Bio (opcional, máx 150 caracteres)">
+            <input type="file" id="createProfilePicture" accept="image/jpeg,image/png" style="margin: 5px 0;">
             <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
             <button id="createAccountBtn">Criar Conta</button>
             <p class="error" id="createErrorMessage"></p>
@@ -179,10 +202,19 @@
             <p class="error" id="loginErrorMessage"></p>
         </div>
 
+        <!-- Seção de Perfil -->
+        <div id="profileSection" class="profile-section hidden">
+            <h2>Editar Perfil</h2>
+            <p>Logado como: <span id="currentUser"></span></p>
+            <input type="text" id="editBio" placeholder="Atualizar bio (máx 150 caracteres)">
+            <input type="file" id="editProfilePicture" accept="image/jpeg,image/png" style="margin: 5px 0;">
+            <button id="updateProfileBtn">Atualizar Perfil</button>
+            <p class="error" id="profileErrorMessage"></p>
+        </div>
+
         <!-- Seção de Comentários -->
         <div id="commentSection" class="comment-section hidden">
             <h2>Comentários</h2>
-            <p>Logado como: <span id="currentUser"></span></p>
             <button id="logoutBtn">Sair</button>
             <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
             <input type="file" id="mediaInput" accept="image/jpeg,image/png,video/mp4,video/webm" style="margin: 10px 0;">
@@ -196,10 +228,51 @@
         </div>
     </div>
 
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+    </script>
+
     <script type="module">
         // Importa as funções do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Configuração do Firebase
         const firebaseConfig = {
@@ -221,6 +294,7 @@
             console.error("Erro ao inicializar Firebase:", error);
             document.getElementById('createErrorMessage').textContent = 'Erro ao conectar com o servidor.';
             document.getElementById('loginErrorMessage').textContent = 'Erro ao conectar com o servidor.';
+            document.getElementById('profileErrorMessage').textContent = 'Erro ao conectar com o servidor.';
         }
 
         // Configuração do Cloudinary
@@ -237,16 +311,9 @@
         document.getElementById('logoutBtn').addEventListener('click', logout);
         document.getElementById('postCommentBtn').addEventListener('click', postComment);
         document.getElementById('banUserBtn').addEventListener('click', deleteUser);
+        document.getElementById('updateProfileBtn').addEventListener('click', updateProfile);
 
-        // Verifica se há usuário logado ao carregar a página e carrega comentários
-        // Alteração: Removida a chamada direta a loadComments() e consolidada a lógica
-        if (currentUser) {
-            updateUIForLoggedInUser();
-        } else {
-            loadComments(); // Carrega comentários para usuários não logados
-        }
-
-        // Alteração: Adiciona um listener de delegação de eventos para os botões delete-btn
+        // Delegação de eventos para botões de apagar comentário
         document.getElementById('commentsList').addEventListener('click', (event) => {
             if (event.target.classList.contains('delete-btn')) {
                 const commentId = event.target.getAttribute('data-comment-id');
@@ -274,15 +341,48 @@
             return password.length >= 6;
         }
 
+        // Função para validar bio
+        function validateBio(bio) {
+            return bio.length <= 150;
+        }
+
         // Função para atualizar a interface para usuário logado
         function updateUIForLoggedInUser() {
             document.getElementById('createAccountSection').classList.add('hidden');
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('commentSection').classList.remove('hidden');
+            document.getElementById('profileSection').classList.remove('hidden');
             document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
             document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
+            document.getElementById('editBio').value = currentUser.bio || '';
             loadComments();
             console.log("Usuário restaurado:", currentUser.username);
+        }
+
+        // Função para fazer upload para o Cloudinary
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                console.log("Arquivo enviado ao Cloudinary:", result.secure_url);
+                return {
+                    url: result.secure_url,
+                    type: result.resource_type === 'image' ? 'image' : 'video'
+                };
+            } catch (error) {
+                console.error("Erro ao enviar para Cloudinary:", error);
+                throw error;
+            }
         }
 
         // Função para criar conta
@@ -290,6 +390,8 @@
             console.log("Tentando criar conta...");
             const username = document.getElementById('createUsername').value.trim();
             const password = document.getElementById('createPassword').value.trim();
+            const bio = document.getElementById('createBio').value.trim();
+            const profilePicture = document.getElementById('createProfilePicture').files[0];
             const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
             const createErrorMessage = document.getElementById('createErrorMessage');
 
@@ -301,6 +403,24 @@
             if (!validatePassword(password)) {
                 createErrorMessage.textContent = 'Senha deve ter pelo menos 6 caracteres.';
                 return;
+            }
+
+            if (bio && !validateBio(bio)) {
+                createErrorMessage.textContent = 'Bio deve ter no máximo 150 caracteres.';
+                return;
+            }
+
+            if (profilePicture) {
+                const allowedTypes = ['image/jpeg', 'image/png'];
+                if (!allowedTypes.includes(profilePicture.type)) {
+                    createErrorMessage.textContent = 'Apenas imagens JPEG ou PNG são permitidas para a foto de perfil.';
+                    return;
+                }
+                const fileSizeLimit = 5 * 1024 * 1024; // 5 MB
+                if (profilePicture.size > fileSizeLimit) {
+                    createErrorMessage.textContent = 'A foto de perfil deve ter no máximo 5 MB.';
+                    return;
+                }
             }
 
             if (!db) {
@@ -320,10 +440,19 @@
 
                 const hashedPassword = await hashPassword(password);
                 const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
+                let profilePictureURL = null;
+
+                if (profilePicture) {
+                    const uploadResult = await uploadToCloudinary(profilePicture);
+                    profilePictureURL = uploadResult.url;
+                }
+
                 const userData = {
                     username,
                     password: hashedPassword,
-                    role
+                    role,
+                    bio: bio || '',
+                    profilePictureURL: profilePictureURL || null
                 };
 
                 // Salva o usuário no Firestore usando o username como ID do documento
@@ -332,6 +461,8 @@
                 alert('Conta criada! Faça login.');
                 document.getElementById('createUsername').value = '';
                 document.getElementById('createPassword').value = '';
+                document.getElementById('createBio').value = '';
+                document.getElementById('createProfilePicture').value = '';
                 document.getElementById('roleCode').value = '';
                 console.log("Conta criada:", username, role);
             } catch (error) {
@@ -384,7 +515,9 @@
 
                 currentUser = {
                     username: userData.username,
-                    role: userData.role
+                    role: userData.role,
+                    bio: userData.bio || '',
+                    profilePictureURL: userData.profilePictureURL || null
                 };
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 updateUIForLoggedInUser();
@@ -396,6 +529,73 @@
             }
         }
 
+        // Função para atualizar perfil
+        async function updateProfile() {
+            console.log("Tentando atualizar perfil...");
+            if (!currentUser) {
+                alert('Faça login para atualizar o perfil.');
+                return;
+            }
+            const bio = document.getElementById('editBio').value.trim();
+            const profilePicture = document.getElementById('editProfilePicture').files[0];
+            const profileErrorMessage = document.getElementById('profileErrorMessage');
+
+            if (bio && !validateBio(bio)) {
+                profileErrorMessage.textContent = 'Bio deve ter no máximo 150 caracteres.';
+                return;
+            }
+
+            if (profilePicture) {
+                const allowedTypes = ['image/jpeg', 'image/png'];
+                if (!allowedTypes.includes(profilePicture.type)) {
+                    profileErrorMessage.textContent = 'Apenas imagens JPEG ou PNG são permitidas para a foto de perfil.';
+                    return;
+                }
+                const fileSizeLimit = 5 * 1024 * 1024; // 5 MB
+                if (profilePicture.size > fileSizeLimit) {
+                    profileErrorMessage.textContent = 'A foto de perfil deve ter no máximo 5 MB.';
+                    return;
+                }
+            }
+
+            if (!db) {
+                profileErrorMessage.textContent = 'Erro: Servidor não inicializado.';
+                console.error("Firestore não inicializado");
+                return;
+            }
+
+            try {
+                let profilePictureURL = currentUser.profilePictureURL;
+                if (profilePicture) {
+                    const uploadResult = await uploadToCloudinary(profilePicture);
+                    profilePictureURL = uploadResult.url;
+                }
+
+                const userData = {
+                    bio: bio || '',
+                    profilePictureURL: profilePictureURL || null
+                };
+
+                // Atualiza o documento do usuário no Firestore
+                await updateDoc(doc(db, 'users', currentUser.username), userData);
+
+                // Atualiza currentUser
+                currentUser.bio = bio || '';
+                currentUser.profilePictureURL = profilePictureURL || null;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                profileErrorMessage.textContent = '';
+                document.getElementById('editBio').value = bio;
+                document.getElementById('editProfilePicture').value = '';
+                alert('Perfil atualizado com sucesso!');
+                loadComments();
+                console.log("Perfil atualizado:", currentUser.username);
+            } catch (error) {
+                console.error("Erro ao atualizar perfil:", error);
+                profileErrorMessage.textContent = 'Erro ao atualizar perfil. Veja o console.';
+            }
+        }
+
         // Função para logout
         function logout() {
             console.log("Saindo...");
@@ -404,36 +604,11 @@
             document.getElementById('createAccountSection').classList.remove('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('commentSection').classList.add('hidden');
+            document.getElementById('profileSection').classList.add('hidden');
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
             console.log("Logout concluído");
-            loadComments(); // Mantém a lista de comentários visível após logout
-        }
-
-        // Função para fazer upload para o Cloudinary
-        async function uploadToCloudinary(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-            try {
-                const response = await fetch(CLOUDINARY_UPLOAD_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await response.json();
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-                console.log("Arquivo enviado ao Cloudinary:", result.secure_url);
-                return {
-                    url: result.secure_url,
-                    type: result.resource_type === 'image' ? 'image' : 'video'
-                };
-            } catch (error) {
-                console.error("Erro ao enviar para Cloudinary:", error);
-                throw error;
-            }
+            loadComments();
         }
 
         // Função para postar comentário
@@ -477,7 +652,7 @@
                 if (mediaInput) {
                     const fileSizeLimit = 10 * 1024 * 1024; // 10 MB
                     if (mediaInput.size > fileSizeLimit) {
-                        alert('O arquivo deve ter no máximo 100 MB.');
+                        alert('O arquivo deve ter no máximo 10 MB.');
                         return;
                     }
 
@@ -500,7 +675,9 @@
                     timestamp: new Date().toISOString(),
                     date: today,
                     mediaURL: mediaURL || null,
-                    mediaType: mediaType || null
+                    mediaType: mediaType || null,
+                    profilePictureURL: currentUser.profilePictureURL || null,
+                    bio: currentUser.bio || ''
                 };
 
                 await addDoc(collection(db, 'comments'), comment);
@@ -638,9 +815,17 @@
                             }
                         }
 
+                        const profilePicture = comment.profilePictureURL ?
+                            `<img src="${comment.profilePictureURL}" alt="Foto de perfil" class="profile-picture">` :
+                            `<span class="profile-picture default-profile">${comment.username[0].toUpperCase()}</span>`;
+
+                        const bioContent = comment.bio ? `<div class="bio">${comment.bio}</div>` : '';
+
                         commentDiv.innerHTML = `
                             <div>
+                                ${profilePicture}
                                 <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
+                                ${bioContent}
                                 ${comment.text}
                                 ${mediaContent}
                             </div>
@@ -649,12 +834,18 @@
                         commentsList.appendChild(commentDiv);
                     }
                 });
-                // Alteração: Removida a adição de event listeners aqui, pois agora usamos delegação de eventos
                 console.log("Comentários carregados:", commentsSnapshot.size);
             } catch (error) {
                 console.error("Erro ao carregar comentários:", error);
                 commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
             }
+        }
+
+        // Verifica se há usuário logado ao carregar a página
+        if (currentUser) {
+            updateUIForLoggedInUser();
+        } else {
+            loadComments();
         }
     </script>
 </body>
