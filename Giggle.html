@@ -149,9 +149,9 @@
             <input type="file" id="mediaInput" accept="image/jpeg,image/png,video/mp4,video/webm" style="margin: 10px 0;">
             <button id="postCommentBtn">Postar Comentário</button>
             <div id="banSection" class="ban-section hidden">
-                <h3>Banir Usuário (Apenas Dono)</h3>
-                <input type="text" id="banUsername" placeholder="Nome do usuário a banir">
-                <button id="banUserBtn">Banir</button>
+                <h3>Excluir Usuário (Apenas Dono)</h3>
+                <input type="text" id="banUsername" placeholder="Nome do usuário a excluir">
+                <button id="banUserBtn">Excluir</button>
             </div>
             <div id="commentsList"></div>
         </div>
@@ -197,15 +197,24 @@
         document.getElementById('loginBtn').addEventListener('click', login);
         document.getElementById('logoutBtn').addEventListener('click', logout);
         document.getElementById('postCommentBtn').addEventListener('click', postComment);
-        document.getElementById('banUserBtn').addEventListener('click', banUser);
+        document.getElementById('banUserBtn').addEventListener('click', deleteUser);
 
-        // Verifica se há usuário logado ao carregar a página
+        // Verifica se há usuário logado ao carregar a página e carrega comentários
+        // Alteração: Removida a chamada direta a loadComments() e consolidada a lógica
         if (currentUser) {
             updateUIForLoggedInUser();
+        } else {
+            loadComments(); // Carrega comentários para usuários não logados
         }
 
-        // Carrega comentários ao iniciar
-        loadComments();
+        // Alteração: Adiciona um listener de delegação de eventos para os botões delete-btn
+        document.getElementById('commentsList').addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-btn')) {
+                const commentId = event.target.getAttribute('data-comment-id');
+                console.log("Botão Apagar clicado para comentário:", commentId);
+                deleteComment(commentId);
+            }
+        });
 
         // Função para gerar hash da senha
         async function hashPassword(password) {
@@ -275,8 +284,7 @@
                 const userData = {
                     username,
                     password: hashedPassword,
-                    role,
-                    isBanned: false
+                    role
                 };
 
                 // Salva o usuário no Firestore usando o username como ID do documento
@@ -329,14 +337,7 @@
                 const userData = userDoc.data();
                 const hashedPassword = await hashPassword(password);
 
-                if (userData.isBanned) {
-                    loginErrorMessage.textContent = 'Esta conta foi banida permanentemente.';
-                    console.log("Tentativa de login com conta banida:", username);
-                    return;
-                }
-
                 if (userData.password !== hashedPassword) {
-                    PERFECT
                     loginErrorMessage.textContent = 'Nome ou senha incorretos.';
                     console.log("Senha incorreta para:", username);
                     return;
@@ -367,6 +368,7 @@
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
             console.log("Logout concluído");
+            loadComments(); // Mantém a lista de comentários visível após logout
         }
 
         // Função para fazer upload para o Cloudinary
@@ -424,8 +426,8 @@
                     where('date', '==', today)
                 );
                 const userComments = await getDocs(q);
-                if (userComments.size >= 10) {
-                    alert('Limite de 10 comentários por dia atingido.');
+                if (userComments.size >= 50) {
+                    alert('Limite de 50 comentários por dia atingido.');
                     console.log("Limite de comentários atingido:", currentUser.username);
                     return;
                 }
@@ -436,7 +438,78 @@
                 if (mediaInput) {
                     const fileSizeLimit = 10 * 1024 * 1024; // 10 MB
                     if (mediaInput.size > fileSizeLimit) {
-                        alert('O arquivo deve ter no máximo 10 MB.');
+                        alert('O arquivo deve ter no máximo 100 MB.');
+                        return;
+                    }
+
+                    const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'video/webm'];
+                    if (!allowedTypes.includes(mediaInput.type)) {
+                        alert('Apenas imagens (JPEG, PNG) ou vídeos (MP4, WebM) são permitidos.');
+                        return;
+                    }
+
+                    const uploadResult = await uploadToCloudinary(mediaInput);
+                    mediaURL = uploadResult.url;
+                    mediaType = uploadResult.type;
+                    console.log("Arquivo enviado:", mediaURL);
+                }
+
+                const comment = {
+                    username: currentUser.username,
+                    role: currentUser.role,
+                    text: commentText,
+                    timestamp: new Date().toISOString(),
+                    date: today,
+                    mediaURL: mediaURL || null,
+                    mediaType: mediaType || null
+                };
+
+                await addDoc(collection(db, 'comments'), comment);
+                document.getElementById('commentInput').value = '';
+                document.getElementById('mediaInput').value = '';
+                loadComments();
+                console.log("Comentário postado:", commentText, mediaURL);
+            } catch (error) {
+                console.error("Erro ao postar comentário:", error);
+                alert('Erro ao postar comentário. Veja o console.');
+            }
+        }
+
+        // Função para apagar comentário
+        async function deleteComment(commentId) {
+            console.log("Tentando apagar comentário com ID:", commentId);
+            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
+                alert('Apenas moderadores e o dono podem apagar comentários.');
+                console.log("Usuário sem permissão para apagar:", currentUser?.username);
+                return;
+            }
+            if (!db) {
+                alert('Erro: Servidor não inicializado.');
+                console.error("Firestore não inicializado");
+                return;
+            }
+
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const q = query(
+                    collection(db, 'comments'),
+                    where('username', '==', currentUser.username),
+                    where('date', '==', today)
+                );
+                const userComments = await getDocs(q);
+                if (userComments.size >= 50) {
+                    alert('Limite de 50 comentários por dia atingido.');
+                    console.log("Limite de comentários atingido:", currentUser.username);
+                    return;
+                }
+
+                let mediaURL = null;
+                let mediaType = null;
+
+                if (mediaInput) {
+                    const fileSizeLimit = 10 * 1024 * 1024; // 10 MB
+                    if (mediaInput.size > fileSizeLimit) {
+                        alert('O arquivo deve ter no máximo 100 MB.');
                         return;
                     }
 
@@ -502,21 +575,21 @@
             }
         }
 
-        // Função para banir usuário
-        async function banUser() {
-            console.log("Tentando banir usuário...");
+        // Função para excluir usuário completamente
+        async function deleteUser() {
+            console.log("Tentando excluir usuário...");
             if (!currentUser || currentUser.role !== 'owner') {
-                alert('Apenas o dono pode banir usuários.');
-                console.log("Usuário sem permissão para banir:", currentUser?.username);
+                alert('Apenas o dono pode excluir usuários.');
+                console.log("Usuário sem permissão para excluir:", currentUser?.username);
                 return;
             }
-            const banUsername = document.getElementById('banUsername').value.trim();
-            if (!banUsername) {
-                alert('Digite o nome do usuário a banir.');
+            const deleteUsername = document.getElementById('banUsername').value.trim();
+            if (!deleteUsername) {
+                alert('Digite o nome do usuário a excluir.');
                 return;
             }
-            if (banUsername === currentUser.username) {
-                alert('Você não pode banir a si mesmo.');
+            if (deleteUsername === currentUser.username) {
+                alert('Você não pode excluir a si mesmo.');
                 return;
             }
             if (!db) {
@@ -525,28 +598,40 @@
                 return;
             }
             try {
-                // Remove usuário do localStorage
-                users = users.filter(user => user.username !== banUsername);
-                localStorage.setItem('users', JSON.stringify(users));
-                console.log("Usuário removido do localStorage:", banUsername);
+                // Verifica se o usuário existe
+                const userQuery = query(collection(db, 'users'), where('username', '==', deleteUsername));
+                const userSnapshot = await getDocs(userQuery);
+                if (userSnapshot.empty) {
+                    alert('Usuário não encontrado.');
+                    console.log("Usuário não encontrado para excluir:", deleteUsername);
+                    return;
+                }
 
-                // Remove todos os comentários do usuário no Firestore
-                const q = query(collection(db, 'comments'), where('username', '==', banUsername));
-                const commentsSnapshot = await getDocs(q);
+                // Inicia um batch para excluir usuário e comentários
                 const batch = writeBatch(db);
+
+                // Exclui o documento do usuário
+                const userDocRef = doc(db, 'users', deleteUsername);
+                batch.delete(userDocRef);
+
+                // Exclui todos os comentários do usuário
+                const commentsQuery = query(collection(db, 'comments'), where('username', '==', deleteUsername));
+                const commentsSnapshot = await getDocs(commentsQuery);
                 commentsSnapshot.forEach(doc => {
                     batch.delete(doc.ref);
                 });
+
+                // Executa o batch
                 await batch.commit();
-                console.log("Comentários do usuário removidos:", commentsSnapshot.size);
+                console.log("Usuário e comentários excluídos:", deleteUsername, commentsSnapshot.size);
 
                 document.getElementById('banUsername').value = '';
-                alert(`Usuário ${banUsername} banido com sucesso.`);
+                alert(`Usuário ${deleteUsername} excluído com sucesso.`);
                 loadComments();
-                console.log("Usuário banido com sucesso:", banUsername);
+                console.log("Usuário excluído com sucesso:", deleteUsername);
             } catch (error) {
-                console.error("Erro ao banir usuário:", error);
-                alert('Erro ao banir usuário. Veja o console.');
+                console.error("Erro ao excluir usuário:", error);
+                alert('Erro ao excluir usuário. Veja o console.');
             }
         }
 
@@ -596,13 +681,7 @@
                         commentsList.appendChild(commentDiv);
                     }
                 });
-                document.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const commentId = button.getAttribute('data-comment-id');
-                        console.log("Botão Apagar clicado para comentário:", commentId);
-                        deleteComment(commentId);
-                    });
-                });
+                // Alteração: Removida a adição de event listeners aqui, pois agora usamos delegação de eventos
                 console.log("Comentários carregados:", commentsSnapshot.size);
             } catch (error) {
                 console.error("Erro ao carregar comentários:", error);
