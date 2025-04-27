@@ -437,6 +437,79 @@
 
         async function login() {
             const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('createPassword').value.trim();
+            const bio = document.getElementById('createBio').value.trim();
+            const profilePicture = document.getElementById('createProfilePicture').files[0];
+            const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
+            const createErrorMessage = document.getElementById('createErrorMessage');
+
+            if (!validateUsername(username)) {
+                createErrorMessage.textContent = 'Nome de usuário deve ter 3-20 caracteres alfanuméricos ou sublinhado.';
+                return;
+            }
+            if (!validatePassword(password)) {
+                createErrorMessage.textContent = 'Senha deve ter pelo menos 6 caracteres.';
+                return;
+            }
+            if (bio && !validateBio(bio)) {
+                createErrorMessage.textContent = 'Bio deve ter no máximo 150 caracteres.';
+                return;
+            }
+            if (profilePicture) {
+                const allowedTypes = ['image/jpeg', 'image/png'];
+                if (!allowedTypes.includes(profilePicture.type)) {
+                    createErrorMessage.textContent = 'Apenas JPEG ou PNG para foto de perfil.';
+                    return;
+                }
+                if (profilePicture.size > 5 * 1024 * 1024) {
+                    createErrorMessage.textContent = 'Foto de perfil deve ter no máximo 5 MB.';
+                    return;
+                }
+            }
+            if (!db) {
+                createErrorMessage.textContent = 'Erro: Servidor não inicializado.';
+                return;
+            }
+            try {
+                const userQuery = query(collection(db, 'users'), where('username', '==', username));
+                const userSnapshot = await getDocs(userQuery);
+                if (!userSnapshot.empty) {
+                    createErrorMessage.textContent = 'Nome de usuário já existe.';
+                    return;
+                }
+                const hashedPassword = await hashPassword(password);
+                const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
+                let profilePictureURL = null;
+                if (profilePicture) {
+                    const uploadResult = await uploadToCloudinary(profilePicture);
+                    profilePictureURL = uploadResult.url;
+                }
+                const userData = {
+                    username,
+                    password: hashedPassword,
+                    role,
+                    bio: bio || '',
+                    profilePictureURL: profilePictureURL || null,
+                    followers: [],
+                    following: [],
+                    theme: 'dark'
+                };
+                await setDoc(doc(db, 'users', username), userData);
+                createErrorMessage.textContent = '';
+                alert('Conta criada! Faça login.');
+                document.getElementById('createUsername').value = '';
+                document.getElementById('createPassword').value = '';
+                document.getElementById('createBio').value = '';
+                document.getElementById('createProfilePicture').value = '';
+                document.getElementById('roleCode').value = '';
+            } catch (error) {
+                console.error("Erro ao criar conta:", error);
+                createErrorMessage.textContent = 'Erro ao criar conta.';
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             const loginErrorMessage = document.getElementById('loginErrorMessage');
 
@@ -787,7 +860,7 @@
         }
 
         async function deleteComment(commentId) {
-            if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
+            if (!currentUser || (currentUse.role !== 'moderator' && currentUser.role !== 'owner')) {
                 alert('Apenas moderadores e o dono podem apagar posts.');
                 return;
             }
@@ -831,7 +904,7 @@
                 return;
             }
             if (!db) {
-                alert('Erro: Servidor não inicializado.');
+                alert('Erro: Servidor não inicializado.';
                 return;
             }
             try {
@@ -975,16 +1048,32 @@
                 threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
                 const q = query(collection(db, 'comments'), where('parentId', '==', null), orderBy('timestamp', 'desc'));
                 const commentsSnapshot = await getDocs(q);
+                if (commentsSnapshot.empty) {
+                    commentsList.innerHTML = '<p>Nenhum post encontrado.</p>';
+                    return;
+                }
                 for (const doc of commentsSnapshot.docs) {
                     const comment = doc.data();
-                    const commentDate = new Date(comment.timestamp);
+                    // Validar campos obrigatórios
+                    if (!comment.username || !comment.timestamp || !comment.role) {
+                        console.warn(`Comentário ${doc.id} ignorado: campos obrigatórios faltando`, comment);
+                        continue;
+                    }
+                    let commentDate;
+                    try {
+                        commentDate = new Date(comment.timestamp);
+                        if (isNaN(commentDate.getTime())) throw new Error('Timestamp inválido');
+                    } catch (e) {
+                        console.warn(`Comentário ${doc.id} ignorado: timestamp inválido`, comment.timestamp);
+                        continue;
+                    }
                     if (commentDate >= threeDaysAgo) {
                         const commentDiv = document.createElement('div');
-                        commentDiv.className = `comment ${comment.role}`;
+                        commentDiv.className = `comment ${comment.role || 'common'}`;
                         commentDiv.setAttribute('data-comment-id', doc.id);
                         let deleteButton = currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner') ? `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>` : '';
-                        let mediaContent = comment.mediaURL ? (comment.mediaType === 'image' ? `<img src="${comment.mediaURL}" alt="Imagem do post">` : `<video controls src="${comment.mediaURL}" alt="Vídeo do post"></video>`) : '';
-                        const profilePicture = comment.profilePictureURL ? `<img src="${comment.profilePictureURL}" alt="Foto de perfil" class="profile-picture">` : `<span class="profile-picture default-profile">${comment.username[0].toUpperCase()}</span>`;
+                        let mediaContent = comment.mediaURL && comment.mediaType ? (comment.mediaType === 'image' ? `<img src="${comment.mediaURL}" alt="Imagem do post">` : `<video controls src="${comment.mediaURL}" alt="Vídeo do post"></video>`) : '';
+                        const profilePicture = comment.profilePictureURL ? `<img src="${comment.profilePictureURL}" alt="Foto de perfil" class="profile-picture">` : `<span class="profile-picture default-profile">${(comment.username[0] || '').toUpperCase()}</span>`;
                         const likesCount = (comment.likes || []).length;
                         const dislikesCount = (comment.dislikes || []).length;
                         const hasLiked = currentUser && comment.likes && comment.likes.includes(currentUser.username);
@@ -993,9 +1082,9 @@
                         commentDiv.innerHTML = `
                             <div>
                                 ${profilePicture}
-                                <span class="profile-link username ${comment.role}" data-username="${comment.username}">${comment.username}</span> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
+                                <span class="profile-link username ${comment.role || 'common'}" data-username="${comment.username}">${comment.username}</span> (${comment.role || 'common'}) - ${commentDate.toLocaleString('pt-BR')}<br>
                                 <div class="bio">${comment.bio || ''}</div>
-                                ${comment.text}
+                                ${comment.text || ''}
                                 ${mediaContent}
                                 ${sharedInfo}
                                 <div class="likes-section">
@@ -1008,36 +1097,55 @@
                             ${deleteButton}
                         `;
                         commentsList.appendChild(commentDiv);
-                        if (comment.replies && comment.replies.length > 0) {
+                        if (comment.replies && Array.isArray(comment.replies) && comment.replies.length > 0) {
                             const repliesDiv = document.createElement('div');
                             repliesDiv.className = 'replies';
                             for (const replyId of comment.replies) {
-                                const replyDoc = await getDoc(doc(db, 'comments', replyId));
-                                if (replyDoc.exists()) {
-                                    const reply = replyDoc.data();
-                                    const replyDiv = document.createElement('div');
-                                    replyDiv.className = `comment reply ${reply.role}`;
-                                    replyDiv.setAttribute('data-comment-id', replyId);
-                                    const replyDeleteButton = currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner') ? `<button class="delete-btn" data-comment-id="${replyId}">Apagar</button>` : '';
-                                    const replyProfilePicture = reply.profilePictureURL ? `<img src="${reply.profilePictureURL}" alt="Foto de perfil" class="profile-picture">` : `<span class="profile-picture default-profile">${reply.username[0].toUpperCase()}</span>`;
-                                    const replyLikesCount = (reply.likes || []).length;
-                                    const replyDislikesCount = (reply.dislikes || []).length;
-                                    const replyHasLiked = currentUser && reply.likes && reply.likes.includes(currentUser.username);
-                                    const replyHasDisliked = currentUser && reply.dislikes && reply.dislikes.includes(currentUser.username);
-                                    replyDiv.innerHTML = `
-                                        <div>
-                                            ${replyProfilePicture}
-                                            <span class="profile-link username ${reply.role}" data-username="${reply.username}">${reply.username}</span> (${reply.role}) - ${new Date(reply.timestamp).toLocaleString('pt-BR')}<br>
-                                            <div class="bio">${reply.bio || ''}</div>
-                                            ${reply.text}
-                                            <div class="likes-section">
-                                                <button class="like-btn ${replyHasLiked ? 'active' : ''}" data-comment-id="${replyId}">👍 ${replyLikesCount}</button>
-                                                <button class="dislike-btn ${replyHasDisliked ? 'active' : ''}" data-comment-id="${replyId}">👎 ${replyDislikesCount}</button>
+                                try {
+                                    const replyDoc = await getDoc(doc(db, 'comments', replyId));
+                                    if (replyDoc.exists()) {
+                                        const reply = replyDoc.data();
+                                        // Validar campos da resposta
+                                        if (!reply.username || !reply.timestamp || !reply.role) {
+                                            console.warn(`Resposta ${replyId} ignorada: campos obrigatórios faltando`, reply);
+                                            continue;
+                                        }
+                                        let replyDate;
+                                        try {
+                                            replyDate = new Date(reply.timestamp);
+                                            if (isNaN(replyDate.getTime())) throw new Error('Timestamp inválido');
+                                        } catch (e) {
+                                            console.warn(`Resposta ${replyId} ignorada: timestamp inválido`, reply.timestamp);
+                                            continue;
+                                        }
+                                        const replyDiv = document.createElement('div');
+                                        replyDiv.className = `comment reply ${reply.role || 'common'}`;
+                                        replyDiv.setAttribute('data-comment-id', replyId);
+                                        const replyDeleteButton = currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner') ? `<button class="delete-btn" data-comment-id="${replyId}">Apagar</button>` : '';
+                                        const replyProfilePicture = reply.profilePictureURL ? `<img src="${reply.profilePictureURL}" alt="Foto de perfil" class="profile-picture">` : `<span class="profile-picture default-profile">${(reply.username[0] || '').toUpperCase()}</span>`;
+                                        const replyLikesCount = (reply.likes || []).length;
+                                        const replyDislikesCount = (reply.dislikes || []).length;
+                                        const replyHasLiked = currentUser && reply.likes && reply.likes.includes(currentUser.username);
+                                        const replyHasDisliked = currentUser && reply.dislikes && reply.dislikes.includes(currentUser.username);
+                                        replyDiv.innerHTML = `
+                                            <div>
+                                                ${replyProfilePicture}
+                                                <span class="profile-link username ${reply.role || 'common'}" data-username="${reply.username}">${reply.username}</span> (${reply.role || 'common'}) - ${replyDate.toLocaleString('pt-BR')}<br>
+                                                <div class="bio">${reply.bio || ''}</div>
+                                                ${reply.text || ''}
+                                                <div class="likes-section">
+                                                    <button class="like-btn ${replyHasLiked ? 'active' : ''}" data-comment-id="${replyId}">👍 ${replyLikesCount}</button>
+                                                    <button class="dislike-btn ${replyHasDisliked ? 'active' : ''}" data-comment-id="${replyId}">👎 ${replyDislikesCount}</button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        ${replyDeleteButton}
-                                    `;
-                                    repliesDiv.appendChild(replyDiv);
+                                            ${replyDeleteButton}
+                                        `;
+                                        repliesDiv.appendChild(replyDiv);
+                                    } else {
+                                        console.warn(`Resposta ${replyId} não encontrada`);
+                                    }
+                                } catch (e) {
+                                    console.warn(`Erro ao carregar resposta ${replyId}:`, e);
                                 }
                             }
                             commentDiv.appendChild(repliesDiv);
@@ -1045,8 +1153,8 @@
                     }
                 }
             } catch (error) {
-                console.error("Erro ao carregar posts:", error);
-                commentsList.innerHTML = '<p class="error">Erro ao carregar posts.</p>';
+                console.error("Erro ao carregar posts:", error.message, error.stack);
+                commentsList.innerHTML = '<p class="error">Erro ao carregar posts: ' + error.message + '</p>';
             }
         }
 
