@@ -59,11 +59,22 @@
         .post-number:hover {
             text-decoration: underline;
         }
-        .post-media {
+        .post-media-container {
             float: left;
             margin-right: 10px;
+        }
+        .post-media {
             max-width: 150px;
             max-height: 150px;
+            cursor: pointer;
+        }
+        .post-media.expanded {
+            max-width: none;
+            max-height: none;
+        }
+        .media-info {
+            font-size: 10px;
+            color: #666;
         }
         .post-content {
             line-height: 1.4;
@@ -76,22 +87,30 @@
         .quote:hover {
             text-decoration: underline;
         }
-        .quote:hover::after {
-            content: attr(data-tooltip);
+        .quote:hover .quote-popup {
+            display: block;
+        }
+        .quote-popup {
+            display: none;
             position: absolute;
-            background: #fff;
-            border: 1px solid #000;
-            padding: 2px;
+            background: #f0e0d6;
+            border: 1px solid #d9bfb7;
+            padding: 5px;
             font-size: 10px;
             z-index: 10;
-            top: -20px;
-            left: 0;
+            max-width: 200px;
+            top: -10px;
+            left: 20px;
         }
         .reply {
             margin-left: 20px;
             background-color: #d6daf0;
             padding: 5px;
             border: 1px solid #b7c5d9;
+        }
+        .hidden-replies {
+            margin-left: 20px;
+            font-style: italic;
         }
         .form-container {
             background-color: #d6daf0;
@@ -147,6 +166,10 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .catalog-stats {
+            font-size: 10px;
+            color: #666;
         }
         .delete-btn {
             color: #ff0000;
@@ -258,14 +281,26 @@
             });
         }
 
+        // Obter metadados do arquivo
+        function getFileMetadata(file) {
+            if (!file) return null;
+            const size = (file.size / 1024).toFixed(2) + ' KB';
+            return { name: file.name, size };
+        }
+
         // Renderizar catálogo
         function renderCatalog() {
             const catalogDiv = document.getElementById('catalog');
             catalogDiv.innerHTML = '';
             const posts = loadPosts();
             const threads = posts.filter(post => !post.parentId);
+            const threadStats = threads.map(thread => {
+                const replies = posts.filter(post => post.parentId === thread.id);
+                const images = replies.filter(post => post.mediaType === 'image').length + (thread.mediaType === 'image' ? 1 : 0);
+                return { thread, replies: replies.length, images };
+            }).sort((a, b) => b.thread.lastActivity - a.thread.lastActivity);
 
-            threads.forEach(thread => {
+            threadStats.forEach(({ thread, replies, images }) => {
                 const catalogItem = document.createElement('div');
                 catalogItem.className = 'catalog-item';
                 catalogItem.innerHTML = `
@@ -281,6 +316,7 @@
                         ` : '<div style="width:100px;height:100px;background:#d9bfb7;">No Image</div>'}
                         <p>${thread.subject || 'No Subject'}</p>
                         <p>${thread.comment.slice(0, 30)}${thread.comment.length > 30 ? '...' : ''}</p>
+                        <div class="catalog-stats">${replies} replies, ${images} images</div>
                     </a>
                 `;
                 catalogDiv.appendChild(catalogItem);
@@ -292,7 +328,7 @@
             const threadsDiv = document.getElementById('threads');
             threadsDiv.innerHTML = '';
             const posts = loadPosts();
-            const threads = posts.filter(post => !post.parentId);
+            const threads = posts.filter(post => !post.parentId).sort((a, b) => b.lastActivity - a.lastActivity);
 
             threads.forEach(thread => {
                 const threadDiv = document.createElement('div');
@@ -308,23 +344,39 @@
                             <span class="delete-btn" data-id="${thread.id}">[Delete]</span>
                         </div>
                         ${thread.media ? `
-                            ${thread.mediaType === 'image' ? `
-                                <img class="post-media" src="${thread.media}" alt="Post Media">
-                            ` : `
-                                <video class="post-media" controls>
-                                    <source src="${thread.media}" type="video/mp4">
-                                </video>
-                            `}
+                            <div class="post-media-container">
+                                ${thread.mediaType === 'image' ? `
+                                    <img class="post-media" src="${thread.media}" alt="Post Media" data-full="${thread.media}">
+                                ` : `
+                                    <video class="post-media" controls>
+                                        <source src="${thread.media}" type="video/mp4">
+                                    </video>
+                                `}
+                                <div class="media-info">
+                                    ${thread.mediaMetadata ? `File: ${thread.mediaMetadata.name} (${thread.mediaMetadata.size})` : ''}
+                                </div>
+                            </div>
                         ` : ''}
                         <div class="post-content">
                             ${thread.subject ? `<b>${thread.subject}</b><br>` : ''}
-                            ${thread.comment.replace(/>>([0-9]+)/g, '<span class="quote" data-tooltip="Post No.$1">>>$1</span>')}
+                            ${thread.comment.replace(/>>([0-9]+)/g, `<span class="quote" data-id="$1">>>$1<span class="quote-popup">${getPostContent($1)}</span></span>`)}
                         </div>
                     </div>
                 `;
 
-                const replies = posts.filter(post => post.parentId === thread.id);
-                replies.forEach(reply => {
+                const replies = posts.filter(post => post.parentId === thread.id).sort((a, b) => a.id - b.id);
+                const visibleReplies = replies.slice(-30); // Últimas 30 replies
+                const hiddenCount = replies.length - visibleReplies.length;
+
+                if (hiddenCount > 0) {
+                    threadDiv.innerHTML += `
+                        <div class="hidden-replies">
+                            <a href="#" class="view-more" data-thread-id="${thread.id}">${hiddenCount} replies omitted. Click to view.</a>
+                        </div>
+                    `;
+                }
+
+                visibleReplies.forEach(reply => {
                     threadDiv.innerHTML += `
                         <div class="reply">
                             <div class="post-header">
@@ -333,16 +385,21 @@
                                 <span class="delete-btn" data-id="${reply.id}">[Delete]</span>
                             </div>
                             ${reply.media ? `
-                                ${reply.mediaType === 'image' ? `
-                                    <img class="post-media" src="${reply.media}" alt="Post Media">
-                                ` : `
-                                    <video class="post-media" controls>
-                                        <source src="${reply.media}" type="video/mp4">
-                                    </video>
-                                `}
+                                <div class="post-media-container">
+                                    ${reply.mediaType === 'image' ? `
+                                        <img class="post-media" src="${reply.media}" alt="Post Media" data-full="${reply.media}">
+                                    ` : `
+                                        <video class="post-media" controls>
+                                            <source src="${reply.media}" type="video/mp4">
+                                        </video>
+                                    `}
+                                    <div class="media-info">
+                                        ${reply.mediaMetadata ? `File: ${reply.mediaMetadata.name} (${reply.mediaMetadata.size})` : ''}
+                                    </div>
+                                </div>
                             ` : ''}
                             <div class="post-content">
-                                ${reply.comment.replace(/>>([0-9]+)/g, '<span class="quote" data-tooltip="Post No.$1">>>$1</span>')}
+                                ${reply.comment.replace(/>>([0-9]+)/g, `<span class="quote" data-id="$1">>>$1<span class="quote-popup">${getPostContent($1)}</span></span>`)}
                             </div>
                         </div>
                     `;
@@ -363,7 +420,7 @@
 
             document.querySelectorAll('.quote').forEach(el => {
                 el.addEventListener('click', () => {
-                    const id = el.textContent.replace('>>', '');
+                    const id = el.getAttribute('data-id');
                     const post = document.querySelector(`.post-number[data-id="${id}"]`);
                     if (post) {
                         post.parentElement.parentElement.classList.add('highlighted');
@@ -387,7 +444,236 @@
                     const id = el.getAttribute('data-id');
                     document.querySelector('#post-form [name="parentId"]').value = id;
                     document.querySelector('#post-form textarea').focus();
+                    document.querySelector('#post-form').scrollIntoView({ behavior: 'smooth' });
                 });
+            });
+
+            document.querySelectorAll('.post-media').forEach(el => {
+                if (el.tagName === 'IMG') {
+                    el.addEventListener('click', () => {
+                        el.classList.toggle('expanded');
+                        if (el.classList.contains('expanded')) {
+                            el.src = el.getAttribute('data-full');
+                        } else {
+                            el.src = el.getAttribute('data-full'); // Placeholder para thumbnail real
+                        }
+                    });
+                }
+            });
+
+            document.querySelectorAll('.view-more').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const threadId = parseInt(el.getAttribute('data-thread-id'));
+                    showAllReplies(threadId);
+                });
+            });
+        }
+
+        // Obter conteúdo do post para pop-up
+        function getPostContent(id) {
+            const posts = loadPosts();
+            const post = posts.find(p => p.id === parseInt(id));
+            if (!post) return 'Post not found';
+            return post.comment.slice(0, 100) + (post.comment.length > 100 ? '...' : '');
+        }
+
+        // Exibir todas as replies
+        function showAllReplies(threadId) {
+            const posts = loadPosts();
+            const replies = posts.filter(post => post.parentId === threadId).sort((a, b) => a.id - b.id);
+            const threadDiv = document.getElementById(`post-${threadId}`);
+            const repliesContainer = threadDiv.querySelector('.hidden-replies');
+            if (repliesContainer) {
+                repliesContainer.remove();
+            }
+
+            const existingReplies = threadDiv.querySelectorAll('.reply');
+            existingReplies.forEach(reply => reply.remove());
+
+            replies.forEach(reply => {
+                const replyDiv = document.createElement('div');
+                replyDiv.className = 'reply';
+                replyDiv.innerHTML = `
+                    <div class="post-header">
+                        <span class="post-number" data-id="${reply.id}">No.${reply.id}</span>
+                        ${reply.name || 'Anonymous'} ${reply.date}
+                        <span class="delete-btn" data-id="${reply.id}">[Delete]</span>
+                    </div>
+                    ${reply.media ? `
+                        <div class="post-media-container">
+                            ${reply.mediaType === 'image' ? `
+                                <img class="post-media" src="${reply.media}" alt="Post Media" data-full="${reply.media}">
+                            ` : `
+                                <video class="post-media" controls>
+                                    <source src="${reply.media}" type="video/mp4">
+                                </video>
+                            `}
+                            <div class="media-info">
+                                ${reply.mediaMetadata ? `File: ${reply.mediaMetadata.name} (${reply.mediaMetadata.size})` : ''}
+                              </div>
+                                </div>
+                            ` : ''}
+                            <div class="post-content">
+                                ${reply.comment.replace(/>>([0-9]+)/g, `<span class="quote" data-id="$1">>>$1<span class="quote-popup">${getPostContent($1)}</span></span>`)}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                threadsDiv.appendChild(threadDiv);
+            });
+
+            // Adicionar eventos
+            document.querySelectorAll('.post-number').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    const textarea = document.querySelector('#post-form textarea');
+                    textarea.value += `>>${id}\n`;
+                    textarea.focus();
+                });
+            });
+
+            document.querySelectorAll('.quote').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    const post = document.querySelector(`.post-number[data-id="${id}"]`);
+                    if (post) {
+                        post.parentElement.parentElement.classList.add('highlighted');
+                        post.scrollIntoView({ behavior: 'smooth' });
+                        setTimeout(() => {
+                            post.parentElement.parentElement.classList.remove('highlighted');
+                        }, 2000);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = parseInt(el.getAttribute('data-id'));
+                    deletePost(id);
+                });
+            });
+
+            document.querySelectorAll('.reply-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    document.querySelector('#post-form [name="parentId"]').value = id;
+                    document.querySelector('#post-form textarea').focus();
+                    document.querySelector('#post-form').scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+
+            document.querySelectorAll('.post-media').forEach(el => {
+                if (el.tagName === 'IMG') {
+                    el.addEventListener('click', () => {
+                        el.classList.toggle('expanded');
+                        if (el.classList.contains('expanded')) {
+                            el.src = el.getAttribute('data-full');
+                        } else {
+                            el.src = el.getAttribute('data-full'); // Placeholder para thumbnail real
+                        }
+                    });
+                }
+            });
+
+            document.querySelectorAll('.view-more').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const threadId = parseInt(el.getAttribute('data-thread-id'));
+                    showAllReplies(threadId);
+                });
+            });
+        }
+
+        // Obter conteúdo do post para pop-up
+        function getPostContent(id) {
+            const posts = loadPosts();
+            const post = posts.find(p => p.id === parseInt(id));
+            if (!post) return 'Post not found';
+            return post.comment.slice(0, 100) + (post.comment.length > 100 ? '...' : '');
+        }
+
+        // Exibir todas as replies
+        function showAllReplies(threadId) {
+            const posts = loadPosts();
+            const replies = posts.filter(post => post.parentId === threadId).sort((a, b) => a.id - b.id);
+            const threadDiv = document.getElementById(`post-${threadId}`);
+            const repliesContainer = threadDiv.querySelector('.hidden-replies');
+            if (repliesContainer) {
+                repliesContainer.remove();
+            }
+
+            const existingReplies = threadDiv.querySelectorAll('.reply');
+            existingReplies.forEach(reply => reply.remove());
+
+            replies.forEach(reply => {
+                const replyDiv = document.createElement('div');
+                replyDiv.className = 'reply';
+                replyDiv.innerHTML = `
+                    <div class="post-header">
+                        <span class="post-number" data-id="${reply.id}">No.${reply.id}</span>
+                        ${reply.name || 'Anonymous'} ${reply.date}
+                        <span class="delete-btn" data-id="${reply.id}">[Delete]</span>
+                    </div>
+                    ${reply.media ? `
+                        <div class="post-media-container">
+                            ${reply.mediaType === 'image' ? `
+                                <img class="post-media" src="${reply.media}" alt="Post Media" data-full="${reply.media}">
+                            ` : `
+                                <video class="post-media" controls>
+                                    <source src="${reply.media}" type="video/mp4">
+                                </video>
+                            `}
+                            <div class="media-info">
+                                ${reply.mediaMetadata ? `File: ${reply.mediaMetadata.name} (${reply.mediaMetadata.size})` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div class="post-content">
+                        ${reply.comment.replace(/>>([0-9]+)/g, `<span class="quote" data-id="$1">>>$1<span class="quote-popup">${getPostContent($1)}</span></span>`)}
+                    </div>
+                `;
+                threadDiv.appendChild(replyDiv);
+            });
+
+            // Reaplicar eventos
+            threadDiv.querySelectorAll('.post-number').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    const textarea = document.querySelector('#post-form textarea');
+                    textarea.value += `>>${id}\n`;
+                    textarea.focus();
+                });
+            });
+
+            threadDiv.querySelectorAll('.quote').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    const post = document.querySelector(`.post-number[data-id="${id}"]`);
+                    if (post) {
+                        post.parentElement.parentElement.classList.add('highlighted');
+                        post.scrollIntoView({ behavior: 'smooth' });
+                        setTimeout(() => {
+                            post.parentElement.parentElement.classList.remove('highlighted');
+                        }, 2000);
+                    }
+                });
+            });
+
+            threadDiv.querySelectorAll('.delete-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = parseInt(el.getAttribute('data-id'));
+                    deletePost(id);
+                });
+            });
+
+            threadDiv.querySelectorAll('.post-media').forEach(el => {
+                if (el.tagName === 'IMG') {
+                    el.addEventListener('click', () => {
+                        el.classList.toggle('expanded');
+                    });
+                }
             });
         }
 
@@ -437,9 +723,11 @@
 
             let media = null;
             let mediaType = null;
+            let mediaMetadata = null;
             if (mediaFile) {
                 media = await fileToBase64(mediaFile);
                 mediaType = mediaFile.type.startsWith('image') ? 'image' : 'video';
+                mediaMetadata = getFileMetadata(mediaFile);
             }
 
             const post = {
@@ -449,11 +737,19 @@
                 comment,
                 media,
                 mediaType,
+                mediaMetadata,
                 date: formatDate(),
-                parentId: parentId || null
+                parentId: parentId || null,
+                lastActivity: Date.now()
             };
 
             const posts = loadPosts();
+            if (parentId) {
+                const parent = posts.find(p => p.id === parseInt(parentId));
+                if (parent) {
+                    parent.lastActivity = Date.now();
+                }
+            }
             posts.push(post);
             savePosts(posts);
 
