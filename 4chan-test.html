@@ -71,9 +71,21 @@
         .quote {
             color: #789922;
             cursor: pointer;
+            position: relative;
         }
         .quote:hover {
             text-decoration: underline;
+        }
+        .quote:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            background: #fff;
+            border: 1px solid #000;
+            padding: 2px;
+            font-size: 10px;
+            z-index: 10;
+            top: -20px;
+            left: 0;
         }
         .reply {
             margin-left: 20px;
@@ -104,6 +116,56 @@
         .form-container input[type="submit"]:hover {
             background-color: #76c;
         }
+        .preview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 5px;
+        }
+        .catalog {
+            display: none;
+            margin-bottom: 10px;
+        }
+        .catalog.active {
+            display: block;
+        }
+        .catalog-item {
+            display: inline-block;
+            width: 150px;
+            margin: 5px;
+            background-color: #f0e0d6;
+            border: 1px solid #d9bfb7;
+            padding: 5px;
+            text-align: center;
+        }
+        .catalog-item img, .catalog-item video {
+            max-width: 100px;
+            max-height: 100px;
+        }
+        .catalog-item p {
+            margin: 5px 0;
+            font-size: 11px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .delete-btn {
+            color: #ff0000;
+            cursor: pointer;
+            font-size: 10px;
+            margin-left: 10px;
+        }
+        .delete-btn:hover {
+            text-decoration: underline;
+        }
+        .reply-btn {
+            color: #0000EE;
+            cursor: pointer;
+            font-size: 10px;
+            margin-left: 10px;
+        }
+        .reply-btn:hover {
+            text-decoration: underline;
+        }
         .footer {
             text-align: center;
             font-size: 10px;
@@ -112,6 +174,7 @@
         }
         .highlighted {
             background-color: #ffffcc;
+            transition: background-color 0.5s;
         }
     </style>
 </head>
@@ -120,7 +183,9 @@
         <h1>/test/ - Test Board</h1>
     </div>
     <div class="nav">
-        [<a href="#" onclick="return false;">Home</a>] [<a href="#" onclick="return false;">Catalog</a>] [<a href="#" onclick="return false;">Archive</a>]
+        [<a href="#" onclick="showBoard(); return false;">Home</a>]
+        [<a href="#" onclick="showCatalog(); return false;">Catalog</a>]
+        [<a href="#" onclick="return false;">Archive</a>]
     </div>
     <div class="form-container">
         <form id="post-form">
@@ -128,17 +193,19 @@
             <input type="text" name="subject" placeholder="Subject"><br>
             <textarea name="comment" rows="4" placeholder="Comment"></textarea><br>
             <input type="file" name="media" accept="image/*,video/*"><br>
+            <div id="preview"></div>
             <input type="hidden" name="parentId" value="">
             <input type="submit" value="Post">
         </form>
     </div>
+    <div id="catalog" class="catalog"></div>
     <div id="threads"></div>
     <div class="footer">
         Test Imageboard - All rights reserved 2025
     </div>
 
     <script>
-        // Função para gerar ID único (simplificado para o exemplo)
+        // Função para gerar ID único
         function generateId() {
             return Math.floor(Math.random() * 1000000) + 1;
         }
@@ -158,13 +225,66 @@
 
         // Carregar posts do localStorage
         function loadPosts() {
-            const posts = JSON.parse(localStorage.getItem('posts') || '[]');
-            return posts;
+            return JSON.parse(localStorage.getItem('posts') || '[]');
         }
 
         // Salvar posts no localStorage
         function savePosts(posts) {
             localStorage.setItem('posts', JSON.stringify(posts));
+        }
+
+        // Validar arquivo
+        function validateFile(file) {
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (!file) return true; // Arquivo opcional
+            if (file.size > maxSize) {
+                alert('File size exceeds 5MB limit.');
+                return false;
+            }
+            if (!file.type.match(/^(image|video)\//)) {
+                alert('Only images and videos are allowed.');
+                return false;
+            }
+            return true;
+        }
+
+        // Converter arquivo para Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Renderizar catálogo
+        function renderCatalog() {
+            const catalogDiv = document.getElementById('catalog');
+            catalogDiv.innerHTML = '';
+            const posts = loadPosts();
+            const threads = posts.filter(post => !post.parentId);
+
+            threads.forEach(thread => {
+                const catalogItem = document.createElement('div');
+                catalogItem.className = 'catalog-item';
+                catalogItem.innerHTML = `
+                    <a href="#post-${thread.id}">
+                        ${thread.media ? `
+                            ${thread.mediaType === 'image' ? `
+                                <img src="${thread.media}" alt="Thread Media">
+                            ` : `
+                                <video>
+                                    <source src="${thread.media}" type="video/mp4">
+                                </video>
+                            `}
+                        ` : '<div style="width:100px;height:100px;background:#d9bfb7;">No Image</div>'}
+                        <p>${thread.subject || 'No Subject'}</p>
+                        <p>${thread.comment.slice(0, 30)}${thread.comment.length > 30 ? '...' : ''}</p>
+                    </a>
+                `;
+                catalogDiv.appendChild(catalogItem);
+            });
         }
 
         // Renderizar posts
@@ -177,13 +297,15 @@
             threads.forEach(thread => {
                 const threadDiv = document.createElement('div');
                 threadDiv.className = 'thread';
+                threadDiv.id = `post-${thread.id}`;
 
-                // Renderizar post original (OP)
                 threadDiv.innerHTML += `
                     <div class="post">
                         <div class="post-header">
                             <span class="post-number" data-id="${thread.id}">No.${thread.id}</span>
                             ${thread.name || 'Anonymous'} ${thread.date}
+                            <span class="reply-btn" data-id="${thread.id}">[Reply]</span>
+                            <span class="delete-btn" data-id="${thread.id}">[Delete]</span>
                         </div>
                         ${thread.media ? `
                             ${thread.mediaType === 'image' ? `
@@ -196,12 +318,11 @@
                         ` : ''}
                         <div class="post-content">
                             ${thread.subject ? `<b>${thread.subject}</b><br>` : ''}
-                            ${thread.comment.replace(/>>([0-9]+)/g, '<span class="quote">>>$1</span>')}
+                            ${thread.comment.replace(/>>([0-9]+)/g, '<span class="quote" data-tooltip="Post No.$1">>>$1</span>')}
                         </div>
                     </div>
                 `;
 
-                // Renderizar replies
                 const replies = posts.filter(post => post.parentId === thread.id);
                 replies.forEach(reply => {
                     threadDiv.innerHTML += `
@@ -209,6 +330,7 @@
                             <div class="post-header">
                                 <span class="post-number" data-id="${reply.id}">No.${reply.id}</span>
                                 ${reply.name || 'Anonymous'} ${reply.date}
+                                <span class="delete-btn" data-id="${reply.id}">[Delete]</span>
                             </div>
                             ${reply.media ? `
                                 ${reply.mediaType === 'image' ? `
@@ -220,7 +342,7 @@
                                 `}
                             ` : ''}
                             <div class="post-content">
-                                ${reply.comment.replace(/>>([0-9]+)/g, '<span class="quote">>>$1</span>')}
+                                ${reply.comment.replace(/>>([0-9]+)/g, '<span class="quote" data-tooltip="Post No.$1">>>$1</span>')}
                             </div>
                         </div>
                     `;
@@ -229,7 +351,7 @@
                 threadsDiv.appendChild(threadDiv);
             });
 
-            // Adicionar eventos aos números de post e citações
+            // Adicionar eventos
             document.querySelectorAll('.post-number').forEach(el => {
                 el.addEventListener('click', () => {
                     const id = el.getAttribute('data-id');
@@ -245,22 +367,53 @@
                     const post = document.querySelector(`.post-number[data-id="${id}"]`);
                     if (post) {
                         post.parentElement.parentElement.classList.add('highlighted');
+                        post.scrollIntoView({ behavior: 'smooth' });
                         setTimeout(() => {
                             post.parentElement.parentElement.classList.remove('highlighted');
                         }, 2000);
                     }
                 });
             });
+
+            document.querySelectorAll('.delete-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = parseInt(el.getAttribute('data-id'));
+                    deletePost(id);
+                });
+            });
+
+            document.querySelectorAll('.reply-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    document.querySelector('#post-form [name="parentId"]').value = id;
+                    document.querySelector('#post-form textarea').focus();
+                });
+            });
         }
 
-        // Converter arquivo para Base64
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+        // Excluir post
+        function deletePost(id) {
+            let posts = loadPosts();
+            posts = posts.filter(post => post.id !== id && post.parentId !== id);
+            savePosts(posts);
+            renderPosts();
+            renderCatalog();
+        }
+
+        // Mostrar catálogo
+        function showCatalog() {
+            document.getElementById('catalog').classList.add('active');
+            document.getElementById('threads').style.display = 'none';
+            document.querySelector('.form-container').style.display = 'none';
+            renderCatalog();
+        }
+
+        // Mostrar board
+        function showBoard() {
+            document.getElementById('catalog').classList.remove('active');
+            document.getElementById('threads').style.display = 'block';
+            document.querySelector('.form-container').style.display = 'block';
+            renderPosts();
         }
 
         // Manipular envio do formulário
@@ -275,6 +428,10 @@
 
             if (!comment && !mediaFile) {
                 alert('Please provide a comment or media.');
+                return;
+            }
+
+            if (mediaFile && !validateFile(mediaFile)) {
                 return;
             }
 
@@ -302,7 +459,25 @@
 
             form.reset();
             form.parentId.value = '';
+            document.getElementById('preview').innerHTML = '';
             renderPosts();
+            renderCatalog();
+        });
+
+        // Pré-visualização de upload
+        document.querySelector('#post-form [name="media"]').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            const previewDiv = document.getElementById('preview');
+            previewDiv.innerHTML = '';
+
+            if (file && validateFile(file)) {
+                const base64 = await fileToBase64(file);
+                if (file.type.startsWith('image')) {
+                    previewDiv.innerHTML = `<img src="${base64}" class="preview">`;
+                } else if (file.type.startsWith('video')) {
+                    previewDiv.innerHTML = `<video class="preview" controls><source src="${base64}" type="video/mp4"></video>`;
+                }
+            }
         });
 
         // Inicializar
