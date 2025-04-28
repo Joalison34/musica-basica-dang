@@ -51,29 +51,23 @@
             padding: 20px;
             display: flex;
             justify-content: center;
-            transition: background-color 0.3s;
         }
-        body.dark { background-color: #181818; color: #fff; }
-        body.blue { background-color: #e6f0fa; color: #000; }
         .container {
-            max-width: 800px;
+            max-width: 600px;
             width: 100%;
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        body.dark .container { background: #333; }
-        body.blue .container { background: #fff; }
         h1, h2 {
             text-align: center;
             color: #333;
         }
-        body.dark h1, body.dark h2 { color: #fff; }
-        .form-section, .comment-section, .profile-section, .settings-section {
+        .form-section, .comment-section, .profile-section {
             margin-bottom: 20px;
         }
-        input, button, textarea, select {
+        input, button, textarea {
             width: 100%;
             padding: 10px;
             margin: 5px 0;
@@ -90,18 +84,18 @@
         button:hover {
             background-color: #218838;
         }
-        .delete-btn, .like-btn, .dislike-btn, .reply-btn, .share-btn, .follow-btn {
-            background-color: #6c757d;
+        .delete-btn {
+            background-color: #dc3545;
             width: auto;
             padding: 5px 10px;
-            margin: 5px;
+            margin-left: 10px;
             display: inline-block;
         }
-        .delete-btn { background-color: #dc3545; }
-        .delete-btn:hover { background-color: #c82333; }
-        .like-btn.active { background-color: #28a745; }
-        .dislike-btn.active { background-color: #dc3545; }
-        .ban-section, .settings-section {
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .ban-section {
+            margin-top: 20px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -111,18 +105,29 @@
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
-            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
-        .comment.common { background-color: #f9f9f9; }
-        .comment.moderator { background-color: #e6f3ff; border: 2px solid #007bff; }
-        .comment.owner { background: linear-gradient(45deg, #ff6b6b, #4ecdc4); color: white; }
-        .reply { margin-left: 20px; border-left: 2px solid #007bff; }
+        .comment.common {
+            background-color: #f9f9f9;
+        }
+        .comment.moderator {
+            background-color: #e6f3ff;
+            border: 2px solid #007bff;
+        }
+        .comment.owner {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+        }
         .username.moderator {
+            display: inline-block;
             border: 2px solid #007bff;
             padding: 2px 5px;
             animation: blink 1.5s infinite;
         }
         .username.owner {
+            display: inline-block;
             padding: 2px 5px;
             animation: shine 2s infinite;
         }
@@ -135,8 +140,13 @@
             50% { color: #4ecdc4; text-shadow: 0 0 10px #4ecdc4; }
             100% { color: #ff6b6b; text-shadow: 0 0 5px #ff6b6b; }
         }
-        .hidden { display: none; }
-        .error { color: red; text-align: center; }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
         .comment img, .comment video {
             max-width: 100%;
             max-height: 300px;
@@ -165,14 +175,9 @@
             margin-top: 5px;
             word-wrap: break-word;
         }
-        .profile-link { cursor: pointer; color: #007bff; text-decoration: underline; }
-        .profile-link:hover { color: #0056b3; }
-        .reply-form { margin-top: 10px; }
-        .share-section { margin-top: 10px; }
-        .likes-section { margin-top: 5px; }
     </style>
 </head>
-<body class="dark">
+<body>
     <div class="container">
         <h1>Site de Comentários</h1>
 
@@ -182,7 +187,7 @@
             <input type="text" id="createUsername" placeholder="Nome de usuário" required>
             <input type="password" id="createPassword" placeholder="Senha" required>
             <input type="text" id="createBio" placeholder="Bio (opcional, máx 150 caracteres)">
-            <input type="file" id="createProfilePicture" accept="image/jpeg,image/png">
+            <input type="file" id="createProfilePicture" accept="image/jpeg,image/png" style="margin: 5px 0;">
             <input type="text" id="roleCode" placeholder="Código de cargo (opcional)">
             <button id="createAccountBtn">Criar Conta</button>
             <p class="error" id="createErrorMessage"></p>
@@ -197,45 +202,23 @@
             <p class="error" id="loginErrorMessage"></p>
         </div>
 
-        <!-- Seção de Configurações -->
-        <div id="settingsSection" class="settings-section hidden">
-            <h2>Configurações</h2>
-            <h3>Editar Perfil</h3>
-            <input type="text" id="editBio" placeholder="Atualizar bio (máx 150 caracteres)">
-            <input type="file" id="editProfilePicture" accept="image/jpeg,image/png">
-            <button id="updateProfileBtn">Atualizar Perfil</button>
-            <h3>Tema</h3>
-            <select id="themeSelect">
-                <option value="dark">Preto</option>
-                <option value="blue">Azul</option>
-            </select>
-            <p class="error" id="settingsErrorMessage"></p>
-        </div>
-
         <!-- Seção de Perfil -->
         <div id="profileSection" class="profile-section hidden">
-            <h2>Perfil</h2>
+            <h2>Editar Perfil</h2>
             <p>Logado como: <span id="currentUser"></span></p>
-            <button id="logoutBtn">Sair</button>
-        </div>
-
-        <!-- Seção de Visualização de Perfil -->
-        <div id="viewProfileSection" class="profile-section hidden">
-            <h2>Perfil de <span id="viewProfileUsername"></span></h2>
-            <img id="viewProfilePicture" class="profile-picture hidden" alt="Foto de perfil">
-            <span id="viewProfileDefaultPicture" class="profile-picture default-profile hidden"></span>
-            <p>Bio: <span id="viewProfileBio"></span></p>
-            <button id="followBtn" class="follow-btn">Seguir</button>
-            <button id="backToMainBtn">Voltar</button>
-            <div id="userPosts"></div>
+            <input type="text" id="editBio" placeholder="Atualizar bio (máx 150 caracteres)">
+            <input type="file" id="editProfilePicture" accept="image/jpeg,image/png" style="margin: 5px 0;">
+            <button id="updateProfileBtn">Atualizar Perfil</button>
+            <p class="error" id="profileErrorMessage"></p>
         </div>
 
         <!-- Seção de Comentários -->
         <div id="commentSection" class="comment-section hidden">
-            <h2>Postar</h2>
-            <textarea id="commentInput" placeholder="Escreva seu post"></textarea>
-            <input type="file" id="mediaInput" accept="image/jpeg,image/png,video/mp4,video/webm">
-            <button id="postCommentBtn">Postar</button>
+            <h2>Comentários</h2>
+            <button id="logoutBtn">Sair</button>
+            <textarea id="commentInput" placeholder="Escreva seu comentário"></textarea>
+            <input type="file" id="mediaInput" accept="image/jpeg,image/png,video/mp4,video/webm" style="margin: 10px 0;">
+            <button id="postCommentBtn">Postar Comentário</button>
             <div id="banSection" class="ban-section hidden">
                 <h3>Excluir Usuário (Apenas Dono)</h3>
                 <input type="text" id="banUsername" placeholder="Nome do usuário a excluir">
@@ -245,11 +228,53 @@
         </div>
     </div>
 
-    <script type="module">
-        console.log("Script inicializado");
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch, setDoc, updateDoc, getDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
 
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+    </script>
+
+    <script type="module">
+        // Importa as funções do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, writeBatch, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
             authDomain: "funzer.firebaseapp.com",
@@ -259,73 +284,45 @@
             appId: "1:723068647417:web:7ae58205191b0099a1ef28"
         };
 
+        // Inicializa o Firebase
         let db;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            console.log("Firebase inicializado com sucesso");
+            console.log("Firebase e Firestore inicializados com sucesso");
         } catch (error) {
-            console.error("Erro ao inicializar Firebase:", error.message, error.code);
-            document.getElementById('createErrorMessage').textContent = `Erro ao conectar com o servidor: ${error.message}`;
-            document.getElementById('loginErrorMessage').textContent = `Erro ao conectar com o servidor: ${error.message}`;
-            document.getElementById('settingsErrorMessage').textContent = `Erro ao conectar com o servidor: ${error.message}`;
+            console.error("Erro ao inicializar Firebase:", error);
+            document.getElementById('createErrorMessage').textContent = 'Erro ao conectar com o servidor.';
+            document.getElementById('loginErrorMessage').textContent = 'Erro ao conectar com o servidor.';
+            document.getElementById('profileErrorMessage').textContent = 'Erro ao conectar com o servidor.';
         }
 
+        // Configuração do Cloudinary
         const CLOUDINARY_CLOUD_NAME = 'dofskhwxw';
         const CLOUDINARY_UPLOAD_PRESET = 'comment_media';
         const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
+        // Inicializa currentUser do localStorage
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-        let viewingProfile = null;
 
-        // Event Listeners
-        const createAccountBtn = document.getElementById('createAccountBtn');
-        const loginBtn = document.getElementById('loginBtn');
-        if (createAccountBtn) {
-            createAccountBtn.addEventListener('click', createAccount);
-            console.log("Event listener para createAccountBtn registrado");
-        } else {
-            console.error("Elemento createAccountBtn não encontrado");
-        }
-        if (loginBtn) {
-            loginBtn.addEventListener('click', login);
-            console.log("Event listener para loginBtn registrado");
-        } else {
-            console.error("Elemento loginBtn não encontrado");
-        }
+        // Adiciona event listeners aos botões
+        document.getElementById('createAccountBtn').addEventListener('click', createAccount);
+        document.getElementById('loginBtn').addEventListener('click', login);
         document.getElementById('logoutBtn').addEventListener('click', logout);
         document.getElementById('postCommentBtn').addEventListener('click', postComment);
         document.getElementById('banUserBtn').addEventListener('click', deleteUser);
         document.getElementById('updateProfileBtn').addEventListener('click', updateProfile);
-        document.getElementById('themeSelect').addEventListener('change', changeTheme);
-        document.getElementById('backToMainBtn').addEventListener('click', showMainSection);
-        document.getElementById('followBtn').addEventListener('click', toggleFollow);
 
-        document.getElementById('commentsList').addEventListener('click', async (event) => {
+        // Delegação de eventos para botões de apagar comentário
+        document.getElementById('commentsList').addEventListener('click', (event) => {
             if (event.target.classList.contains('delete-btn')) {
                 const commentId = event.target.getAttribute('data-comment-id');
-                await deleteComment(commentId);
-            } else if (event.target.classList.contains('like-btn')) {
-                const commentId = event.target.getAttribute('data-comment-id');
-                await toggleLike(commentId, 'like');
-            } else if (event.target.classList.contains('dislike-btn')) {
-                const commentId = event.target.getAttribute('data-comment-id');
-                await toggleLike(commentId, 'dislike');
-            } else if (event.target.classList.contains('reply-btn')) {
-                const commentId = event.target.getAttribute('data-comment-id');
-                showReplyForm(commentId);
-            } else if (event.target.classList.contains('share-btn')) {
-                const commentId = event.target.getAttribute('data-comment-id');
-                await sharePost(commentId);
-            } else if (event.target.classList.contains('profile-link')) {
-                const username = event.target.getAttribute('data-username');
-                await viewProfile(username);
-            } else if (event.target.classList.contains('submit-reply-btn')) {
-                const commentId = event.target.getAttribute('data-comment-id');
-                await postReply(commentId);
+                console.log("Botão Apagar clicado para comentário:", commentId);
+                deleteComment(commentId);
             }
         });
 
+        // Função para gerar hash da senha
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
@@ -333,168 +330,171 @@
             return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
+        // Função para validar nome de usuário
         function validateUsername(username) {
             const regex = /^[a-zA-Z0-9_]{3,20}$/;
             return regex.test(username);
         }
 
+        // Função para validar senha
         function validatePassword(password) {
             return password.length >= 6;
         }
 
+        // Função para validar bio
         function validateBio(bio) {
             return bio.length <= 150;
         }
 
-        async function uploadToCloudinary(file) {
-            console.log("Iniciando upload para Cloudinary");
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-            try {
-                const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: 'POST', body: formData });
-                const result = await response.json();
-                if (result.error) throw new Error(result.error.message);
-                console.log("Upload para Cloudinary concluído:", result.secure_url);
-                return { url: result.secure_url, type: result.resource_type === 'image' ? 'image' : 'video' };
-            } catch (error) {
-                console.error("Erro ao enviar para Cloudinary:", error.message);
-                throw error;
-            }
-        }
-
+        // Função para atualizar a interface para usuário logado
         function updateUIForLoggedInUser() {
-            console.log("Atualizando UI para usuário logado:", currentUser.username);
             document.getElementById('createAccountSection').classList.add('hidden');
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('commentSection').classList.remove('hidden');
             document.getElementById('profileSection').classList.remove('hidden');
-            document.getElementById('settingsSection').classList.remove('hidden');
             document.getElementById('currentUser').innerHTML = `<span class="username ${currentUser.role}">${currentUser.username}</span> (${currentUser.role})`;
             document.getElementById('banSection').classList.toggle('hidden', currentUser.role !== 'owner');
             document.getElementById('editBio').value = currentUser.bio || '';
-            document.getElementById('themeSelect').value = currentUser.theme || 'dark';
-            changeTheme({ target: { value: currentUser.theme || 'dark' } });
             loadComments();
+            console.log("Usuário restaurado:", currentUser.username);
         }
 
-        async function createAccount() {
-            console.log("Função createAccount iniciada");
-            const createErrorMessage = document.getElementById('createErrorMessage');
-            if (!createErrorMessage) {
-                console.error("Elemento createErrorMessage não encontrado");
-                return;
+        // Função para fazer upload para o Cloudinary
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                console.log("Arquivo enviado ao Cloudinary:", result.secure_url);
+                return {
+                    url: result.secure_url,
+                    type: result.resource_type === 'image' ? 'image' : 'video'
+                };
+            } catch (error) {
+                console.error("Erro ao enviar para Cloudinary:", error);
+                throw error;
             }
+        }
+
+        // Função para criar conta
+        async function createAccount() {
+            console.log("Tentando criar conta...");
             const username = document.getElementById('createUsername').value.trim();
             const password = document.getElementById('createPassword').value.trim();
             const bio = document.getElementById('createBio').value.trim();
             const profilePicture = document.getElementById('createProfilePicture').files[0];
             const roleCode = document.getElementById('roleCode').value.trim().toUpperCase();
+            const createErrorMessage = document.getElementById('createErrorMessage');
 
             if (!validateUsername(username)) {
                 createErrorMessage.textContent = 'Nome de usuário deve ter 3-20 caracteres alfanuméricos ou sublinhado.';
-                console.log("Validação de username falhou:", username);
                 return;
             }
+
             if (!validatePassword(password)) {
                 createErrorMessage.textContent = 'Senha deve ter pelo menos 6 caracteres.';
-                console.log("Validação de senha falhou");
                 return;
             }
+
             if (bio && !validateBio(bio)) {
                 createErrorMessage.textContent = 'Bio deve ter no máximo 150 caracteres.';
-                console.log("Validação de bio falhou:", bio);
                 return;
             }
+
             if (profilePicture) {
                 const allowedTypes = ['image/jpeg', 'image/png'];
                 if (!allowedTypes.includes(profilePicture.type)) {
-                    createErrorMessage.textContent = 'Apenas JPEG ou PNG para foto de perfil.';
-                    console.log("Tipo de arquivo inválido:", profilePicture.type);
+                    createErrorMessage.textContent = 'Apenas imagens JPEG ou PNG são permitidas para a foto de perfil.';
                     return;
                 }
-                if (profilePicture.size > 5 * 1024 * 1024) {
-                    createErrorMessage.textContent = 'Foto de perfil deve ter no máximo 5 MB.';
-                    console.log("Arquivo muito grande:", profilePicture.size);
+                const fileSizeLimit = 5 * 1024 * 1024; // 5 MB
+                if (profilePicture.size > fileSizeLimit) {
+                    createErrorMessage.textContent = 'A foto de perfil deve ter no máximo 5 MB.';
                     return;
                 }
             }
+
             if (!db) {
                 createErrorMessage.textContent = 'Erro: Servidor não inicializado.';
                 console.error("Firestore não inicializado");
                 return;
             }
+
             try {
-                console.log("Verificando se username existe:", username);
+                // Verifica se o nome de usuário já existe
                 const userQuery = query(collection(db, 'users'), where('username', '==', username));
                 const userSnapshot = await getDocs(userQuery);
                 if (!userSnapshot.empty) {
                     createErrorMessage.textContent = 'Nome de usuário já existe.';
-                    console.log("Username já existe:", username);
                     return;
                 }
-              console.log("Hashing senha");
+
                 const hashedPassword = await hashPassword(password);
                 const role = roleCode === '7733' ? 'moderator' : roleCode === 'ABACATE' ? 'owner' : 'common';
                 let profilePictureURL = null;
+
                 if (profilePicture) {
-                    console.log("Enviando foto de perfil para Cloudinary");
                     const uploadResult = await uploadToCloudinary(profilePicture);
                     profilePictureURL = uploadResult.url;
                 }
+
                 const userData = {
                     username,
                     password: hashedPassword,
                     role,
                     bio: bio || '',
-                    profilePictureURL: profilePictureURL || null,
-                    followers: [],
-                    following: [],
-                    theme: 'dark'
+                    profilePictureURL: profilePictureURL || null
                 };
-                console.log("Criando documento do usuário:", username);
+
+                // Salva o usuário no Firestore usando o username como ID do documento
                 await setDoc(doc(db, 'users', username), userData);
                 createErrorMessage.textContent = '';
                 alert('Conta criada! Faça login.');
-                console.log("Conta criada com sucesso:", username);
                 document.getElementById('createUsername').value = '';
                 document.getElementById('createPassword').value = '';
                 document.getElementById('createBio').value = '';
                 document.getElementById('createProfilePicture').value = '';
                 document.getElementById('roleCode').value = '';
+                console.log("Conta criada:", username, role);
             } catch (error) {
-                console.error("Erro ao criar conta:", error.message, error.code);
-                createErrorMessage.textContent = `Erro ao criar conta: ${error.message}`;
+                console.error("Erro ao criar conta:", error);
+                createErrorMessage.textContent = 'Erro ao criar conta. Veja o console.';
             }
         }
 
+        // Função para login
         async function login() {
-            console.log("Função login iniciada");
-            const loginErrorMessage = document.getElementById('loginErrorMessage');
-            if (!loginErrorMessage) {
-                console.error("Elemento loginErrorMessage não encontrado");
-                return;
-            }
+            console.log("Tentando logar...");
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
+            const loginErrorMessage = document.getElementById('loginErrorMessage');
 
             if (!validateUsername(username)) {
                 loginErrorMessage.textContent = 'Nome de usuário inválido.';
-                console.log("Validação de username falhou:", username);
                 return;
             }
+
             if (!validatePassword(password)) {
                 loginErrorMessage.textContent = 'Senha deve ter pelo menos 6 caracteres.';
-                console.log("Validação de senha falhou");
                 return;
             }
+
             if (!db) {
                 loginErrorMessage.textContent = 'Erro: Servidor não inicializado.';
                 console.error("Firestore não inicializado");
                 return;
             }
+
             try {
-                console.log("Buscando usuário:", username);
                 const userQuery = query(collection(db, 'users'), where('username', '==', username));
                 const userSnapshot = await getDocs(userQuery);
                 if (userSnapshot.empty) {
@@ -502,203 +502,172 @@
                     console.log("Usuário não encontrado:", username);
                     return;
                 }
+
                 const userDoc = userSnapshot.docs[0];
                 const userData = userDoc.data();
-                console.log("Hashing senha para login");
                 const hashedPassword = await hashPassword(password);
+
                 if (userData.password !== hashedPassword) {
                     loginErrorMessage.textContent = 'Nome ou senha incorretos.';
                     console.log("Senha incorreta para:", username);
                     return;
                 }
+
                 currentUser = {
                     username: userData.username,
                     role: userData.role,
                     bio: userData.bio || '',
-                    profilePictureURL: userData.profilePictureURL || null,
-                    followers: userData.followers || [],
-                    following: userData.following || [],
-                    theme: userData.theme || 'dark'
+                    profilePictureURL: userData.profilePictureURL || null
                 };
-                console.log("Usuário logado:", currentUser.username);
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 updateUIForLoggedInUser();
                 loginErrorMessage.textContent = '';
-                document.getElementById('loginUsername').value = '';
-                document.getElementById('loginPassword').value = '';
+                console.log("Login bem-sucedido:", username);
             } catch (error) {
-                console.error("Erro ao fazer login:", error.message, error.code);
-                loginErrorMessage.textContent = `Erro ao fazer login: ${error.message}`;
+                console.error("Erro ao fazer login:", error);
+                loginErrorMessage.textContent = 'Erro ao fazer login. Veja o console.';
             }
         }
 
+        // Função para atualizar perfil
         async function updateProfile() {
-            console.log("Função updateProfile iniciada");
+            console.log("Tentando atualizar perfil...");
             if (!currentUser) {
                 alert('Faça login para atualizar o perfil.');
                 return;
             }
             const bio = document.getElementById('editBio').value.trim();
             const profilePicture = document.getElementById('editProfilePicture').files[0];
-            const settingsErrorMessage = document.getElementById('settingsErrorMessage');
+            const profileErrorMessage = document.getElementById('profileErrorMessage');
 
             if (bio && !validateBio(bio)) {
-                settingsErrorMessage.textContent = 'Bio deve ter no máximo 150 caracteres.';
-                console.log("Validação de bio falhou:", bio);
+                profileErrorMessage.textContent = 'Bio deve ter no máximo 150 caracteres.';
                 return;
             }
+
             if (profilePicture) {
                 const allowedTypes = ['image/jpeg', 'image/png'];
                 if (!allowedTypes.includes(profilePicture.type)) {
-                    settingsErrorMessage.textContent = 'Apenas JPEG ou PNG para foto de perfil.';
-                    console.log("Tipo de arquivo inválido:", profilePicture.type);
+                    profileErrorMessage.textContent = 'Apenas imagens JPEG ou PNG são permitidas para a foto de perfil.';
                     return;
                 }
-                if (profilePicture.size > 5 * 1024 * 1024) {
-                    settingsErrorMessage.textContent = 'Foto de perfil deve ter no máximo 5 MB.';
-                    console.log("Arquivo muito grande:", profilePicture.size);
+                const fileSizeLimit = 5 * 1024 * 1024; // 5 MB
+                if (profilePicture.size > fileSizeLimit) {
+                    profileErrorMessage.textContent = 'A foto de perfil deve ter no máximo 5 MB.';
                     return;
                 }
             }
+
             if (!db) {
-                settingsErrorMessage.textContent = 'Erro: Servidor não inicializado.';
+                profileErrorMessage.textContent = 'Erro: Servidor não inicializado.';
                 console.error("Firestore não inicializado");
                 return;
             }
+
             try {
                 let profilePictureURL = currentUser.profilePictureURL;
                 if (profilePicture) {
-                    console.log("Enviando nova foto de perfil para Cloudinary");
                     const uploadResult = await uploadToCloudinary(profilePicture);
                     profilePictureURL = uploadResult.url;
                 }
-                const userData = { bio: bio || '', profilePictureURL: profilePictureURL || null };
-                console.log("Atualizando perfil do usuário:", currentUser.username);
+
+                const userData = {
+                    bio: bio || '',
+                    profilePictureURL: profilePictureURL || null
+                };
+
+                // Atualiza o documento do usuário no Firestore
                 await updateDoc(doc(db, 'users', currentUser.username), userData);
+
+                // Atualiza currentUser
                 currentUser.bio = bio || '';
                 currentUser.profilePictureURL = profilePictureURL || null;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                settingsErrorMessage.textContent = '';
+
+                profileErrorMessage.textContent = '';
                 document.getElementById('editBio').value = bio;
                 document.getElementById('editProfilePicture').value = '';
                 alert('Perfil atualizado com sucesso!');
-                console.log("Perfil atualizado com sucesso");
                 loadComments();
+                console.log("Perfil atualizado:", currentUser.username);
             } catch (error) {
-                console.error("Erro ao atualizar perfil:", error.message, error.code);
-                settingsErrorMessage.textContent = `Erro ao atualizar perfil: ${error.message}`;
+                console.error("Erro ao atualizar perfil:", error);
+                profileErrorMessage.textContent = 'Erro ao atualizar perfil. Veja o console.';
             }
         }
 
-        function changeTheme(event) {
-            console.log("Alterando tema para:", event.target.value);
-            const theme = event.target.value;
-            document.body.className = theme;
-            if (currentUser) {
-                currentUser.theme = theme;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                updateDoc(doc(db, 'users', currentUser.username), { theme })
-                    .catch(error => console.error("Erro ao salvar tema:", error.message, error.code));
-            }
-        }
-
-        async function toggleFollow() {
-            console.log("Função toggleFollow iniciada");
-            if (!currentUser) {
-                alert('Faça login para seguir usuários.');
-                return;
-            }
-            if (!viewingProfile) return;
-            const isFollowing = currentUser.following.includes(viewingProfile.username);
-            try {
-                const userRef = doc(db, 'users', currentUser.username);
-                const profileRef = doc(db, 'users', viewingProfile.username);
-                if (isFollowing) {
-                    console.log(`Deixando de seguir: ${viewingProfile.username}`);
-                    await updateDoc(userRef, { following: arrayRemove(viewingProfile.username) });
-                    await updateDoc(profileRef, { followers: arrayRemove(currentUser.username) });
-                    currentUser.following = currentUser.following.filter(u => u !== viewingProfile.username);
-                    viewingProfile.followers = viewingProfile.followers.filter(u => u !== currentUser.username);
-                } else {
-                    console.log(`Seguindo: ${viewingProfile.username}`);
-                    await updateDoc(userRef, { following: arrayUnion(viewingProfile.username) });
-                    await updateDoc(profileRef, { followers: arrayUnion(currentUser.username) });
-                    currentUser.following.push(viewingProfile.username);
-                    viewingProfile.followers.push(currentUser.username);
-                }
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                document.getElementById('followBtn').textContent = isFollowing ? 'Seguir' : 'Deixar de Seguir';
-                console.log("Ação de seguir/deixar de seguir concluída");
-            } catch (error) {
-                console.error("Erro ao seguir/deixar de seguir:", error.message, error.code);
-                alert(`Erro ao atualizar status de seguir: ${error.message}`);
-            }
-        }
-
+        // Função para logout
         function logout() {
-            console.log("Função logout iniciada");
+            console.log("Saindo...");
             currentUser = null;
-            viewingProfile = null;
             localStorage.removeItem('currentUser');
             document.getElementById('createAccountSection').classList.remove('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('commentSection').classList.add('hidden');
             document.getElementById('profileSection').classList.add('hidden');
-            document.getElementById('settingsSection').classList.add('hidden');
-            document.getElementById('viewProfileSection').classList.add('hidden');
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
-            loadComments();
             console.log("Logout concluído");
+            loadComments();
         }
 
+        // Função para postar comentário
         async function postComment() {
-            console.log("Função postComment iniciada");
+            console.log("Tentando postar comentário...");
             if (!currentUser) {
-                alert('Faça login para postar.');
+                alert('Faça login para comentar.');
                 return;
             }
             const commentText = document.getElementById('commentInput').value.trim();
             const mediaInput = document.getElementById('mediaInput').files[0];
+
             if (!commentText && !mediaInput) {
-                alert('Escreva um post ou selecione uma imagem/vídeo.');
-                console.log("Postagem vazia");
+                alert('Escreva um comentário ou selecione uma imagem/vídeo.');
                 return;
             }
+
             if (!db) {
                 alert('Erro: Servidor não inicializado.');
                 console.error("Firestore não inicializado");
                 return;
             }
+
             try {
                 const today = new Date().toISOString().split('T')[0];
-                console.log("Verificando limite de posts do dia:", today);
-                const q = query(collection(db, 'comments'), where('username', '==', currentUser.username), where('date', '==', today));
+                const q = query(
+                    collection(db, 'comments'),
+                    where('username', '==', currentUser.username),
+                    where('date', '==', today)
+                );
                 const userComments = await getDocs(q);
                 if (userComments.size >= 50) {
-                    alert('Limite de 50 posts por dia atingido.');
-                    console.log("Limite de posts atingido:", userComments.size);
+                    alert('Limite de 50 comentários por dia atingido.');
+                    console.log("Limite de comentários atingido:", currentUser.username);
                     return;
                 }
+
                 let mediaURL = null;
                 let mediaType = null;
+
                 if (mediaInput) {
-                    if (mediaInput.size > 50 * 1024 * 1024) {
-                        alert('O arquivo deve ter no máximo 50 MB.');
-                        console.log("Arquivo muito grande:", mediaInput.size);
+                    const fileSizeLimit = 10 * 1024 * 1024; // 10 MB
+                    if (mediaInput.size > fileSizeLimit) {
+                        alert('O arquivo deve ter no máximo 10 MB.');
                         return;
                     }
+
                     const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'video/webm'];
                     if (!allowedTypes.includes(mediaInput.type)) {
-                        alert('Apenas JPEG, PNG, MP4 ou WebM são permitidos.');
-                        console.log("Tipo de arquivo inválido:", mediaInput.type);
+                        alert('Apenas imagens (JPEG, PNG) ou vídeos (MP4, WebM) são permitidos.');
                         return;
                     }
-                    console.log("Enviando mídia para Cloudinary");
+
                     const uploadResult = await uploadToCloudinary(mediaInput);
                     mediaURL = uploadResult.url;
                     mediaType = uploadResult.type;
+                    console.log("Arquivo enviado:", mediaURL);
                 }
+
                 const comment = {
                     username: currentUser.username,
                     role: currentUser.role,
@@ -708,185 +677,26 @@
                     mediaURL: mediaURL || null,
                     mediaType: mediaType || null,
                     profilePictureURL: currentUser.profilePictureURL || null,
-                    bio: currentUser.bio || '',
-                    likes: [],
-                    dislikes: [],
-                    replies: [],
-                    parentId: null,
-                    isShared: false,
-                    originalPostId: null
+                    bio: currentUser.bio || ''
                 };
-                console.log("Postando comentário:", comment);
-                const docRef = await addDoc(collection(db, 'comments'), comment);
+
+                await addDoc(collection(db, 'comments'), comment);
                 document.getElementById('commentInput').value = '';
                 document.getElementById('mediaInput').value = '';
                 loadComments();
-                console.log("Comentário postado com sucesso:", docRef.id);
+                console.log("Comentário postado:", commentText, mediaURL);
             } catch (error) {
-                console.error("Erro ao postar:", error.message, error.code);
-                alert(`Erro ao postar: ${error.message}`);
+                console.error("Erro ao postar comentário:", error);
+                alert('Erro ao postar comentário. Veja o console.');
             }
         }
 
-        async function postReply(parentId) {
-            console.log("Função postReply iniciada para parentId:", parentId);
-            if (!currentUser) {
-                alert('Faça login para responder.');
-                return;
-            }
-            const replyText = document.getElementById(`replyInput-${parentId}`).value.trim();
-            if (!replyText) {
-                alert('Escreva uma resposta.');
-                console.log("Resposta vazia");
-                return;
-            }
-            if (!db) {
-                alert('Erro: Servidor não inicializado.');
-                console.error("Firestore não inicializado");
-                return;
-            }
-            try {
-                const today = new Date().toISOString().split('T')[0];
-                console.log("Verificando limite de posts do dia:", today);
-                const q = query(collection(db, 'comments'), where('username', '==', currentUser.username), where('date', '==', today));
-                const userComments = await getDocs(q);
-                if (userComments.size >= 50) {
-                    alert('Limite de 50 posts por dia atingido.');
-                    console.log("Limite de posts atingido:", userComments.size);
-                    return;
-                }
-                const reply = {
-                    username: currentUser.username,
-                    role: currentUser.role,
-                    text: replyText,
-                    timestamp: new Date().toISOString(),
-                    date: today,
-                    mediaURL: null,
-                    mediaType: null,
-                    profilePictureURL: currentUser.profilePictureURL || null,
-                    bio: currentUser.bio || '',
-                    likes: [],
-                    dislikes: [],
-                    replies: [],
-                    parentId,
-                    isShared: false,
-                    originalPostId: null
-                };
-                console.log("Postando resposta:", reply);
-                const docRef = await addDoc(collection(db, 'comments'), reply);
-                await updateDoc(doc(db, 'comments', parentId), { replies: arrayUnion(docRef.id) });
-                loadComments();
-                console.log("Resposta postada com sucesso:", docRef.id);
-            } catch (error) {
-                console.error("Erro ao postar resposta:", error.message, error.code);
-                alert(`Erro ao postar resposta: ${error.message}`);
-            }
-        }
-
-        async function toggleLike(commentId, type) {
-            console.log("Função toggleLike iniciada para commentId:", commentId, "tipo:", type);
-            if (!currentUser) {
-                alert('Faça login para curtir/descurtir.');
-                return;
-            }
-            try {
-                const commentRef = doc(db, 'comments', commentId);
-                const commentSnap = await getDoc(commentRef);
-                if (!commentSnap.exists()) {
-                    console.log("Comentário não encontrado:", commentId);
-                    return;
-                }
-                const commentData = commentSnap.data();
-                const likes = commentData.likes || [];
-                const dislikes = commentData.dislikes || [];
-                const hasLiked = likes.includes(currentUser.username);
-                const hasDisliked = dislikes.includes(currentUser.username);
-                if (type === 'like') {
-                    if (hasLiked) {
-                        console.log("Removendo like:", commentId);
-                        await updateDoc(commentRef, { likes: arrayRemove(currentUser.username) });
-                    } else {
-                        console.log("Adicionando like:", commentId);
-                        await updateDoc(commentRef, {
-                            likes: arrayUnion(currentUser.username),
-                            dislikes: hasDisliked ? arrayRemove(currentUser.username) : dislikes
-                        });
-                    }
-                } else {
-                    if (hasDisliked) {
-                        console.log("Removendo dislike:", commentId);
-                        await updateDoc(commentRef, { dislikes: arrayRemove(currentUser.username) });
-                    } else {
-                        console.log("Adicionando dislike:", commentId);
-                        await updateDoc(commentRef, {
-                            dislikes: arrayUnion(currentUser.username),
-                            likes: hasLiked ? arrayRemove(currentUser.username) : likes
-                        });
-                    }
-                }
-                loadComments();
-                console.log("Ação de like/dislike concluída");
-            } catch (error) {
-                console.error("Erro ao curtir/descurtir:", error.message, error.code);
-                alert(`Erro ao curtir/descurtir: ${error.message}`);
-            }
-        }
-
-        async function sharePost(commentId) {
-            console.log("Função sharePost iniciada para commentId:", commentId);
-            if (!currentUser) {
-                alert('Faça login para compartilhar.');
-                return;
-            }
-            try {
-                const commentRef = doc(db, 'comments', commentId);
-                const commentSnap = await getDoc(commentRef);
-                if (!commentSnap.exists()) {
-                    console.log("Comentário não encontrado:", commentId);
-                    return;
-                }
-                const commentData = commentSnap.data();
-                const today = new Date().toISOString().split('T')[0];
-                console.log("Verificando limite de posts do dia:", today);
-                const q = query(collection(db, 'comments'), where('username', '==', currentUser.username), where('date', '==', today));
-                const userComments = await getDocs(q);
-                if (userComments.size >= 50) {
-                    alert('Limite de 50 posts por dia atingido.');
-                    console.log("Limite de posts atingido:", userComments.size);
-                    return;
-                }
-                const sharedPost = {
-                    username: currentUser.username,
-                    role: currentUser.role,
-                    text: `Compartilhado: ${commentData.text}`,
-                    timestamp: new Date().toISOString(),
-                    date: today,
-                    mediaURL: commentData.mediaURL || null,
-                    mediaType: commentData.mediaType || null,
-                    profilePictureURL: currentUser.profilePictureURL || null,
-                    bio: currentUser.bio || '',
-                    likes: [],
-                    dislikes: [],
-                    replies: [],
-                    parentId: null,
-                    isShared: true,
-                    originalPostId: commentId
-                };
-                console.log("Compartilhando post:", sharedPost);
-                await addDoc(collection(db, 'comments'), sharedPost);
-                alert('Post compartilhado com sucesso!');
-                loadComments();
-                console.log("Post compartilhado com sucesso");
-            } catch (error) {
-                console.error("Erro ao compartilhar:", error.message, error.code);
-                alert(`Erro ao compartilhar: ${error.message}`);
-            }
-        }
-
+        // Função para apagar comentário
         async function deleteComment(commentId) {
-            console.log("Função deleteComment iniciada para commentId:", commentId);
+            console.log("Tentando apagar comentário com ID:", commentId);
             if (!currentUser || (currentUser.role !== 'moderator' && currentUser.role !== 'owner')) {
-                alert('Apenas moderadores e o dono podem apagar posts.');
+                alert('Apenas moderadores e o dono podem apagar comentários.');
+                console.log("Usuário sem permissão para apagar:", currentUser?.username);
                 return;
             }
             if (!db) {
@@ -894,47 +704,37 @@
                 console.error("Firestore não inicializado");
                 return;
             }
+            if (!commentId || typeof commentId !== 'string') {
+                alert('Erro: Comentário inválido.');
+                console.error("ID do comentário inválido:", commentId);
+                return;
+            }
             try {
-                const commentRef = doc(db, 'comments', commentId);
-                const commentSnap = await getDoc(commentRef);
-                if (!commentSnap.exists()?. {
-                    console.log("Comentário não encontrado:", commentId);
-                    return;
-                }
-                const commentData = commentSnap.data();
-                const batch = writeBatch(db);
-                batch.delete(commentRef);
-                if (commentData.replies && commentData.replies.length > 0) {
-                    for (const replyId of commentData.replies) {
-                        batch.delete(doc(db, 'comments', replyId));
-                    }
-                }
-                console.log("Apagando comentário e respostas:", commentId);
-                await batch.commit();
+                await deleteDoc(doc(db, 'comments', commentId));
+                console.log("Comentário apagado com sucesso:", commentId);
                 loadComments();
-                alert('Post apagado com sucesso.');
-                console.log("Comentário apagado com sucesso");
+                alert('Comentário apagado com sucesso.');
             } catch (error) {
-                console.error("Erro ao apagar post:", error.message, error.code);
-                alert(`Erro ao apagar post: ${error.message}`);
+                console.error("Erro ao apagar comentário:", error);
+                alert('Erro ao apagar comentário. Veja o console.');
             }
         }
 
+        // Função para excluir usuário completamente
         async function deleteUser() {
-            console.log("Função deleteUser iniciada");
+            console.log("Tentando excluir usuário...");
             if (!currentUser || currentUser.role !== 'owner') {
                 alert('Apenas o dono pode excluir usuários.');
+                console.log("Usuário sem permissão para excluir:", currentUser?.username);
                 return;
             }
             const deleteUsername = document.getElementById('banUsername').value.trim();
             if (!deleteUsername) {
                 alert('Digite o nome do usuário a excluir.');
-                console.log("Nome de usuário vazio");
                 return;
             }
             if (deleteUsername === currentUser.username) {
                 alert('Você não pode excluir a si mesmo.');
-                console.log("Tentativa de excluir o próprio usuário");
                 return;
             }
             if (!db) {
@@ -943,151 +743,46 @@
                 return;
             }
             try {
-                console.log("Buscando usuário para exclusão:", deleteUsername);
+                // Verifica se o usuário existe
                 const userQuery = query(collection(db, 'users'), where('username', '==', deleteUsername));
                 const userSnapshot = await getDocs(userQuery);
                 if (userSnapshot.empty) {
                     alert('Usuário não encontrado.');
-                    console.log("Usuário não encontrado:", deleteUsername);
+                    console.log("Usuário não encontrado para excluir:", deleteUsername);
                     return;
                 }
+
+                // Inicia um batch para excluir usuário e comentários
                 const batch = writeBatch(db);
+
+                // Exclui o documento do usuário
                 const userDocRef = doc(db, 'users', deleteUsername);
                 batch.delete(userDocRef);
+
+                // Exclui todos os comentários do usuário
                 const commentsQuery = query(collection(db, 'comments'), where('username', '==', deleteUsername));
                 const commentsSnapshot = await getDocs(commentsQuery);
-                commentsSnapshot.forEach(doc => batch.delete(doc.ref));
-                const followersQuery = query(collection(db, 'users'), where('following', 'array-contains', deleteUsername));
-                const followersSnapshot = await getDocs(followersQuery);
-                followersSnapshot.forEach(doc => {
-                    batch.update(doc.ref, { following: arrayRemove(deleteUsername) });
+                commentsSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
                 });
-                const followingQuery = query(collection(db, 'users'), where('followers', 'array-contains', deleteUsername));
-                const followingSnapshot = await getDocs(followingQuery);
-                followingSnapshot.forEach(doc => {
-                    batch.update(doc.ref, { followers: arrayRemove(deleteUsername) });
-                });
-                console.log("Excluindo usuário e dados associados:", deleteUsername);
+
+                // Executa o batch
                 await batch.commit();
+                console.log("Usuário e comentários excluídos:", deleteUsername, commentsSnapshot.size);
+
                 document.getElementById('banUsername').value = '';
                 alert(`Usuário ${deleteUsername} excluído com sucesso.`);
                 loadComments();
-                console.log("Usuário excluído com sucesso");
+                console.log("Usuário excluído com sucesso:", deleteUsername);
             } catch (error) {
-                console.error("Erro ao excluir usuário:", error.message, error.code);
-                alert(`Erro ao excluir usuário: ${error.message}`);
+                console.error("Erro ao excluir usuário:", error);
+                alert('Erro ao excluir usuário. Veja o console.');
             }
         }
 
-        function showReplyForm(commentId) {
-            console.log("Função showReplyForm iniciada para commentId:", commentId);
-            const existingForm = document.getElementById(`replyForm-${commentId}`);
-            if (existingForm) {
-                existingForm.remove();
-                console.log("Formulário de resposta removido");
-                return;
-            }
-            const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
-            const replyForm = document.createElement('div');
-            replyForm.id = `replyForm-${commentId}`;
-            replyForm.className = 'reply-form';
-            replyForm.innerHTML = `
-                <textarea id="replyInput-${commentId}" placeholder="Escreva sua resposta"></textarea>
-                <button class="submit-reply-btn" data-comment-id="${commentId}">Enviar Resposta</button>
-            `;
-            commentDiv.appendChild(replyForm);
-            console.log("Formulário de resposta adicionado");
-        }
-
-        async function viewProfile(username) {
-            console.log("Função viewProfile iniciada para username:", username);
-            if (!db) {
-                alert('Erro: Servidor não inicializado.');
-                console.error("Firestore não inicializado");
-                return;
-            }
-            try {
-                console.log("Buscando perfil:", username);
-                const userDoc = await getDoc(doc(db, 'users', username));
-                if (!userDoc.exists()) {
-                    alert('Usuário não encontrado.');
-                    console.log("Usuário não encontrado:", username);
-                    return;
-                }
-                const userData = userDoc.data();
-                viewingProfile = {
-                    username: userData.username,
-                    bio: userData.bio || '',
-                    profilePictureURL: userData.profilePictureURL || null,
-                    followers: userData.followers || [],
-                    following: userData.following || []
-                };
-                document.getElementById('viewProfileUsername').textContent = viewingProfile.username;
-                document.getElementById('viewProfileBio').textContent = viewingProfile.bio || 'Sem bio';
-                const profilePic = document.getElementById('viewProfilePicture');
-                const defaultPic = document.getElementById('viewProfileDefaultPicture');
-                if (viewingProfile.profilePictureURL) {
-                    profilePic.src = viewingProfile.profilePictureURL;
-                    profilePic.classList.remove('hidden');
-                    defaultPic.classList.add('hidden');
-                } else {
-                    defaultPic.textContent = viewingProfile.username[0].toUpperCase();
-                    defaultPic.classList.remove('hidden');
-                    profilePic.classList.add('hidden');
-                }
-                document.getElementById('followBtn').textContent = currentUser && currentUser.following.includes(username) ? 'Deixar de Seguir' : 'Seguir';
-                document.getElementById('followBtn').classList.toggle('hidden', !currentUser || currentUser.username === username);
-                const userPostsDiv = document.getElementById('userPosts');
-                userPostsDiv.innerHTML = '';
-                console.log("Carregando posts do usuário:", username);
-                const postsQuery = query(collection(db, 'comments'), where('username', '==', username), where('parentId', '==', null), orderBy('timestamp', 'desc'));
-                const postsSnapshot = await getDocs(postsQuery);
-                postsSnapshot.forEach(doc => {
-                    const post = doc.data();
-                    const postDiv = document.createElement('div');
-                    postDiv.className = `comment ${post.role}`;
-                    postDiv.setAttribute('data-comment-id', doc.id);
-                    let mediaContent = post.mediaURL ? (post.mediaType === 'image' ? `<img src="${post.mediaURL}" alt="Imagem do post">` : `<video controls src="${post.mediaURL}" alt="Vídeo do post"></video>`) : '';
-                    const profilePicture = post.profilePictureURL ? `<img src="${post.profilePictureURL}" alt="Foto de perfil" class="profile-picture">` : `<span class="profile-picture default-profile">${post.username[0].toUpperCase()}</span>`;
-                    postDiv.innerHTML = `
-                        <div>
-                            ${profilePicture}
-                            <span class="profile-link username ${post.role}" data-username="${post.username}">${post.username}</span> (${post.role}) - ${new Date(post.timestamp).toLocaleString('pt-BR')}<br>
-                            <div class="bio">${post.bio || ''}</div>
-                            ${post.text}
-                            ${mediaContent}
-                        </div>
-                    `;
-                    userPostsDiv.appendChild(postDiv);
-                });
-                document.getElementById('createAccountSection').classList.add('hidden');
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('commentSection').classList.add('hidden');
-                document.getElementById('profileSection').classList.add('hidden');
-                document.getElementById('settingsSection').classList.add('hidden');
-                document.getElementById('viewProfileSection').classList.remove('hidden');
-                console.log("Perfil carregado com sucesso");
-            } catch (error) {
-                console.error("Erro ao visualizar perfil:", error.message, error.code);
-                alert(`Erro ao carregar perfil: ${error.message}`);
-            }
-        }
-
-        function showMainSection() {
-            console.log("Função showMainSection iniciada");
-            viewingProfile = null;
-            document.getElementById('createAccountSection').classList.toggle('hidden', !!currentUser);
-            document.getElementById('loginSection').classList.toggle('hidden', !!currentUser);
-            document.getElementById('commentSection').classList.toggle('hidden', !currentUser);
-            document.getElementById('profileSection').classList.toggle('hidden', !currentUser);
-            document.getElementById('settingsSection').classList.toggle('hidden', !currentUser);
-            document.getElementById('viewProfileSection').classList.add('hidden');
-            loadComments();
-            console.log("Seção principal exibida");
-        }
-
+        // Função para carregar comentários
         async function loadComments() {
-            console.log("Função loadComments iniciada");
+            console.log("Carregando comentários...");
             const commentsList = document.getElementById('commentsList');
             commentsList.innerHTML = '';
             if (!db) {
@@ -1098,131 +793,58 @@
             try {
                 const threeDaysAgo = new Date();
                 threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-                console.log("Buscando comentários ordenados por timestamp");
                 const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
                 const commentsSnapshot = await getDocs(q);
-                if (commentsSnapshot.empty) {
-                    commentsList.innerHTML = '<p>Nenhum post encontrado.</p>';
-                    console.log("Nenhum comentário encontrado");
-                    return;
-                }
-                for (const doc of commentsSnapshot.docs) {
+                commentsSnapshot.forEach(doc => {
                     const comment = doc.data();
-                    // Filtrar apenas comentários principais (parentId === null)
-                    if (comment.parentId !== null) {
-                        console.log(`Ignorando comentário ${doc.id}: é uma resposta (parentId: ${comment.parentId})`);
-                        continue;
-                    }
-                    // Validar campos obrigatórios
-                    if (!comment.username || !comment.timestamp || !comment.role) {
-                        console.warn(`Comentário ${doc.id} ignorado: campos obrigatórios faltando`, comment);
-                        continue;
-                    }
-                    let commentDate;
-                    try {
-                        commentDate = new Date(comment.timestamp);
-                        if (isNaN(commentDate.getTime())) throw new Error('Timestamp inválido');
-                    } catch (e) {
-                        console.warn(`Comentário ${doc.id} ignorado: timestamp inválido`, comment.timestamp);
-                        continue;
-                    }
+                    const commentDate = new Date(comment.timestamp);
                     if (commentDate >= threeDaysAgo) {
                         const commentDiv = document.createElement('div');
-                        commentDiv.className = `comment ${comment.role || 'common'}`;
-                        commentDiv.setAttribute('data-comment-id', doc.id);
-                        let deleteButton = currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner') ? `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>` : '';
-                        let mediaContent = comment.mediaURL && comment.mediaType ? (comment.mediaType === 'image' ? `<img src="${comment.mediaURL}" alt="Imagem do post">` : `<video controls src="${comment.mediaURL}" alt="Vídeo do post"></video>`) : '';
-                        const profilePicture = comment.profilePictureURL ? `<img src="${comment.profilePictureURL}" alt="Foto de perfil" class="profile-picture">` : `<span class="profile-picture default-profile">${(comment.username[0] || '').toUpperCase()}</span>`;
-                        const likesCount = (comment.likes || []).length;
-                        const dislikesCount = (comment.dislikes || []).length;
-                        const hasLiked = currentUser && comment.likes && comment.likes.includes(currentUser.username);
-                        const hasDisliked = currentUser && comment.dislikes && comment.dislikes.includes(currentUser.username);
-                        const sharedInfo = comment.isShared ? `<div class="share-section">Compartilhado de post original</div>` : '';
+                        commentDiv.className = `comment ${comment.role}`;
+                        let deleteButton = '';
+                        if (currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner')) {
+                            deleteButton = `<button class="delete-btn" data-comment-id="${doc.id}">Apagar</button>`;
+                        }
+
+                        let mediaContent = '';
+                        if (comment.mediaURL && comment.mediaType) {
+                            if (comment.mediaType === 'image') {
+                                mediaContent = `<img src="${comment.mediaURL}" alt="Imagem do comentário">`;
+                            } else if (comment.mediaType === 'video') {
+                                mediaContent = `<video controls src="${comment.mediaURL}" alt="Vídeo do comentário"></video>`;
+                            }
+                        }
+
+                        const profilePicture = comment.profilePictureURL ?
+                            `<img src="${comment.profilePictureURL}" alt="Foto de perfil" class="profile-picture">` :
+                            `<span class="profile-picture default-profile">${comment.username[0].toUpperCase()}</span>`;
+
+                        const bioContent = comment.bio ? `<div class="bio">${comment.bio}</div>` : '';
+
                         commentDiv.innerHTML = `
                             <div>
                                 ${profilePicture}
-                                <span class="profile-link username ${comment.role || 'common'}" data-username="${comment.username}">${comment.username}</span> (${comment.role || 'common'}) - ${commentDate.toLocaleString('pt-BR')}<br>
-                                <div class="bio">${comment.bio || ''}</div>
-                                ${comment.text || ''}
+                                <strong class="username ${comment.role}">${comment.username}</strong> (${comment.role}) - ${new Date(comment.timestamp).toLocaleString('pt-BR')}<br>
+                                ${bioContent}
+                                ${comment.text}
                                 ${mediaContent}
-                                ${sharedInfo}
-                                <div class="likes-section">
-                                    <button class="like-btn ${hasLiked ? 'active' : ''}" data-comment-id="${doc.id}">👍 ${likesCount}</button>
-                                    <button class="dislike-btn ${hasDisliked ? 'active' : ''}" data-comment-id="${doc.id}">👎 ${dislikesCount}</button>
-                                    <button class="reply-btn" data-comment-id="${doc.id}">Responder</button>
-                                    <button class="share-btn" data-comment-id="${doc.id}">Compartilhar</button>
-                                </div>
                             </div>
                             ${deleteButton}
                         `;
                         commentsList.appendChild(commentDiv);
-                        if (comment.replies && Array.isArray(comment.replies) && comment.replies.length > 0) {
-                            const repliesDiv = document.createElement('div');
-                            repliesDiv.className = 'replies';
-                            for (const replyId of comment.replies) {
-                                try {
-                                    console.log("Carregando resposta:", replyId);
-                                    const replyDoc = await getDoc(doc(db, 'comments', replyId));
-                                    if (replyDoc.exists()) {
-                                        const reply = replyDoc.data();
-                                        // Validar campos da resposta
-                                        if (!reply.username || !reply.timestamp || !reply.role) {
-                                            console.warn(`Resposta ${replyId} ignorada: campos obrigatórios faltando`, reply);
-                                            continue;
-                                        }
-                                        let replyDate;
-                                        try {
-                                            replyDate = new Date(reply.timestamp);
-                                            if (isNaN(replyDate.getTime())) throw new Error('Timestamp inválido');
-                                        } catch (e) {
-                                            console.warn(`Resposta ${replyId} ignorada: timestamp inválido`, reply.timestamp);
-                                            continue;
-                                        }
-                                        const replyDiv = document.createElement('div');
-                                        replyDiv.className = `comment reply ${reply.role || 'common'}`;
-                                        replyDiv.setAttribute('data-comment-id', replyId);
-                                        const replyDeleteButton = currentUser && (currentUser.role === 'moderator' || currentUser.role === 'owner') ? `<button class="delete-btn" data-comment-id="${replyId}">Apagar</button>` : '';
-                                        const replyProfilePicture = reply.profilePictureURL ? `<img src="${reply.profilePictureURL}" alt="Foto de perfil" class="profile-picture">` : `<span class="profile-picture default-profile">${(reply.username[0] || '').toUpperCase()}</span>`;
-                                        const replyLikesCount = (reply.likes || []).length;
-                                        const replyDislikesCount = (reply.dislikes || []).length;
-                                        const replyHasLiked = currentUser && reply.likes && reply.likes.includes(currentUser.username);
-                                        const replyHasDisliked = currentUser && reply.dislikes && reply.dislikes.includes(currentUser.username);
-                                        replyDiv.innerHTML = `
-                                            <div>
-                                                ${replyProfilePicture}
-                                                <span class="profile-link username ${reply.role || 'common'}" data-username="${reply.username}">${reply.username}</span> (${reply.role || 'common'}) - ${replyDate.toLocaleString('pt-BR')}<br>
-                                                <div class="bio">${reply.bio || ''}</div>
-                                                ${reply.text || ''}
-                                                <div class="likes-section">
-                                                    <button class="like-btn ${replyHasLiked ? 'active' : ''}" data-comment-id="${replyId}">👍 ${replyLikesCount}</button>
-                                                    <button class="dislike-btn ${replyHasDisliked ? 'active' : ''}" data-comment-id="${replyId}">👎 ${replyDislikesCount}</button>
-                                                </div>
-                                            </div>
-                                            ${replyDeleteButton}
-                                        `;
-                                        repliesDiv.appendChild(replyDiv);
-                                    } else {
-                                        console.warn(`Resposta ${replyId} não encontrada`);
-                                    }
-                                } catch (e) {
-                                    console.warn(`Erro ao carregar resposta ${replyId}:`, e.message);
-                                }
-                            }
-                            commentDiv.appendChild(repliesDiv);
-                        }
                     }
-                }
+                });
+                console.log("Comentários carregados:", commentsSnapshot.size);
             } catch (error) {
-                console.error("Erro ao carregar posts:", error.message, error.code);
-                commentsList.innerHTML = `<p class="error">Erro ao carregar posts: ${error.message}</p>`;
+                console.error("Erro ao carregar comentários:", error);
+                commentsList.innerHTML = '<p class="error">Erro ao carregar comentários. Veja o console.</p>';
             }
         }
 
+        // Verifica se há usuário logado ao carregar a página
         if (currentUser) {
-            console.log("Usuário já logado, atualizando UI");
             updateUIForLoggedInUser();
         } else {
-            console.log("Nenhum usuário logado, carregando comentários");
             loadComments();
         }
     </script>
