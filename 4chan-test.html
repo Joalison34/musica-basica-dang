@@ -46,6 +46,7 @@
         }
         .post {
             margin-bottom: 10px;
+            overflow: hidden;
         }
         .post-header {
             font-weight: bold;
@@ -53,17 +54,26 @@
         }
         .post-number {
             color: #0000EE;
+            cursor: pointer;
         }
-        .post-image {
+        .post-number:hover {
+            text-decoration: underline;
+        }
+        .post-media {
             float: left;
             margin-right: 10px;
             max-width: 150px;
+            max-height: 150px;
         }
         .post-content {
             line-height: 1.4;
         }
         .quote {
             color: #789922;
+            cursor: pointer;
+        }
+        .quote:hover {
+            text-decoration: underline;
         }
         .reply {
             margin-left: 20px;
@@ -80,6 +90,10 @@
         .form-container input, .form-container textarea {
             font-size: 12px;
             margin: 5px 0;
+            width: calc(100% - 10px);
+        }
+        .form-container input[type="file"] {
+            width: auto;
         }
         .form-container input[type="submit"] {
             background-color: #98e;
@@ -96,6 +110,9 @@
             color: #666;
             margin-top: 20px;
         }
+        .highlighted {
+            background-color: #ffffcc;
+        }
     </style>
 </head>
 <body>
@@ -103,40 +120,193 @@
         <h1>/test/ - Test Board</h1>
     </div>
     <div class="nav">
-        [<a href="#">Home</a>] [<a href="#">Catalog</a>] [<a href="#">Archive</a>]
+        [<a href="#" onclick="return false;">Home</a>] [<a href="#" onclick="return false;">Catalog</a>] [<a href="#" onclick="return false;">Archive</a>]
     </div>
     <div class="form-container">
-        <form action="#" method="post">
+        <form id="post-form">
             <input type="text" name="name" placeholder="Anonymous"><br>
             <input type="text" name="subject" placeholder="Subject"><br>
-            <textarea name="comment" rows="4" cols="50" placeholder="Comment"></textarea><br>
-            <input type="file" name="image"><br>
+            <textarea name="comment" rows="4" placeholder="Comment"></textarea><br>
+            <input type="file" name="media" accept="image/*,video/*"><br>
+            <input type="hidden" name="parentId" value="">
             <input type="submit" value="Post">
         </form>
     </div>
-    <div class="thread">
-        <div class="post">
-            <div class="post-header">
-                <span class="post-number">No.123456</span> Anonymous 04/27/25(Sun)23:11:11
-            </div>
-            <img class="post-image" src="placeholder.jpg" alt="Post Image">
-            <div class="post-content">
-                Welcome to the test board! This is a sample thread to demonstrate the 4chan-style layout.<br>
-                <span class="quote">&gt;&gt;Feel free to reply!</span>
-            </div>
-        </div>
-        <div class="reply">
-            <div class="post-header">
-                <span class="post-number">No.123457</span> Anonymous 04/27/25(Sun)23:15:00
-            </div>
-            <div class="post-content">
-                <span class="quote">&gt;&gt;123456</span><br>
-                Nice thread, OP! Here's a reply for testing.
-            </div>
-        </div>
-    </div>
+    <div id="threads"></div>
     <div class="footer">
         Test Imageboard - All rights reserved 2025
     </div>
+
+    <script>
+        // Função para gerar ID único (simplificado para o exemplo)
+        function generateId() {
+            return Math.floor(Math.random() * 1000000) + 1;
+        }
+
+        // Função para formatar data
+        function formatDate() {
+            const date = new Date();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const yy = String(date.getFullYear()).slice(-2);
+            const hh = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            const ss = String(date.getSeconds()).padStart(2, '0');
+            const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+            return `${mm}/${dd}/${yy}(${day})${hh}:${min}:${ss}`;
+        }
+
+        // Carregar posts do localStorage
+        function loadPosts() {
+            const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+            return posts;
+        }
+
+        // Salvar posts no localStorage
+        function savePosts(posts) {
+            localStorage.setItem('posts', JSON.stringify(posts));
+        }
+
+        // Renderizar posts
+        function renderPosts() {
+            const threadsDiv = document.getElementById('threads');
+            threadsDiv.innerHTML = '';
+            const posts = loadPosts();
+            const threads = posts.filter(post => !post.parentId);
+
+            threads.forEach(thread => {
+                const threadDiv = document.createElement('div');
+                threadDiv.className = 'thread';
+
+                // Renderizar post original (OP)
+                threadDiv.innerHTML += `
+                    <div class="post">
+                        <div class="post-header">
+                            <span class="post-number" data-id="${thread.id}">No.${thread.id}</span>
+                            ${thread.name || 'Anonymous'} ${thread.date}
+                        </div>
+                        ${thread.media ? `
+                            ${thread.mediaType === 'image' ? `
+                                <img class="post-media" src="${thread.media}" alt="Post Media">
+                            ` : `
+                                <video class="post-media" controls>
+                                    <source src="${thread.media}" type="video/mp4">
+                                </video>
+                            `}
+                        ` : ''}
+                        <div class="post-content">
+                            ${thread.subject ? `<b>${thread.subject}</b><br>` : ''}
+                            ${thread.comment.replace(/>>([0-9]+)/g, '<span class="quote">>>$1</span>')}
+                        </div>
+                    </div>
+                `;
+
+                // Renderizar replies
+                const replies = posts.filter(post => post.parentId === thread.id);
+                replies.forEach(reply => {
+                    threadDiv.innerHTML += `
+                        <div class="reply">
+                            <div class="post-header">
+                                <span class="post-number" data-id="${reply.id}">No.${reply.id}</span>
+                                ${reply.name || 'Anonymous'} ${reply.date}
+                            </div>
+                            ${reply.media ? `
+                                ${reply.mediaType === 'image' ? `
+                                    <img class="post-media" src="${reply.media}" alt="Post Media">
+                                ` : `
+                                    <video class="post-media" controls>
+                                        <source src="${reply.media}" type="video/mp4">
+                                    </video>
+                                `}
+                            ` : ''}
+                            <div class="post-content">
+                                ${reply.comment.replace(/>>([0-9]+)/g, '<span class="quote">>>$1</span>')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                threadsDiv.appendChild(threadDiv);
+            });
+
+            // Adicionar eventos aos números de post e citações
+            document.querySelectorAll('.post-number').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    const textarea = document.querySelector('#post-form textarea');
+                    textarea.value += `>>${id}\n`;
+                    textarea.focus();
+                });
+            });
+
+            document.querySelectorAll('.quote').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.textContent.replace('>>', '');
+                    const post = document.querySelector(`.post-number[data-id="${id}"]`);
+                    if (post) {
+                        post.parentElement.parentElement.classList.add('highlighted');
+                        setTimeout(() => {
+                            post.parentElement.parentElement.classList.remove('highlighted');
+                        }, 2000);
+                    }
+                });
+            });
+        }
+
+        // Converter arquivo para Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Manipular envio do formulário
+        document.getElementById('post-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const name = form.name.value || 'Anonymous';
+            const subject = form.subject.value;
+            const comment = form.comment.value;
+            const mediaFile = form.media.files[0];
+            const parentId = form.parentId.value || '';
+
+            if (!comment && !mediaFile) {
+                alert('Please provide a comment or media.');
+                return;
+            }
+
+            let media = null;
+            let mediaType = null;
+            if (mediaFile) {
+                media = await fileToBase64(mediaFile);
+                mediaType = mediaFile.type.startsWith('image') ? 'image' : 'video';
+            }
+
+            const post = {
+                id: generateId(),
+                name,
+                subject,
+                comment,
+                media,
+                mediaType,
+                date: formatDate(),
+                parentId: parentId || null
+            };
+
+            const posts = loadPosts();
+            posts.push(post);
+            savePosts(posts);
+
+            form.reset();
+            form.parentId.value = '';
+            renderPosts();
+        });
+
+        // Inicializar
+        renderPosts();
+    </script>
 </body>
-      </html>
+</html>
