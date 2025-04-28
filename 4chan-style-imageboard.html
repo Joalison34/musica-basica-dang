@@ -1,0 +1,731 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imageboard Test</title>
+    <style>
+        body {
+            background-color: #eef2ff;
+            color: #000;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            margin: 0;
+            padding: 10px;
+        }
+        a {
+            color: #0000EE;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .header {
+            text-align: center;
+            padding: 10px;
+            background-color: #d6daf0;
+            border: 1px solid #000;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 16px;
+            margin: 0;
+        }
+        .nav {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .nav a {
+            margin: 0 5px;
+        }
+        .thread {
+            background-color: #f0e0d6;
+            border: 1px solid #d9bfb7;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .post {
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .post-header {
+            font-weight: bold;
+            color: #800000;
+        }
+        .post-number {
+            color: #0000EE;
+            cursor: pointer;
+        }
+        .post-number:hover {
+            text-decoration: underline;
+        }
+        .post-media-container {
+            float: left;
+            margin-right: 10px;
+        }
+        .post-media {
+            max-width: 150px;
+            max-height: 150px;
+            cursor: pointer;
+        }
+        .post-media.expanded {
+            max-width: none;
+            max-height: none;
+        }
+        .media-info {
+            font-size: 10px;
+            color: #666;
+        }
+        .post-content {
+            line-height: 1.4;
+        }
+        .quote {
+            color: #789922;
+            cursor: pointer;
+            position: relative;
+        }
+        .quote:hover {
+            text-decoration: underline;
+        }
+        .quote:hover .quote-popup {
+            display: block;
+        }
+        .quote-popup {
+            display: none;
+            position: absolute;
+            background: #f0e0d6;
+            border: 1px solid #d9bfb7;
+            padding: 5px;
+            font-size: 10px;
+            z-index: 10;
+            max-width: 200px;
+            top: -10px;
+            left: 20px;
+        }
+        .reply {
+            margin-left: 20px;
+            background-color: #d6daf0;
+            padding: 5px;
+            border: 1px solid #b7c5d9;
+        }
+        .hidden-replies {
+            margin-left: 20px;
+            font-style: italic;
+        }
+        .form-container {
+            background-color: #d6daf0;
+            padding: 10px;
+            border: 1px solid #000;
+            margin-bottom: 10px;
+        }
+        .form-container input, .form-container textarea {
+            font-size: 12px;
+            margin: 5px 0;
+            width: calc(100% - 10px);
+        }
+        .form-container input[type="file"] {
+            width: auto;
+        }
+        .form-container input[type="submit"] {
+            background-color: #98e;
+            border: 1px solid #000;
+            padding: 5px;
+            cursor: pointer;
+        }
+        .form-container input[type="submit"]:hover {
+            background-color: #76c;
+        }
+        .preview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 5px;
+        }
+        .catalog {
+            display: none;
+            margin-bottom: 10px;
+        }
+        .catalog.active {
+            display: block;
+        }
+        .catalog-item {
+            display: inline-block;
+            width: 150px;
+            margin: 5px;
+            background-color: #f0e0d6;
+            border: 1px solid #d9bfb7;
+            padding: 5px;
+            text-align: center;
+        }
+        .catalog-item img, .catalog-item video {
+            max-width: 100px;
+            max-height: 100px;
+        }
+        .catalog-item p {
+            margin: 5px 0;
+            font-size: 11px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .catalog-stats {
+            font-size: 10px;
+            color: #666;
+        }
+        .delete-btn {
+            color: #ff0000;
+            cursor: pointer;
+            font-size: 10px;
+            margin-left: 10px;
+        }
+        .delete-btn:hover {
+            text-decoration: underline;
+        }
+        .reply-btn {
+            color: #0000EE;
+            cursor: pointer;
+            font-size: 10px;
+            margin-left: 10px;
+        }
+        .reply-btn:hover {
+            text-decoration: underline;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-top: 20px;
+        }
+        .highlighted {
+            background-color: #ffffcc;
+            transition: background-color 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>/test/ - Test Board</h1>
+    </div>
+    <div class="nav">
+        [<a href="#" onclick="showBoard(); return false;">Home</a>]
+        [<a href="#" onclick="showCatalog(); return false;">Catalog</a>]
+        [<a href="#" onclick="return false;">Archive</a>]
+    </div>
+    <div class="form-container">
+        <form id="post-form">
+            <input type="text" name="name" placeholder="Anonymous"><br>
+            <input type="text" name="subject" placeholder="Subject"><br>
+            <textarea name="comment" rows="4" placeholder="Comment"></textarea><br>
+            <input type="file" name="media" accept="image/*,video/*"><br>
+            <div id="preview"></div>
+            <input type="hidden" name="parentId" value="">
+            <input type="submit" value="Post">
+        </form>
+    </div>
+    <div id="catalog" class="catalog"></div>
+    <div id="threads"></div>
+    <div class="footer">
+        Test Imageboard - All rights reserved 2025
+    </div>
+
+    <script>
+        // Função para gerar ID único
+        function generateId() {
+            return Math.floor(Math.random() * 1000000) + 1;
+        }
+
+        // Função para formatar data
+        function formatDate() {
+            const date = new Date();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const yy = String(date.getFullYear()).slice(-2);
+            const hh = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            const ss = String(date.getSeconds()).padStart(2, '0');
+            const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+            return `${mm}/${dd}/${yy}(${day})${hh}:${min}:${ss}`;
+        }
+
+        // Carregar posts do localStorage
+        function loadPosts() {
+            try {
+                return JSON.parse(localStorage.getItem('posts') || '[]');
+            } catch (e) {
+                console.error('Error loading posts:', e);
+                return [];
+            }
+        }
+
+        // Salvar posts no localStorage
+        function savePosts(posts) {
+            try {
+                localStorage.setItem('posts', JSON.stringify(posts));
+            } catch (e) {
+                console.error('Error saving posts:', e);
+                alert('Failed to save post. LocalStorage may be full.');
+            }
+        }
+
+        // Validar arquivo
+        function validateFile(file) {
+            if (!file) return true; // Arquivo opcional
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                alert('File size exceeds 5MB limit.');
+                return false;
+            }
+            if (!file.type.match(/^(image|video)\//)) {
+                alert('Only images and videos are allowed.');
+                return false;
+            }
+            return true;
+        }
+
+        // Converter arquivo para Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Obter metadados do arquivo
+        function getFileMetadata(file) {
+            if (!file) return null;
+            const size = file.size < 1024 * 1024
+                ? (file.size / 1024).toFixed(2) + ' KB'
+                : (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            return { name: file.name, size };
+        }
+
+        // Escapar HTML para evitar XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Renderizar catálogo
+        function renderCatalog() {
+            console.log('Rendering catalog');
+            const catalogDiv = document.getElementById('catalog');
+            catalogDiv.innerHTML = '';
+            const posts = loadPosts();
+            const threads = posts.filter(post => !post.parentId);
+            const threadStats = threads.map(thread => {
+                const replies = posts.filter(post => post.parentId === thread.id);
+                const images = replies.filter(post => post.mediaType === 'image').length + (thread.mediaType === 'image' ? 1 : 0);
+                return { thread, replies: replies.length, images };
+            }).sort((a, b) => b.thread.lastActivity - a.thread.lastActivity);
+
+            threadStats.forEach(({ thread, replies, images }) => {
+                const mediaHtml = thread.media
+                    ? (thread.mediaType === 'image'
+                        ? `<img src="${thread.media}" alt="Thread Media">`
+                        : `<video><source src="${thread.media}" type="video/mp4"></video>`)
+                    : '<div style="width:100px;height:100px;background:#d9bfb7;">No Image</div>';
+                const subject = thread.subject || 'No Subject';
+                const commentPreview = thread.comment.slice(0, 30) + (thread.comment.length > 30 ? '...' : '');
+
+                const catalogItem = document.createElement('div');
+                catalogItem.className = 'catalog-item';
+                catalogItem.innerHTML = `
+                    <a href="#post-${thread.id}">
+                        ${mediaHtml}
+                        <p>${escapeHtml(subject)}</p>
+                        <p>${escapeHtml(commentPreview)}</p>
+                        <div class="catalog-stats">${replies} replies, ${images} images</div>
+                    </a>
+                `;
+                catalogDiv.appendChild(catalogItem);
+            });
+        }
+
+        // Renderizar posts
+        function renderPosts() {
+            console.log('Rendering posts');
+            const threadsDiv = document.getElementById('threads');
+            threadsDiv.innerHTML = '';
+            const posts = loadPosts();
+            const threads = posts.filter(post => !post.parentId).sort((a, b) => b.lastActivity - a.lastActivity);
+
+            threads.forEach(thread => {
+                const threadDiv = document.createElement('div');
+                threadDiv.className = 'thread';
+                threadDiv.id = `post-${thread.id}`;
+
+                const mediaHtml = thread.media
+                    ? (thread.mediaType === 'image'
+                        ? `<img class="post-media" src="${thread.media}" alt="Post Media" data-full="${thread.media}">`
+                        : `<video class="post-media" controls><source src="${thread.media}" type="video/mp4"></video>`)
+                    : '';
+                const mediaInfo = thread.mediaMetadata
+                    ? `File: ${escapeHtml(thread.mediaMetadata.name)} (${thread.mediaMetadata.size})`
+                    : '';
+                const subjectHtml = thread.subject ? `<b>${escapeHtml(thread.subject)}</b><br>` : '';
+
+                threadDiv.innerHTML += `
+                    <div class="post">
+                        <div class="post-header">
+                            <span class="post-number" data-id="${thread.id}">No.${thread.id}</span>
+                            ${escapeHtml(thread.name || 'Anonymous')} ${thread.date}
+                            <span class="reply-btn" data-id="${thread.id}">[Reply]</span>
+                            <span class="delete-btn" data-id="${thread.id}">[Delete]</span>
+                        </div>
+                        ${mediaHtml ? `<div class="post-media-container">${mediaHtml}<div class="media-info">${mediaInfo}</div></div>` : ''}
+                        <div class="post-content">
+                            ${subjectHtml}
+                            ${thread.comment.replace(/>>([0-9]+)/g, `<span class="quote" data-id="$1">>>$1<span class="quote-popup">${escapeHtml(getPostContent($1))}</span></span>`)}
+                        </div>
+                    </div>
+                `;
+
+                const replies = posts.filter(post => post.parentId === thread.id).sort((a, b) => a.id - b.id);
+                const visibleReplies = replies.slice(-30);
+                const hiddenCount = replies.length - visibleReplies.length;
+
+                if (hiddenCount > 0) {
+                    threadDiv.innerHTML += `
+                        <div class="hidden-replies">
+                            <a href="#" class="view-more" data-thread-id="${thread.id}">${hiddenCount} replies omitted. Click to view.</a>
+                        </div>
+                    `;
+                }
+
+                visibleReplies.forEach(reply => {
+                    const replyMediaHtml = reply.media
+                        ? (reply.mediaType === 'image'
+                            ? `<img class="post-media" src="${reply.media}" alt="Post Media" data-full="${reply.media}">`
+                            : `<video class="post-media" controls><source src="${reply.media}" type="video/mp4"></video>`)
+                        : '';
+                    const replyMediaInfo = reply.mediaMetadata
+                        ? `File: ${escapeHtml(reply.mediaMetadata.name)} (${reply.mediaMetadata.size})`
+                        : '';
+
+                    threadDiv.innerHTML += `
+                        <div class="reply">
+                            <div class="post-header">
+                                <span class="post-number" data-id="${reply.id}">No.${reply.id}</span>
+                                ${escapeHtml(reply.name || 'Anonymous')} ${reply.date}
+                                <span class="delete-btn" data-id="${reply.id}">[Delete]</span>
+                            </div>
+                            ${replyMediaHtml ? `<div class="post-media-container">${replyMediaHtml}<div class="media-info">${replyMediaInfo}</div></div>` : ''}
+                            <div class="post-content">
+                                ${reply.comment.replace(/>>([0-9]+)/g, `<span class="quote" data-id="$1">>>$1<span class="quote-popup">${escapeHtml(getPostContent($1))}</span></span>`)}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                threadsDiv.appendChild(threadDiv);
+            });
+
+            // Adicionar eventos
+            document.querySelectorAll('.post-number').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    const textarea = document.querySelector('#post-form textarea');
+                    textarea.value += `>>${id}\n`;
+                    textarea.focus();
+                });
+            });
+
+            document.querySelectorAll('.quote').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    const post = document.querySelector(`.post-number[data-id="${id}"]`);
+                    if (post) {
+                        post.parentElement.parentElement.classList.add('highlighted');
+                        post.scrollIntoView({ behavior: 'smooth' });
+                        setTimeout(() => {
+                            post.parentElement.parentElement.classList.remove('highlighted');
+                        }, 2000);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = parseInt(el.getAttribute('data-id'));
+                    deletePost(id);
+                });
+            });
+
+            document.querySelectorAll('.reply-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    document.querySelector('#post-form [name="parentId"]').value = id;
+                    document.querySelector('#post-form textarea').focus();
+                    document.querySelector('#post-form').scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+
+            document.querySelectorAll('.post-media').forEach(el => {
+                if (el.tagName === 'IMG') {
+                    el.addEventListener('click', () => {
+                        el.classList.toggle('expanded');
+                    });
+                }
+            });
+
+            document.querySelectorAll('.view-more').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const threadId = parseInt(el.getAttribute('data-thread-id'));
+                    showAllReplies(threadId);
+                });
+            });
+        }
+
+        // Obter conteúdo do post para pop-up
+        function getPostContent(id) {
+            const posts = loadPosts();
+            const post = posts.find(p => p.id === parseInt(id));
+            if (!post) return 'Post not found';
+            return post.comment.slice(0, 100) + (post.comment.length > 100 ? '...' : '');
+        }
+
+        // Exibir todas as replies
+        function showAllReplies(threadId) {
+            console.log('Showing all replies for thread:', threadId);
+            const posts = loadPosts();
+            const replies = posts.filter(post => post.parentId === threadId).sort((a, b) => a.id - b.id);
+            const threadDiv = document.getElementById(`post-${threadId}`);
+            const repliesContainer = threadDiv.querySelector('.hidden-replies');
+            if (repliesContainer) {
+                repliesContainer.remove();
+            }
+
+            const existingReplies = threadDiv.querySelectorAll('.reply');
+            existingReplies.forEach(reply => reply.remove());
+
+            replies.forEach(reply => {
+                const replyMediaHtml = reply.media
+                    ? (reply.mediaType === 'image'
+                        ? `<img class="post-media" src="${reply.media}" alt="Post Media" data-full="${reply.media}">`
+                        : `<video class="post-media" controls><source src="${reply.media}" type="video/mp4"></video>`)
+                    : '';
+                const replyMediaInfo = reply.mediaMetadata
+                    ? `File: ${escapeHtml(reply.mediaMetadata.name)} (${reply.mediaMetadata.size})`
+                    : '';
+
+                const replyDiv = document.createElement('div');
+                replyDiv.className = 'reply';
+                replyDiv.innerHTML = `
+                    <div class="post-header">
+                        <span class="post-number" data-id="${reply.id}">No.${reply.id}</span>
+                        ${escapeHtml(reply.name || 'Anonymous')} ${reply.date}
+                        <span class="delete-btn" data-id="${reply.id}">[Delete]</span>
+                    </div>
+                    ${replyMediaHtml ? `<div class="post-media-container">${replyMediaHtml}<div class="media-info">${replyMediaInfo}</div></div>` : ''}
+                    <div class="post-content">
+                        ${reply.comment.replace(/>>([0-9]+)/g, `<span class="quote" data-id="$1">>>$1<span class="quote-popup">${escapeHtml(getPostContent($1))}</span></span>`)}
+                    </div>
+                `;
+                threadDiv.appendChild(replyDiv);
+            });
+
+            // Reaplicar eventos
+            threadDiv.querySelectorAll('.post-number').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    const textarea = document.querySelector('#post-form textarea');
+                    textarea.value += `>>${id}\n`;
+                    textarea.focus();
+                });
+            });
+
+            threadDiv.querySelectorAll('.quote').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.getAttribute('data-id');
+                    const post = document.querySelector(`.post-number[data-id="${id}"]`);
+                    if (post) {
+                        post.parentElement.parentElement.classList.add('highlighted');
+                        post.scrollIntoView({ behavior: 'smooth' });
+                        setTimeout(() => {
+                            post.parentElement.parentElement.classList.remove('highlighted');
+                        }, 2000);
+                    }
+                });
+            });
+
+            threadDiv.querySelectorAll('.delete-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = parseInt(el.getAttribute('data-id'));
+                    deletePost(id);
+                });
+            });
+
+            threadDiv.querySelectorAll('.post-media').forEach(el => {
+                if (el.tagName === 'IMG') {
+                    el.addEventListener('click', () => {
+                        el.classList.toggle('expanded');
+                    });
+                }
+            });
+        }
+
+        // Excluir post
+        function deletePost(id) {
+            console.log('Deleting post:', id);
+            let posts = loadPosts();
+            posts = posts.filter(post => post.id !== id && post.parentId !== id);
+            savePosts(posts);
+            renderPosts();
+            renderCatalog();
+        }
+
+        // Mostrar catálogo
+        function showCatalog() {
+            document.getElementById('catalog').classList.add('active');
+            document.getElementById('threads').style.display = 'none';
+            document.querySelector('.form-container').style.display = 'none';
+            renderCatalog();
+        }
+
+        // Mostrar board
+        function showBoard() {
+            document.getElementById('catalog').classList.remove('active');
+            document.getElementById('threads').style.display = 'block';
+            document.querySelector('.form-container').style.display = 'block';
+            renderPosts();
+        }
+
+        // Manipular envio do formulário
+        document.getElementById('post-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Form submitted');
+            const form = e.target;
+            const name = form.name.value || 'Anonymous';
+            const subject = form.subject.value;
+            const comment = form.comment.value;
+            const mediaFile = form.media.files[0];
+            const parentId = form.parentId.value || '';
+
+            if (!comment && !mediaFile) {
+                alert('Please provide a comment or media.');
+                console.log('Validation failed: No comment or media');
+                return;
+            }
+
+            try {
+                let media = null;
+                let mediaType = null;
+                let mediaMetadata = null;
+                if (mediaFile) {
+                    console.log('Processing media file:', mediaFile.name);
+                    if (!validateFile(mediaFile)) {
+                        console.log('File validation failed');
+                        return;
+                    }
+                    media = await fileToBase64(mediaFile);
+                    mediaType = mediaFile.type.startsWith('image') ? 'image' : 'video';
+                    mediaMetadata = getFileMetadata(mediaFile);
+                }
+
+                const post = {
+                    id: generateId(),
+                    name,
+                    subject,
+                    comment,
+                    media,
+                    mediaType,
+                    mediaMetadata,
+                    date: formatDate(),
+                    parentId: parentId || null,
+                    lastActivity: Date.now()
+                };
+
+                console.log('New post:', post);
+
+                const posts = loadPosts();
+                if (parentId) {
+                    const parent = posts.find(p => p.id === parseInt(parentId));
+                    if (parent) {
+                        parent.lastActivity = Date.now();
+                    }
+                }
+                posts.push(post);
+                savePosts(posts);
+
+                console.log('Post saved successfully');
+
+                form.reset();
+                form.parentId.value = '';
+                document.getElementById('preview').innerHTML = '';
+                renderPosts();
+                renderCatalog();
+            } catch (error) {
+                console.error('Error posting:', error);
+                alert('Failed to post. Please try again.');
+            }
+        });
+
+        // Pré-visualização de upload
+        document.querySelector('#post-form [name="media"]').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            const previewDiv = document.getElementById('preview');
+            previewDiv.innerHTML = '';
+
+            if (file && validateFile(file)) {
+                try {
+                    const base64 = await fileToBase64(file);
+                    if (file.type.startsWith('image')) {
+                        previewDiv.innerHTML = `<img src="${base64}" class="preview">`;
+                    } else if (file.type.startsWith('video')) {
+                        previewDiv.innerHTML = `<video class="preview" controls><source src="${base64}" type="video/mp4"></video>`;
+                    }
+                } catch (error) {
+                    console.error('Error previewing file:', error);
+                    alert('Failed to preview file.');
+                }
+            }
+        });
+
+        // Inicializar
+        console.log('Initializing page');
+        renderPosts();
+    </script>
+</body>
+</html>
