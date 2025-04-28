@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imageboard Test</title>
+    <style>
+        body {
+            background-color: #eef2ff;
+            color: #000;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            margin: 0;
+            padding: 10px;
+        }
+        a {
+            color: #0000EE;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .header {
+            text-align: center;
+            padding: 10px;
+            background-color: #d6daf0;
+            border: 1px solid #000;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 16px;
+            margin: 0;
+        }
+        .nav {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .nav a {
+            margin: 0 5px;
+        }
+        .thread {
+            background-color: #f0e0d6;
+            border: 1px solid #d9bfb7;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .post {
+            margin-bottom: 10px;
+        }
+        .post-header {
+            font-weight: bold;
+            color: #800000;
+        }
+        .post-number {
+            color: #0000EE;
+        }
+        .post-image {
+            float: left;
+            margin-right: 10px;
+            max-width: 150px;
+        }
+        .post-content {
+            line-height: 1.4;
+        }
+        .quote {
+            color: #789922;
+        }
+        .reply {
+            margin-left: 20px;
+            background-color: #d6daf0;
+            padding: 5px;
+            border: 1px solid #b7c5d9;
+        }
+        .form-container {
+            background-color: #d6daf0;
+            padding: 10px;
+            border: 1px solid #000;
+            margin-bottom: 10px;
+        }
+        .form-container input, .form-container textarea {
+            font-size: 12px;
+            margin: 5px 0;
+        }
+        .form-container input[type="submit"] {
+            background-color: #98e;
+            border: 1px solid #000;
+            padding: 5px;
+            cursor: pointer;
+        }
+        .form-container input[type="submit"]:hover {
+            background-color: #76c;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>/test/ - Test Board</h1>
+    </div>
+    <div class="nav">
+        [<a href="#">Home</a>] [<a href="#">Catalog</a>] [<a href="#">Archive</a>]
+    </div>
+    <div class="form-container">
+        <form action="#" method="post">
+            <input type="text" name="name" placeholder="Anonymous"><br>
+            <input type="text" name="subject" placeholder="Subject"><br>
+            <textarea name="comment" rows="4" cols="50" placeholder="Comment"></textarea><br>
+            <input type="file" name="image"><br>
+            <input type="submit" value="Post">
+        </form>
+    </div>
+    <div class="thread">
+        <div class="post">
+            <div class="post-header">
+                <span class="post-number">No.123456</span> Anonymous 04/27/25(Sun)23:11:11
+            </div>
+            <img class="post-image" src="placeholder.jpg" alt="Post Image">
+            <div class="post-content">
+                Welcome to the test board! This is a sample thread to demonstrate the 4chan-style layout.<br>
+                <span class="quote">&gt;&gt;Feel free to reply!</span>
+            </div>
+        </div>
+        <div class="reply">
+            <div class="post-header">
+                <span class="post-number">No.123457</span> Anonymous 04/27/25(Sun)23:15:00
+            </div>
+            <div class="post-content">
+                <span class="quote">&gt;&gt;123456</span><br>
+                Nice thread, OP! Here's a reply for testing.
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        Test Imageboard - All rights reserved 2025
+    </div>
+</body>
+      </html>
