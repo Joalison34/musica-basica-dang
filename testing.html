@@ -828,7 +828,7 @@
                 console.log("Ação de like/dislike concluída");
             } catch (error) {
                 console.error("Erro ao curtir/descurtir:", error.message, error.code);
-               alert(`Erro ao curtir/descurtir: ${error.message}`);
+                alert(`Erro ao curtir/descurtir: ${error.message}`);
             }
         }
 
@@ -897,7 +897,7 @@
             try {
                 const commentRef = doc(db, 'comments', commentId);
                 const commentSnap = await getDoc(commentRef);
-                if (!commentSnap.exists()) {
+                if (!commentSnap.exists()?. {
                     console.log("Comentário não encontrado:", commentId);
                     return;
                 }
@@ -1098,8 +1098,8 @@
             try {
                 const threeDaysAgo = new Date();
                 threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-                console.log("Buscando comentários dos últimos 3 dias");
-                const q = query(collection(db, 'comments'), where('parentId', '==', null), orderBy('timestamp', 'desc'));
+                console.log("Buscando comentários ordenados por timestamp");
+                const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
                 const commentsSnapshot = await getDocs(q);
                 if (commentsSnapshot.empty) {
                     commentsList.innerHTML = '<p>Nenhum post encontrado.</p>';
@@ -1108,6 +1108,11 @@
                 }
                 for (const doc of commentsSnapshot.docs) {
                     const comment = doc.data();
+                    // Filtrar apenas comentários principais (parentId === null)
+                    if (comment.parentId !== null) {
+                        console.log(`Ignorando comentário ${doc.id}: é uma resposta (parentId: ${comment.parentId})`);
+                        continue;
+                    }
                     // Validar campos obrigatórios
                     if (!comment.username || !comment.timestamp || !comment.role) {
                         console.warn(`Comentário ${doc.id} ignorado: campos obrigatórios faltando`, comment);
