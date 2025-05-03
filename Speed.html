@@ -1,0 +1,1415 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>𝕄𝔼𝕋𝔼𝕆ℝ𝕀ℂ ℝ𝔸ℂ𝔼 𝔾𝔸𝕄𝔼</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #87CEEB;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        canvas {
+            display: block;
+            border: 2px solid black;
+            max-width: 100%;
+            max-height: 80vh;
+            width: auto;
+            height: auto;
+            margin-top: 15vh;
+        }
+        .hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 3vw;
+            z-index: 10;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            transform: scale(0.8);
+            animation: hudFadeIn 0.5s ease-out forwards;
+        }
+        #modeSelection, #difficultySelection, #gameOverScreen, #admPasswordScreen, #endGameQuestionScreen, #blockedScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 5vw;
+            z-index: 20;
+            opacity: 0;
+            transform: scale(0.9);
+            animation: menuFadeIn 0.5s ease-out forwards;
+        }
+        #gameOverScreen, #admPasswordScreen, #endGameQuestionScreen, #blockedScreen {
+            display: none;
+            text-align: center;
+        }
+        #gameOverMessage, #passwordMessage, #questionMessage, #blockedMessage {
+            margin-bottom: 20px;
+        }
+        #restartButton, #submitPasswordButton, #yesButton, #noButton {
+            padding: 10px 20px;
+            font-size: 3vw;
+            cursor: pointer;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #restartButton:hover, #submitPasswordButton:hover, #yesButton:hover, #noButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        .name-inputs, .password-inputs {
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .name-inputs input, .name-inputs select, .password-inputs input {
+            margin: 5px 0;
+            padding: 5px;
+            font-size: 3vw;
+            width: 30vw;
+            max-width: 200px;
+            transition: transform 0.2s;
+        }
+        .name-inputs input:focus, .name-inputs select:focus, .password-inputs input:focus {
+            transform: scale(1.05);
+        }
+        #startButton, #onePlayerButton, #twoPlayersButton,
+        #easyButton, #mediumButton, #hardButton, #insaneButton, #admButton {
+            padding: 10px 20px;
+            font-size: 3vw;
+            cursor: pointer;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #onePlayerButton, #twoPlayersButton {
+            background-color: #28a745;
+        }
+        #onePlayerButton:hover, #twoPlayersButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        #easyButton {
+            background-color: #28a745;
+        }
+        #easyButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        #mediumButton {
+            background-color: #f28c38;
+        }
+        #mediumButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+        }
+        #hardButton {
+            background-color: #dc3545;
+        }
+        #hardButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        #insaneButton {
+            background: linear-gradient(45deg, #ff4500, #ff8c00, #ff4500);
+            background-size: 200%;
+            position: relative;
+            overflow: hidden;
+            animation: fireGradient 2s ease infinite;
+        }
+        #insaneButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.7);
+        }
+        #insaneButton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="yellow" d="M50,20 Q60,10 70,20 T90,20 T70,40 T90,60 T70,80 T50,80 Q40,90 30,80 T10,80 T30,60 T10,40 T30,20 T50,20 Z" opacity="0.7"><animate attributeName="d" values="M50,20 Q60,10 70,20 T90,20 T70,40 T90,60 T70,80 T50,80 Q40,90 30,80 T10,80 T30,60 T10,40 T30,20 T50,20 Z;M50,20 Q65,5 75,15 T95,25 T75,45 T95,65 T75,85 T50,80 Q35,95 25,85 T5,75 T25,55 T5,35 T25,15 T50,20 Z;M50,20 Q60,10 70,20 T90,20 T70,40 T90,60 T70,80 T50,80 Q40,90 30,80 T10,80 T30,60 T10,40 T30,20 T50,20 Z" dur="0.8s" repeatCount="indefinite"/></path></svg>') no-repeat center;
+            background-size: cover;
+            opacity: 0.8;
+            z-index: -1;
+        }
+        #admButton {
+            background: linear-gradient(45deg, #4b0082, #ff00ff, #4b0082);
+            background-size: 200%;
+            position: relative;
+            overflow: hidden;
+            animation: cosmicPulse 3s ease infinite, glow 1.5s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+        #admButton:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.8), 0 0 60px rgba(75, 0, 130, 0.6);
+        }
+        #admButton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="white" stroke-width="5"><animate attributeName="r" values="40;45;40" dur="1.5s" repeatCount="indefinite"/></circle><path fill="white" d="M50,20 L60,40 L80,45 L65,60 L70,80 L50,70 L30,80 L35,60 L20,45 L40,40 Z" opacity="0.7"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="10s" repeatCount="indefinite"/></path></svg>') no-repeat center;
+            background-size: cover;
+            opacity: 0.5;
+            z-index: -1;
+            animation: starSpin 10s linear infinite;
+        }
+        .touch-controls {
+            display: none;
+            position: absolute;
+            top: 2vh;
+            left: 0;
+            z-index: 15;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10vw; /* Mantido para evitar sobreposição com HUD */
+            box-sizing: border-box;
+            opacity: 0;
+            animation: controlsFadeIn 0.5s ease-out forwards;
+        }
+        .touch-controls.single-player-controls {
+            /* No modo 1 jogador, desativar justify-content para posicionamento absoluto */
+            justify-content: normal;
+            padding: 0; /* Removido padding para botões nos cantos */
+        }
+        .player-controls {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 1vw;
+        }
+        .touch-controls.single-player-controls .player-controls {
+            /* Ocultar player-controls no modo 1 jogador */
+            display: none;
+        }
+        .single-player-left {
+            /* Botão Esquerda no canto superior esquerdo */
+            position: absolute;
+            left: 2vw;
+            top: 2vh;
+        }
+        .single-player-right {
+            /* Botão Direita no canto superior direito */
+            position: absolute;
+            right: 2vw;
+            top: 2vh;
+        }
+        .control-button {
+            width: 14vw;
+            height: 14vw;
+            max-width: 55px;
+            max-height: 55px;
+            background: linear-gradient(45deg, rgba(139, 0, 139, 0.3), rgba(255, 0, 255, 0.3), rgba(139, 0, 139, 0.3));
+            background-size: 200%;
+            border: 2px solid rgba(255, 0, 255, 0.5);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 5px rgba(255, 0, 255, 0.3);
+            opacity: 0.3;
+            animation: cosmicPulse 3s ease infinite;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .control-button:active {
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.5), rgba(255, 0, 255, 0.5), rgba(255, 255, 255, 0.5));
+            transform: scale(0.9);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            opacity: 0.5;
+            animation: pulse 0.2s ease-out;
+        }
+        .control-button svg {
+            width: 50%;
+            height: 50%;
+            fill: white;
+            fill-opacity: 0.5;
+        }
+        .control-label {
+            color: white;
+            font-size: 2vw;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+            margin-top: 0.5vw;
+            font-family: 'Arial Black', sans-serif;
+            opacity: 0.5;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .touch-controls {
+                display: flex;
+                top: 1vh;
+                padding: 0 5vw;
+            }
+            .touch-controls.single-player-controls {
+                padding: 0;
+            }
+            .single-player-left {
+                left: 1vw;
+                top: 1vh;
+            }
+            .single-player-right {
+                right: 1vw;
+                top: 1vh;
+            }
+            .hud {
+                font-size: 4vw;
+            }
+            #modeSelection, #difficultySelection, #gameOverScreen, #admPasswordScreen, #endGameQuestionScreen, #blockedScreen {
+                font-size: 6vw;
+            }
+            #restartButton, #submitPasswordButton, #yesButton, #noButton,
+            #startButton, #onePlayerButton, #twoPlayersButton,
+            #easyButton, #mediumButton, #hardButton, #insaneButton, #admButton {
+                font-size: 4vw;
+            }
+            .name-inputs input, .name-inputs select, .password-inputs input {
+                font-size: 4vw;
+                width: 40vw;
+            }
+            .player-controls {
+                gap: 0.5vw;
+            }
+            .control-button {
+                width: 16vw;
+                height: 16vw;
+                max-width: 60px;
+                max-height: 60px;
+                opacity: 0.4;
+            }
+            .control-button:active {
+                opacity: 0.6;
+            }
+            .control-label {
+                font-size: 2.5vw;
+                opacity: 0.6;
+            }
+        }
+        @keyframes hudFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes menuFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes controlsFadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fireGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes cosmicPulse {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes glow {
+            0% { box-shadow: 0 0 20px rgba(255, 0, 255, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(255, 0, 255, 0.8), 0 0 80px rgba(75, 0, 130, 0.6); }
+            100% { box-shadow: 0 0 20px rgba(255, 0, 255, 0.5); }
+        }
+        @keyframes starSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="600" aria-label="Área do jogo Meteoric Race"></canvas>
+    <div class="hud" id="hud">
+        𝕁𝕠𝕘𝕒𝕕𝕠𝕣 𝟙: 𝕍𝕚𝕕𝕒𝕤: <span id="lives1" aria-live="polite">3</span> | ℙ𝕠𝕟𝕥𝕦𝕒𝕔𝕚𝕠𝕟: <span id="score1" aria-live="polite">0</span> | 𝕋𝕖𝕞𝕡𝕠: <span id="timer" aria-live="polite">∞</span><br>
+        <span id="player2Hud" style="display: none;">
+            𝕁𝕠𝕘𝕒𝕕𝕠𝕣 𝟚: 𝕍𝕚𝕕𝕒𝕤: <span id="lives2" aria-live="polite">3</span> | ℙ𝕠𝕟𝕥𝕦𝕒𝕔𝕚𝕠𝕟: <span id="score2" aria-live="polite">0</span>
+        </span>
+        <span id="puzzleHud" style="display: none;">
+            Peças: <span id="puzzlePieces1">0</span>/<span id="requiredPieces">5</span>
+            <span id="puzzlePieces2" style="display: none;"> | Peças P2: <span id="puzzlePieces2Count">0</span>/<span id="requiredPieces2">5</span></span>
+        </span>
+    </div>
+    
+    <div id="modeSelection" role="dialog" aria-labelledby="modeSelectionTitle">
+        <h1 id="modeSelectionTitle">𝕄𝔼𝕋𝔼𝕆ℝ𝕀ℂ ℝ𝔸ℂ𝔼 𝔾𝔸𝕄𝔼</h1>
+        <div class="name-inputs">
+            <label for="player1Name">Nome do Jogador 1</label>
+            <input type="text" id="player1Name" placeholder="𝔑𝔬𝔪𝔢 𝔡𝔬 𝔍𝔬𝔤𝔞𝔡𝔬𝔯 1" aria-required="true" />
+            <label for="carColor1">Cor do Carro 1</label>
+            <select id="carColor1" aria-label="Seleção de cor do carro do Jogador 1">
+                <option value="red">Vermelho</option>
+                <option value="blue">Azul</option>
+                <option value="black">Preto</option>
+                <option value="pink">Rosa</option>
+                <option value="purple">Roxo</option>
+                <option value="brown">Marrom</option>
+                <option value="orange">Laranja</option>
+                <option value="white">Branco</option>
+                <option value="yellow">Amarelo</option>
+            </select>
+            <label for="player2Name" id="player2NameLabel">Nome do Jogador 2</label>
+            <input type="text" id="player2Name" placeholder="𝔑𝔬𝔪𝔢 𝔡𝔬 𝔍𝔬𝔤𝔞𝔡𝔬𝔯 2" aria-required="true" />
+            <label for="carColor2" id="carColor2Label">Cor do Carro 2</label>
+            <select id="carColor2" aria-label="Seleção de cor do carro do Jogador 2">
+                <option value="blue">Azul</option>
+                <option value="red">Vermelho</option>
+                <option value="black">Preto</option>
+                <option value="pink">Rosa</option>
+                <option value="purple">Roxo</option>
+                <option value="brown">Marrom</option>
+                <option value="orange">Laranja</option>
+                <option value="white">Branco</option>
+                <option value="yellow">Amarelo</option>
+            </select>
+        </div>
+        <button id="onePlayerButton" aria-label="Iniciar jogo com 1 jogador">1 𝔍𝔬𝔤𝔞𝔡𝔬𝔯</button>
+        <button id="twoPlayersButton" aria-label="Iniciar jogo com 2 jogadores">2 𝔍𝔬𝔤𝔒𝔡𝔬𝔯𝔢𝔰</button>
+    </div>
+
+    <div id="difficultySelection" style="display: none;" role="dialog" aria-labelledby="difficultySelectionTitle">
+        <h1 id="difficultySelectionTitle">𝔼𝔰𝔠𝔬𝔩𝔥𝔞 𝔸 𝔻𝔦𝔣𝔦𝔠𝔲𝔩𝔡𝔞𝔡𝔢</h1>
+        <button id="easyButton" aria-label="Selecionar dificuldade Fácil">𝔽á𝔠𝔦𝔩</button>
+        <button id="mediumButton" aria-label="Selecionar dificuldade Médio">𝕄é𝔡𝔦𝔬</button>
+        <button id="hardButton" aria-label="Selecionar dificuldade Difícil">𝔻𝔦𝔣í𝔠𝔦𝔩</button>
+        <button id="insaneButton" aria-label="Selecionar dificuldade Insano">𝕀𝕟𝕤𝕒𝕟𝕠</button>
+        <button id="admButton" aria-label="Selecionar dificuldade ADM">𝔸𝔻𝕄</button>
+    </div>
+
+    <div id="gameOverScreen" role="dialog" aria-labelledby="gameOverTitle">
+        <h1 id="gameOverTitle">Fim de Jogo</h1>
+        <p id="gameOverMessage" aria-live="assertive"></p>
+        <button id="restartButton" aria-label="Reiniciar jogo">Jogar Novamente</button>
+    </div>
+
+    <div id="admPasswordScreen" role="dialog" aria-labelledby="passwordTitle">
+        <h1 id="passwordTitle">Modo ADM</h1>
+        <p id="passwordMessage">Digite a senha para desbloquear o modo ADM:</p>
+        <div class="password-inputs">
+            <input type="password" id="admPasswordInput" placeholder="Senha" aria-required="true" />
+        </div>
+        <button id="submitPasswordButton" aria-label="Enviar senha">Enviar</button>
+    </div>
+
+    <div id="endGameQuestionScreen" role="dialog" aria-labelledby="questionTitle">
+        <h1 id="questionTitle">Parabéns!</h1>
+        <p id="questionMessage">Você terminou o modo Insano sem morrer! Você gostou do jogo?</p>
+        <button id="yesButton" aria-label="Sim, gostei do jogo">Sim</button>
+        <button id="noButton" aria-label="Não, não gostei do jogo">Não</button>
+    </div>
+
+    <div id="blockedScreen" role="dialog" aria-labelledby="blockedTitle">
+        <h1 id="blockedTitle">Jogo Bloqueado</h1>
+        <p id="blockedMessage">O jogo está bloqueado por 10 minutos. Tente novamente mais tarde.</p>
+    </div>
+
+    <div class="touch-controls" id="touchControls">
+        <div class="player-controls" id="player1Controls">
+            <div>
+                <button class="control-button" id="leftButton1" aria-label="Mover Jogador 1 para a esquerda">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                    </svg>
+                </button>
+                <div class="control-label">P1 Esquerda</div>
+            </div>
+            <div>
+                <button class="control-button" id="rightButton1" aria-label="Mover Jogador 1 para a direita">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                    </svg>
+                </button>
+                <div class="control-label">P1 Direita</div>
+            </div>
+        </div>
+        <div class="player-controls" id="player2Controls" style="display: none;">
+            <div>
+                <button class="control-button" id="leftButton2" aria-label="Mover Jogador 2 para a esquerda">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                    </svg>
+                </button>
+                <div class="control-label">P2 Esquerda</div>
+            </div>
+            <div>
+                <button class="control-button" id="rightButton2" aria-label="Mover Jogador 2 para a direita">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                    </svg>
+                </button>
+                <div class="control-label">P2 Direita</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Polyfill para requestAnimationFrame
+        window.requestAnimationFrame = window.requestAnimationFrame ||
+                                       window.mozRequestAnimationFrame ||
+                                       window.webkitRequestAnimationFrame ||
+                                       window.msRequestAnimationFrame ||
+                                       function(callback) { setTimeout(callback, 1000 / 60); };
+
+        // Detecção de dispositivo móvel
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                         ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+
+        const canvas = document.getElementById('gameCanvas');
+        let ctx;
+        try {
+            ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Contexto 2D não suportado');
+        } catch (error) {
+            console.error('Erro ao obter contexto do canvas:', error);
+            document.body.innerHTML = '<p style="color: red; text-align: center;">Erro: Seu navegador não suporta o contexto 2D do canvas. Por favor, use um navegador moderno.</p>';
+            throw error;
+        }
+
+        // Ajustar tamanho do canvas para mobile
+        function resizeCanvas() {
+            const maxWidth = window.innerWidth * 0.95;
+            const maxHeight = window.innerHeight * 0.80;
+            const aspectRatio = 400 / 600;
+            let canvasWidth = 400;
+            let canvasHeight = 600;
+
+            if (isMobile) {
+                if (maxWidth / maxHeight > aspectRatio) {
+                    canvasHeight = maxHeight;
+                    canvasWidth = canvasHeight * aspectRatio;
+                } else {
+                    canvasWidth = maxWidth;
+                    canvasHeight = canvasWidth / aspectRatio;
+                }
+            }
+
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            canvas.style.width = `${canvasWidth}px`;
+            canvas.style.height = `${canvasHeight}px`;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Configurações do jogo
+        const carWidth = 40;
+        const carHeight = 80;
+        const puzzlePieceSize = 30;
+        const admPassword = '2025';
+        const blockDuration = 10 * 60 * 1000;
+
+        // Estado inicial
+        let gameState = {
+            carX1: canvas.width / 4 - carWidth / 2,
+            carX2: canvas.width * 3 / 4 - carWidth / 2,
+            targetCarX1: canvas.width / 4 - carWidth / 2,
+            targetCarX2: canvas.width * 3 / 4 - carWidth / 2,
+            carTilt1: 0,
+            carTilt2: 0,
+            carY: canvas.height - carHeight - 10,
+            lives1: 3,
+            lives2: 3,
+            score1: 0,
+            score2: 0,
+            timer: 60,
+            obstacles: [],
+            particles: [],
+            puzzlePieces: [],
+            collectedPieces1: 0,
+            collectedPieces2: 0,
+            requiredPieces: 5,
+            deaths: 0,
+            gameStarted: false,
+            mode: '1',
+            difficulty: 'easy',
+            player1Name: 'Jogador 1',
+            player2Name: 'Jogador 2',
+            carColor1: 'red',
+            carColor2: 'blue',
+            shakeOffsetX: 0,
+            shakeOffsetY: 0,
+            shakeDuration: 0,
+            isGameBlocked: false,
+            blockTimestamp: null,
+            obstacleInterval: null,
+            timerInterval: null,
+            isLeft1Pressed: false,
+            isRight1Pressed: false,
+            isLeft2Pressed: false,
+            isRight2Pressed: false
+        };
+
+        const difficultySettings = {
+            easy: { obstacleSpeed: 2, spawnInterval: 2000, timer: 90, puzzleEnabled: false },
+            medium: { obstacleSpeed: 3, spawnInterval: 1500, timer: 60, puzzleEnabled: false },
+            hard: { obstacleSpeed: 4, spawnInterval: 1000, timer: 45, puzzleEnabled: false },
+            insane: { obstacleSpeed: 5, spawnInterval: 700, timer: 30, puzzleEnabled: false },
+            adm: { obstacleSpeed: 6, spawnInterval: 600, timer: Infinity, puzzleEnabled: true }
+        };
+
+        // Configurar controles por toque
+        if (isMobile) {
+            const leftButton1 = document.getElementById('leftButton1');
+            const rightButton1 = document.getElementById('rightButton1');
+            const leftButton2 = document.getElementById('leftButton2');
+            const rightButton2 = document.getElementById('rightButton2');
+
+            if (leftButton1 && rightButton1) {
+                leftButton1.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    gameState.isLeft1Pressed = true;
+                    if (navigator.vibrate) navigator.vibrate(50);
+                });
+                leftButton1.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    gameState.isLeft1Pressed = false;
+                });
+                rightButton1.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    gameState.isRight1Pressed = true;
+                    if (navigator.vibrate) navigator.vibrate(50);
+                });
+                rightButton1.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    gameState.isRight1Pressed = false;
+                });
+            }
+
+            if (leftButton2 && rightButton2) {
+                leftButton2.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    gameState.isLeft2Pressed = true;
+                    if (navigator.vibrate) navigator.vibrate(50);
+                });
+                leftButton2.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    gameState.isLeft2Pressed = false;
+                });
+                rightButton2.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    gameState.isRight2Pressed = true;
+                    if (navigator.vibrate) navigator.vibrate(50);
+                });
+                rightButton2.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    gameState.isRight2Pressed = false;
+                });
+            }
+        }
+
+        // Funções de gerenciamento de bloqueio
+        function checkBlockStatus() {
+            const storedBlock = localStorage.getItem('gameBlock');
+            if (storedBlock) {
+                const blockData = JSON.parse(storedBlock);
+                gameState.blockTimestamp = blockData.timestamp;
+                const currentTime = Date.now();
+                if (currentTime < gameState.blockTimestamp + blockDuration) {
+                    gameState.isGameBlocked = true;
+                    const blockedScreen = document.getElementById('blockedScreen');
+                    if (blockedScreen) {
+                        blockedScreen.style.display = 'flex';
+                        updateBlockedMessage();
+                    }
+                } else {
+                    localStorage.removeItem('gameBlock');
+                    gameState.isGameBlocked = false;
+                }
+            }
+        }
+
+        function updateBlockedMessage() {
+            if (!gameState.isGameBlocked) return;
+            const blockedScreen = document.getElementById('blockedScreen');
+            const blockedMessage = document.getElementById('blockedMessage');
+            if (!blockedScreen || !blockedMessage) return;
+            const currentTime = Date.now();
+            const remainingTime = Math.max(0, Math.floor((gameState.blockTimestamp + blockDuration - currentTime) / 1000));
+            blockedMessage.innerText = `O jogo está bloqueado por mais ${remainingTime} segundos. Tente novamente mais tarde.`;
+            if (remainingTime > 0) {
+                setTimeout(updateBlockedMessage, 1000);
+            } else {
+                localStorage.removeItem('gameBlock');
+                gameState.isGameBlocked = false;
+                blockedScreen.style.display = 'none';
+                resetGame();
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('onePlayerButton').addEventListener('click', () => selectMode('1'));
+        document.getElementById('twoPlayersButton').addEventListener('click', () => selectMode('2'));
+        document.getElementById('easyButton').addEventListener('click', () => selectDifficulty('easy'));
+        document.getElementById('mediumButton').addEventListener('click', () => selectDifficulty('medium'));
+        document.getElementById('hardButton').addEventListener('click', () => selectDifficulty('hard'));
+        document.getElementById('insaneButton').addEventListener('click', () => selectDifficulty('insane'));
+        document.getElementById('admButton').addEventListener('click', showAdmPasswordScreen);
+        document.getElementById('restartButton').addEventListener('click', resetGame);
+        document.getElementById('submitPasswordButton').addEventListener('click', verifyAdmPassword);
+        document.getElementById('yesButton').addEventListener('click', () => answerQuestion(true));
+        document.getElementById('noButton').addEventListener('click', () => answerQuestion(false));
+
+        document.getElementById('player1Name').addEventListener('input', function() {
+            gameState.player1Name = this.value.trim() || 'Jogador 1';
+        });
+
+        document.getElementById('player2Name').addEventListener('input', function() {
+            gameState.player2Name = this.value.trim() || 'Jogador 2';
+        });
+
+        document.getElementById('carColor1').addEventListener('change', function() {
+            gameState.carColor1 = this.value;
+        });
+
+        document.getElementById('carColor2').addEventListener('change', function() {
+            gameState.carColor2 = this.value;
+        });
+
+        // Acessibilidade
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Tab') {
+                const focusableElements = document.querySelectorAll('input, select, button:not([disabled])');
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                if (event.shiftKey && document.activeElement === firstElement) {
+                    event.preventDefault();
+                    lastElement.focus();
+                } else if (!event.shiftKey && document.activeElement === lastElement) {
+                    event.preventDefault();
+                    firstElement.focus();
+                }
+            }
+            if (event.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') {
+                const activeSection = document.querySelector('#modeSelection[style*="display: flex"], #difficultySelection[style*="display: flex"], #admPasswordScreen[style*="display: flex"], #endGameQuestionScreen[style*="display: flex"]');
+                if (activeSection) {
+                    const defaultButton = activeSection.querySelector('button');
+                    if (defaultButton) defaultButton.click();
+                }
+            }
+        });
+
+        function selectMode(selectedMode) {
+            if (gameState.isGameBlocked) return;
+            gameState.mode = selectedMode;
+            const player2Inputs = ['player2Name', 'carColor2', 'player2NameLabel', 'carColor2Label'];
+            player2Inputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = selectedMode === '2' ? 'block' : 'none';
+                }
+            });
+            const player2Controls = document.getElementById('player2Controls');
+            const touchControls = document.getElementById('touchControls');
+            const player1Controls = document.getElementById('player1Controls');
+            const leftButton1Div = document.querySelector('#leftButton1').parentElement;
+            const rightButton1Div = document.querySelector('#rightButton1').parentElement;
+
+            if (player2Controls) {
+                player2Controls.style.display = isMobile && selectedMode === '2' ? 'flex' : 'none';
+            }
+
+            // Manipular layout dos controles para modo 1 jogador
+            if (selectedMode === '1' && isMobile) {
+                touchControls.classList.add('single-player-controls');
+                if (player1Controls) {
+                    player1Controls.style.display = 'none';
+                }
+                // Mover botões para touchControls
+                if (leftButton1Div && rightButton1Div) {
+                    touchControls.appendChild(leftButton1Div);
+                    touchControls.appendChild(rightButton1Div);
+                    leftButton1Div.classList.add('single-player-left');
+                    rightButton1Div.classList.add('single-player-right');
+                }
+            } else {
+                touchControls.classList.remove('single-player-controls');
+                if (player1Controls) {
+                    player1Controls.style.display = 'flex';
+                    // Restaurar botões ao player1Controls
+                    if (leftButton1Div && rightButton1Div) {
+                        player1Controls.appendChild(leftButton1Div);
+                        player1Controls.appendChild(rightButton1Div);
+                        leftButton1Div.classList.remove('single-player-left');
+                        rightButton1Div.classList.remove('single-player-right');
+                    }
+                }
+            }
+
+            transitionScreen('modeSelection', 'difficultySelection');
+            const player2Hud = document.getElementById('player2Hud');
+            const puzzlePieces2 = document.getElementById('puzzlePieces2');
+            if (player2Hud) {
+                player2Hud.style.display = selectedMode === '2' ? 'block' : 'none';
+            }
+            if (puzzlePieces2) {
+                puzzlePieces2.style.display = selectedMode === '2' && gameState.difficulty === 'adm' ? 'inline' : 'none';
+            }
+        }
+
+        function selectDifficulty(selectedDifficulty) {
+            if (gameState.isGameBlocked) return;
+            gameState.difficulty = selectedDifficulty;
+            gameState.requiredPieces = selectedDifficulty === 'adm' ? 25 : 5;
+            transitionScreen('difficultySelection', null);
+            startGame();
+        }
+
+        function showAdmPasswordScreen() {
+            if (gameState.isGameBlocked) return;
+            transitionScreen('difficultySelection', 'admPasswordScreen');
+            const admPasswordInput = document.getElementById('admPasswordInput');
+            if (admPasswordInput) {
+                admPasswordInput.focus();
+            }
+        }
+
+        function verifyAdmPassword() {
+            const admPasswordInput = document.getElementById('admPasswordInput');
+            const passwordMessage = document.getElementById('passwordMessage');
+            if (!admPasswordInput || !passwordMessage) return;
+            const input = admPasswordInput.value;
+            if (input === admPassword) {
+                gameState.difficulty = 'adm';
+                gameState.requiredPieces = 25;
+                transitionScreen('admPasswordScreen', null);
+                startGame();
+            } else {
+                passwordMessage.innerText = 'Senha incorreta! Tente novamente.';
+                admPasswordInput.value = '';
+                admPasswordInput.focus();
+            }
+        }
+
+        function answerQuestion(liked) {
+            if (liked) {
+                const gameOverMessage = document.getElementById('gameOverMessage');
+                if (gameOverMessage) {
+                    gameOverMessage.innerText = `Parabéns! A senha para o modo ADM é: ${admPassword}`;
+                }
+                transitionScreen('endGameQuestionScreen', 'gameOverScreen');
+            } else {
+                gameState.isGameBlocked = true;
+                gameState.blockTimestamp = Date.now();
+                localStorage.setItem('gameBlock', JSON.stringify({ timestamp: gameState.blockTimestamp }));
+                transitionScreen('endGameQuestionScreen', 'blockedScreen');
+                updateBlockedMessage();
+            }
+        }
+
+        // Transição de telas
+        function transitionScreen(currentScreenId, nextScreenId) {
+            const currentScreen = currentScreenId ? document.getElementById(currentScreenId) : null;
+            const nextScreen = nextScreenId ? document.getElementById(nextScreenId) : null;
+
+            if (currentScreen) {
+                currentScreen.style.animation = 'menuFadeIn 0.3s ease-out forwards';
+                setTimeout(() => {
+                    currentScreen.style.display = 'none';
+                    if (nextScreen) {
+                        nextScreen.style.display = 'flex';
+                        nextScreen.style.animation = 'menuFadeIn 0.5s ease-out forwards';
+                    }
+                }, 300);
+            } else if (nextScreen) {
+                nextScreen.style.display = 'flex';
+                nextScreen.style.animation = 'menuFadeIn 0.5s ease-out forwards';
+            }
+
+            const touchControls = document.getElementById('touchControls');
+            if (touchControls) {
+                touchControls.style.display = isMobile && !nextScreenId && gameState.gameStarted ? 'flex' : 'none';
+            }
+        }
+
+        // Movimento do carro
+        document.addEventListener('keydown', moveCar);
+
+        function moveCar(event) {
+            if (!gameState.gameStarted || isMobile) return;
+
+            if (event.code === 'KeyA' && gameState.targetCarX1 > 0) {
+                gameState.targetCarX1 -= 10;
+                gameState.carTilt1 = -0.2;
+            }
+            if (event.code === 'KeyD' && gameState.targetCarX1 < canvas.width - carWidth) {
+                gameState.targetCarX1 += 10;
+                gameState.carTilt1 = 0.2;
+            }
+
+            if (gameState.mode === '2') {
+                if (event.code === 'ArrowLeft' && gameState.targetCarX2 > 0) {
+                    gameState.targetCarX2 -= 10;
+                    gameState.carTilt2 = -0.2;
+                }
+                if (event.code === 'ArrowRight' && gameState.targetCarX2 < canvas.width - carWidth) {
+                    gameState.targetCarX2 += 10;
+                    gameState.carTilt2 = 0.2;
+                }
+            }
+        }
+
+        function updateCarPositions() {
+            if (isMobile && gameState.gameStarted) {
+                if (gameState.isLeft1Pressed && gameState.targetCarX1 > 0) {
+                    gameState.targetCarX1 -= 10;
+                    gameState.carTilt1 = -0.2;
+                }
+                if (gameState.isRight1Pressed && gameState.targetCarX1 < canvas.width - carWidth) {
+                    gameState.targetCarX1 += 10;
+                    gameState.carTilt1 = 0.2;
+                }
+                if (gameState.mode === '2') {
+                    if (gameState.isLeft2Pressed && gameState.targetCarX2 > 0) {
+                        gameState.targetCarX2 -= 10;
+                        gameState.carTilt2 = -0.2;
+                    }
+                    if (gameState.isRight2Pressed && gameState.targetCarX2 < canvas.width - carWidth) {
+                        gameState.targetCarX2 += 10;
+                        gameState.carTilt2 = 0.2;
+                    }
+                }
+            }
+
+            gameState.carX1 += (gameState.targetCarX1 - gameState.carX1) * 0.4;
+            gameState.carTilt1 *= 0.8;
+            if (gameState.mode === '2') {
+                gameState.carX2 += (gameState.targetCarX2 - gameState.carX2) * 0.4;
+                gameState.carTilt2 *= 0.8;
+            }
+        }
+
+        // Peças do puzzle
+        function createPuzzlePiece() {
+            if (!difficultySettings[gameState.difficulty].puzzleEnabled) return;
+            const pieceX = Math.random() * (canvas.width - puzzlePieceSize);
+            gameState.puzzlePieces.push({
+                x: pieceX,
+                y: -puzzlePieceSize,
+                width: puzzlePieceSize,
+                height: puzzlePieceSize,
+                rotation: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.05,
+                collected: false
+            });
+        }
+
+        function updatePuzzlePieces() {
+            if (!difficultySettings[gameState.difficulty].puzzleEnabled) return;
+            gameState.puzzlePieces = gameState.puzzlePieces.filter(piece => {
+                if (piece.collected) return false;
+                piece.y += difficultySettings[gameState.difficulty].obstacleSpeed * 0.5;
+                piece.rotation += piece.rotationSpeed;
+
+                // Colisão com Jogador 1
+                if (
+                    !piece.collected &&
+                    gameState.carX1 < piece.x + piece.width &&
+                    gameState.carX1 + carWidth > piece.x &&
+                    gameState.carY < piece.y + piece.height &&
+                    gameState.carY + carHeight > piece.y
+                ) {
+                    piece.collected = true;
+                    gameState.collectedPieces1++;
+                    createParticles(piece.x, piece.y);
+                    if (gameState.collectedPieces1 >= gameState.requiredPieces) {
+                        endGame(true);
+                    }
+                    return false;
+                }
+
+                // Colisão com Jogador 2
+                if (
+                    gameState.mode === '2' &&
+                    !piece.collected &&
+                    gameState.carX2 < piece.x + piece.width &&
+                    gameState.carX2 + carWidth > piece.x &&
+                    gameState.carY < piece.y + piece.height &&
+                    gameState.carY + carHeight > piece.y
+                ) {
+                    piece.collected = true;
+                    gameState.collectedPieces2++;
+                    createParticles(piece.x, piece.y);
+                    if (gameState.collectedPieces2 >= gameState.requiredPieces) {
+                        endGame(true);
+                    }
+                    return false;
+                }
+
+                return piece.y <= canvas.height;
+            });
+        }
+
+        function drawPuzzlePieces() {
+            if (!difficultySettings[gameState.difficulty].puzzleEnabled) return;
+            ctx.save();
+            ctx.translate(gameState.shakeOffsetX, gameState.shakeOffsetY);
+            gameState.puzzlePieces.forEach(piece => {
+                if (piece.collected) return;
+                ctx.save();
+                ctx.translate(piece.x + piece.width / 2, piece.y + piece.height / 2);
+                ctx.rotate(piece.rotation);
+                ctx.fillStyle = 'gold';
+                ctx.fillRect(-piece.width / 2, -piece.height / 2, piece.width, piece.height);
+                ctx.restore();
+            });
+            ctx.restore();
+        }
+
+        // Gerenciamento de obstáculos (meteoros)
+        function createObstacle() {
+            const obstacleX = Math.random() * (canvas.width - 40);
+            gameState.obstacles.push({ 
+                x: obstacleX, 
+                y: -40, 
+                width: 40, 
+                height: 40, 
+                rotation: 0, 
+                rotationSpeed: (Math.random() - 0.5) * 0.1,
+                scale: 1,
+                opacity: 1,
+                pulseScale: 1,
+                pulseSpeed: (Math.random() * 0.02 + 0.01)
+            });
+            if (difficultySettings[gameState.difficulty].puzzleEnabled && Math.random() < 0.2) {
+                createPuzzlePiece();
+            }
+        }
+
+        // Efeitos de partículas
+        function createParticles(x, y, isMeteorTrail = false) {
+            const count = isMeteorTrail ? 3 : 15;
+            const colors = isMeteorTrail ? ['orange', 'red', 'yellow'] : ['yellow', 'orange', 'red'];
+            for (let i = 0; i < count; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                gameState.particles.push({
+                    x: x + (isMeteorTrail ? 20 : (difficultySettings[gameState.difficulty].puzzleEnabled ? puzzlePieceSize : carWidth) / 2),
+                    y: y + (isMeteorTrail ? 20 : (difficultySettings[gameState.difficulty].puzzleEnabled ? puzzlePieceSize : carHeight) / 2),
+                    vx: isMeteorTrail ? (Math.random() - 0.5) * 2 : (Math.random() - 0.5) * 8,
+                    vy: isMeteorTrail ? -Math.random() * 2 : (Math.random() - 0.5) * 8,
+                    size: isMeteorTrail ? Math.random() * 3 + 2 : Math.random() * 6 + 3,
+                    life: isMeteorTrail ? 20 : 30,
+                    maxLife: isMeteorTrail ? 20 : 30,
+                    color: color
+                });
+            }
+        }
+
+        function updateParticles() {
+            gameState.particles = gameState.particles.filter(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vx *= 0.95;
+                particle.vy *= 0.95;
+                particle.life--;
+                return particle.life > 0;
+            });
+        }
+
+        function drawParticles() {
+            ctx.save();
+            ctx.translate(gameState.shakeOffsetX, gameState.shakeOffsetY);
+            gameState.particles.forEach(particle => {
+                ctx.globalAlpha = particle.life / particle.maxLife;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            ctx.restore();
+        }
+
+        // Efeito de tremor
+        function shakeCanvas() {
+            gameState.shakeDuration = 15;
+            let shakeIntensity = 10;
+            function shake() {
+                if (gameState.shakeDuration > 0) {
+                    gameState.shakeOffsetX = (Math.random() - 0.5) * shakeIntensity;
+                    gameState.shakeOffsetY = (Math.random() - 0.5) * shakeIntensity;
+                    shakeIntensity *= 0.9;
+                    gameState.shakeDuration--;
+                    requestAnimationFrame(shake);
+                } else {
+                    gameState.shakeOffsetX = 0;
+                    gameState.shakeOffsetY = 0;
+                }
+            }
+            shake();
+        }
+
+        // Atualização de obstáculos (meteoros)
+        function updateObstacles() {
+            const settings = difficultySettings[gameState.difficulty];
+            gameState.obstacles = gameState.obstacles.filter(obstacle => {
+                obstacle.y += settings.obstacleSpeed;
+                obstacle.rotation += obstacle.rotationSpeed;
+                obstacle.pulseScale = 1 + Math.sin(Date.now() * obstacle.pulseSpeed) * 0.1;
+                if (Math.random() < 0.3) {
+                    createParticles(obstacle.x, obstacle.y, true);
+                }
+
+                // Colisão com Jogador 1
+                if (
+                    gameState.carX1 < obstacle.x + obstacle.width &&
+                    gameState.carX1 + carWidth > obstacle.x &&
+                    gameState.carY < obstacle.y + obstacle.height &&
+                    gameState.carY + carHeight > obstacle.y
+                ) {
+                    gameState.lives1--;
+                    gameState.deaths++;
+                    createParticles(gameState.carX1, gameState.carY);
+                    shakeCanvas();
+                    if (gameState.lives1 <= 0) {
+                        endGame();
+                        return false;
+                    }
+                    return false;
+                }
+
+                // Colisão com Jogador 2
+                if (gameState.mode === '2') {
+                    if (
+                        gameState.carX2 < obstacle.x + obstacle.width &&
+                        gameState.carX2 + carWidth > obstacle.x &&
+                        gameState.carY < obstacle.y + obstacle.height &&
+                        gameState.carY + carHeight > obstacle.y
+                    ) {
+                        gameState.lives2--;
+                        gameState.deaths++;
+                        createParticles(gameState.carX2, gameState.carY);
+                        shakeCanvas();
+                        if (gameState.lives2 <= 0) {
+                            endGame();
+                            return false;
+                        }
+                        return false;
+                    }
+                }
+
+                return obstacle.y <= canvas.height;
+            });
+
+            gameState.score1 += 0.1;
+            if (gameState.mode === '2') gameState.score2 += 0.1;
+
+            updatePuzzlePieces();
+            updateParticles();
+        }
+
+        // Desenho dos elementos
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(gameState.shakeOffsetX, gameState.shakeOffsetY);
+
+            // Carro do Jogador 1
+            ctx.save();
+            ctx.translate(gameState.carX1 + carWidth / 2, gameState.carY + carHeight / 2);
+            ctx.rotate(gameState.carTilt1);
+            ctx.fillStyle = gameState.carColor1;
+            ctx.fillRect(-carWidth / 2, -carHeight / 2, carWidth, carHeight);
+            ctx.restore();
+
+            // Carro do Jogador 2
+            if (gameState.mode === '2') {
+                ctx.save();
+                ctx.translate(gameState.carX2 + carWidth / 2, gameState.carY + carHeight / 2);
+                ctx.rotate(gameState.carTilt2);
+                ctx.fillStyle = gameState.carColor2;
+                ctx.fillRect(-carWidth / 2, -carHeight / 2, carWidth, carHeight);
+                ctx.restore();
+            }
+
+            // Obstáculos (meteoros)
+            gameState.obstacles.forEach(obstacle => {
+                ctx.save();
+                ctx.translate(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2);
+                ctx.rotate(obstacle.rotation);
+                ctx.scale(obstacle.scale * obstacle.pulseScale, obstacle.scale * obstacle.pulseScale);
+                ctx.globalAlpha = obstacle.opacity;
+                
+                const gradient = ctx.createRadialGradient(0, 0, 10, 0, 0, 20);
+                const isAdm = difficultySettings[gameState.difficulty].puzzleEnabled;
+                gradient.addColorStop(0, isAdm ? 'rgba(128, 0, 128, 1)' : 'rgba(100, 100, 100, 1)');
+                gradient.addColorStop(1, isAdm ? 'rgba(75, 0, 130, 0.7)' : 'rgba(50, 50, 50, 0.7)');
+                
+                ctx.beginPath();
+                const radius = obstacle.width / 2;
+                for (let i = 0; i < 360; i += 10) {
+                    const rad = (i * Math.PI) / 180;
+                    const r = radius + (Math.random() - 0.5) * 3;
+                    const x = r * Math.cos(rad);
+                    const y = r * Math.sin(rad);
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                ctx.globalAlpha = 1;
+                ctx.restore();
+            });
+
+            drawPuzzlePieces();
+            drawParticles();
+            ctx.restore();
+
+            // Atualização do HUD
+            const lives1Element = document.getElementById('lives1');
+            const score1Element = document.getElementById('score1');
+            const timerElement = document.getElementById('timer');
+            const lives2Element = document.getElementById('lives2');
+            const score2Element = document.getElementById('score2');
+            const puzzleHud = document.getElementById('puzzleHud');
+            const puzzlePieces1Element = document.getElementById('puzzlePieces1');
+            const puzzlePieces2Element = document.getElementById('puzzlePieces2Count');
+            const requiredPiecesElement = document.getElementById('requiredPieces');
+            const requiredPieces2Element = document.getElementById('requiredPieces2');
+
+            if (lives1Element) lives1Element.innerText = `${gameState.lives1} (${gameState.player1Name})`;
+            if (score1Element) score1Element.innerText = Math.floor(gameState.score1);
+            if (timerElement) timerElement.innerText = gameState.difficulty === 'adm' ? '∞' : Math.floor(gameState.timer);
+            if (gameState.mode === '2' && lives2Element && score2Element) {
+                lives2Element.innerText = `${gameState.lives2} (${gameState.player2Name})`;
+                score2Element.innerText = Math.floor(gameState.score2);
+            }
+            if (puzzleHud) {
+                puzzleHud.style.display = difficultySettings[gameState.difficulty].puzzleEnabled ? 'block' : 'none';
+                if (difficultySettings[gameState.difficulty].puzzleEnabled && puzzlePieces1Element && requiredPiecesElement) {
+                    puzzlePieces1Element.innerText = gameState.collectedPieces1;
+                    requiredPiecesElement.innerText = gameState.requiredPieces;
+                    if (gameState.mode === '2' && puzzlePieces2Element && requiredPieces2Element) {
+                        puzzlePieces2Element.innerText = gameState.collectedPieces2;
+                        requiredPieces2Element.innerText = gameState.requiredPieces;
+                    }
+                }
+            }
+        }
+
+        // Iniciar jogo
+        function startGame() {
+            if (gameState.isGameBlocked) return;
+            const settings = difficultySettings[gameState.difficulty];
+            Object.assign(gameState, {
+                lives1: 3,
+                lives2: gameState.mode === '2' ? 3 : 0,
+                score1: 0,
+                score2: 0,
+                timer: settings.timer,
+                carX1: canvas.width / 4 - carWidth / 2,
+                carX2: gameState.mode === '2' ? canvas.width * 3 / 4 - carWidth / 2 : -100,
+                targetCarX1: canvas.width / 4 - carWidth / 2,
+                targetCarX2: gameState.mode === '2' ? canvas.width * 3 / 4 - carWidth / 2 : -100,
+                carTilt1: 0,
+                carTilt2: 0,
+                obstacles: [],
+                particles: [],
+                puzzlePieces: [],
+                collectedPieces1: 0,
+                collectedPieces2: 0,
+                requiredPieces: gameState.difficulty === 'adm' ? 25 : 5,
+                deaths: 0,
+                gameStarted: true
+            });
+
+            if (gameState.obstacleInterval) clearInterval(gameState.obstacleInterval);
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+
+            gameState.obstacleInterval = setInterval(createObstacle, settings.spawnInterval);
+
+            if (gameState.difficulty !== 'adm') {
+                gameState.timerInterval = setInterval(() => {
+                    gameState.timer--;
+                    if (gameState.timer <= 0) endGame();
+                }, 1000);
+            }
+
+            const touchControls = document.getElementById('touchControls');
+            if (touchControls) {
+                touchControls.style.display = isMobile ? 'flex' : 'none';
+            }
+
+            function gameLoop() {
+                if (gameState.gameStarted) {
+                    updateCarPositions();
+                    updateObstacles();
+                    draw();
+                    requestAnimationFrame(gameLoop);
+                }
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Finalizar jogo
+        function endGame(puzzleCompleted = false) {
+            gameState.gameStarted = false;
+            clearInterval(gameState.obstacleInterval);
+            clearInterval(gameState.timerInterval);
+
+            let winnerMessage = '';
+            if (puzzleCompleted && difficultySettings[gameState.difficulty].puzzleEnabled) {
+                if (gameState.mode === '2') {
+                    if (gameState.collectedPieces1 >= gameState.requiredPieces) {
+                        winnerMessage = `${gameState.player1Name} venceu coletando ${gameState.requiredPieces} peças primeiro!`;
+                    } else if (gameState.collectedPieces2 >= gameState.requiredPieces) {
+                        winnerMessage = `${gameState.player2Name} venceu coletando ${gameState.requiredPieces} peças primeiro!`;
+                    }
+                } else {
+                    winnerMessage = `${gameState.player1Name} completou o puzzle ADM!`;
+                }
+            } else if (gameState.lives1 <= 0 && (gameState.mode === '1' || gameState.lives2 <= 0)) {
+                winnerMessage = gameState.mode === '2' ? 'Empate! Ambos os jogadores perderam.' : 'Você perdeu!';
+            } else if (gameState.lives1 <= 0) {
+                winnerMessage = `${gameState.player2Name} venceu!`;
+            } else if (gameState.lives2 <= 0 && gameState.mode === '2') {
+                winnerMessage = `${gameState.player1Name} venceu!`;
+            } else {
+                winnerMessage = 'Tempo esgotado!';
+            }
+
+            const finalMessage = `${winnerMessage} ${gameState.player1Name}: ${Math.floor(gameState.score1)} pontos.` + 
+                                (gameState.mode === '2' ? ` ${gameState.player2Name}: ${Math.floor(gameState.score2)} pontos.` : '');
+            const gameOverMessage = document.getElementById('gameOverMessage');
+            if (gameOverMessage) {
+                gameOverMessage.innerText = finalMessage;
+            }
+            transitionScreen(null, 'gameOverScreen');
+            const restartButton = document.getElementById('restartButton');
+            if (restartButton) {
+                restartButton.focus();
+            }
+
+            const touchControls = document.getElementById('touchControls');
+            if (touchControls) {
+                touchControls.style.display = 'none';
+            }
+
+            if (gameState.difficulty === 'insane' && gameState.deaths === 0 && gameState.timer <= 0) {
+                transitionScreen('gameOverScreen', 'endGameQuestionScreen');
+            }
+        }
+
+        // Reiniciar jogo
+        function resetGame() {
+            if (gameState.isGameBlocked) return;
+            const screens = ['gameOverScreen', 'admPasswordScreen', 'endGameQuestionScreen'];
+            screens.forEach(id => {
+                const screen = document.getElementById(id);
+                if (screen) {
+                    screen.style.display = 'none';
+                }
+            });
+            transitionScreen(null, 'modeSelection');
+            const player1Name = document.getElementById('player1Name');
+            const admPasswordInput = document.getElementById('admPasswordInput');
+            const passwordMessage = document.getElementById('passwordMessage');
+            if (player1Name) {
+                player1Name.focus();
+            }
+            if (admPasswordInput) {
+                admPasswordInput.value = '';
+            }
+            if (passwordMessage) {
+                passwordMessage.innerText = 'Digite a senha para desbloquear o modo ADM:';
+            }
+            const touchControls = document.getElementById('touchControls');
+            const player1Controls = document.getElementById('player1Controls');
+            const leftButton1Div = document.querySelector('#leftButton1')?.parentElement;
+            const rightButton1Div = document.querySelector('#rightButton1')?.parentElement;
+            if (touchControls && player1Controls && leftButton1Div && rightButton1Div) {
+                touchControls.classList.remove('single-player-controls');
+                player1Controls.style.display = 'flex';
+                if (leftButton1Div.parentElement === touchControls) {
+                    player1Controls.appendChild(leftButton1Div);
+                    player1Controls.appendChild(rightButton1Div);
+                    leftButton1Div.classList.remove('single-player-left');
+                    rightButton1Div.classList.remove('single-player-right');
+                }
+                touchControls.style.display = 'none';
+            }
+        }
+
+        // Inicialização
+        checkBlockStatus();
+    </script>
+</body>
+</html>
