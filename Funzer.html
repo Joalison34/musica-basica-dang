@@ -442,9 +442,9 @@
 </head>
 <body>
     <div class="container">
-        <h1>Home Board - /h/ - Joalison</h1>
+        <h1>Overboard - /🏠/ - Joalison</h1>
         <div class="board-nav">
-            <a href="Funzer.html" class="active">[ Home ]</a>
+            <a href="Funzer.html" class="active">[ Overboard ]</a>
             <a href="animes.html">[ /a/ ]</a>
             <a href="games.html">[ /g/ ]</a>
             <a href="random.html">[ /b/ ]</a>
@@ -1173,7 +1173,7 @@
                     totalFeedbacks++;
                     if (feedback.status === 'pending') pendingFeedbacks++;
                     const row = document.createElement('tr');
-                    const truncatedMessage = feedback.message.length > 50 ? feedback.message.substring(0, 47) + '...' : feedback.message;
+                    const truncatedMessage = feedback.message.length > 500 ? feedback.message.substring(0, 47) + '...' : feedback.message;
                     const truncatedResponse = feedback.response && feedback.response.length > 50 ? feedback.response.substring(0, 47) + '...' : feedback.response || 'Nenhuma';
                     const simplifiedStatus = feedback.status === 'pending' ? 'Pendente' : 'Respondido';
                     const actions = ['moderator', 'owner'].includes(currentUser.role) ? `
