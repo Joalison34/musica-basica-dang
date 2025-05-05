@@ -1548,11 +1548,10 @@
             loadPosts();
         }
 
-        function <style> {
+        function toggleImageExpansion(event) {
     const element = event.target;
     if (element.classList.contains('expandable')) {
         element.classList.toggle('expanded');
-        console.log('Toggled expanded class on:', element);
     }
 }
 
