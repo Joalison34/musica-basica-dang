@@ -322,18 +322,13 @@
     margin: auto;
 }
         .profile-picture.expanded {
-    max-width: 200px; /* Constrain width */
-    max-height: 200px; /* Constrain height */
-    width: auto; /* Maintain aspect ratio */
-    height: auto;
-    z-index: 100; /* Higher z-index to ensure it’s on top */
-    position: absolute; /* Remove from flow to avoid pushing content */
-    top: 50%; /* Center vertically */
-    left: 50%; /* Center horizontally */
-    transform: translate(-50%, -50%); /* Center the image */
-    background: rgba(0, 0, 0, 0.8); /* Optional: Add a dark overlay */
-    padding: 10px; /* Optional: Add padding for better appearance */
-    border-radius: 5px; /* Optional: Soften edges */
+    width: 100px;
+    height: 100px;
+    z-index: 10;
+    position: relative;
+    object-fit: cover; /* ou contain, dependendo do caso */
+    max-width: 100%; /* Garante que não exceda o contêiner */
+    box-sizing: border-box; /* Evita problemas com padding ou bordas */
 }
         .catalog-item img.expandable, .catalog-item video.expandable {
             cursor: pointer;
