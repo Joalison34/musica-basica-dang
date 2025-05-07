@@ -84,27 +84,28 @@
     <title>Comment Board - Home</title>
     <style>
         body {
-            font-family: Verdana, Arial, sans-serif;
-            background-color: #efebe7;
-            color: #000;
-            margin: 0; /* Removido margin: 10px */
-            padding: 0;
-            font-size: 13px;
-            line-height: 1.4;
-           width: 100%;
-           min-height: 100vh; /* Garante que o body cubra a altura da tela */
-           display: flex;
-            justify-content:
-        }
-        .container {
-              width: 100%; /* O container ocupa toda a largura disponível */
-              max-width: 1200px; /* Limite superior para telas grandes */
-              margin: 0; /* Remove margens automáticas */
-              background: #d9d2e9;
-              padding: 10px;
-              border: none; /* Remove a borda para evitar espaço extra */
-              box-sizing: border-box;
-        }
+    font-family: Verdana, Arial, sans-serif;
+    background-color: #efebe7;
+    color: #000;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 100%; /* Remove o limite de 1200px pra ocupar toda a tela */
+    margin: 0;
+    background: #d9d2e9;
+    padding: 5px; /* Reduz o padding pra economizar espaço */
+    border: none;
+    box-sizing: border-box;
+}
         h1 {
             font-size: 18px;
             text-align: center;
@@ -228,17 +229,21 @@
             margin: 0;
             border: 1px solid #000;
         }
-        @media (max-width: 600px) {
-            .post-content {
-                display: block;
-            }
-            .post-media {
-                margin-bottom: 5px;
-            }
-            .post img, .post video {
-                max-width: 100%;
-            }
-        }
+       @media (max-width: 600px) {
+    .container {
+        padding: 5px;
+    }
+    .banner-image {
+        height: 100px; /* Banner menor em celulares */
+    }
+    .post img, .post video {
+        max-width: 100%; /* Imagens ocupam a largura total */
+        max-height: 120px; /* Limita altura pra não quebrar o layout */
+    }
+    .catalog {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Grid mais fluido */
+    }
+}
         .reply-link {
             color: #ff0000;
             cursor: pointer;
@@ -463,13 +468,11 @@
     background: #a0a9c7;
 }
   .banner {
-    width: 100%; /* Força o container a ocupar toda a largura */
-    max-width: 1200px; /* Igual ao .container, pra não passar disso */
-    margin: 0 auto; /* Centraliza */
-    text-align: center;
-    padding: 5px 0; /* Espaço interno */
-    background: #efebe7; /* Fundo pra combinar */
-    border: 1px solid #000; /* Borda estilo 4chan */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #efebe7;
+    border: none;
 }
 
 /* ... outros estilos ... */
@@ -478,12 +481,12 @@
     background: #a0a9c7;
 }
 .banner-image {
-    width: 100%; /* Força a largura total */
-    height: 200px; /* Altura fixa, larga e baixa como no 4chan */
-    object-fit: fill; /* Estica a imagem pra preencher, sem piedade */
+    width: 100%;
+    height: 150px; /* Altura menor pra se adaptar melhor */
+    object-fit: cover; /* Evita distorção */
     display: block;
-    margin: 0 auto;
-    border: none; /* Remove qualquer borda extra */
+    margin: 0;
+    border: none;
 }
     </style>
 </head>
