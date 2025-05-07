@@ -473,6 +473,7 @@
     padding: 0;
     background: #efebe7;
     border: none;
+    text-align: center;
 }
 
 /* ... outros estilos ... */
@@ -482,12 +483,17 @@
 }
 .banner-image {
     width: 100%;
-    height: 150px; /* Altura automática para manter proporção */
-    object-fit: contain; /* Mostra a imagem inteira sem cortar */
+    height: 200px; /* Altura fixa para um visual consistente */
+    object-fit: cover; /* Estica para preencher, mantendo proporção com corte mínimo */
+    /* Alternativa: use object-fit: fill; se quiser esticar mesmo que distorça */
     display: block;
     margin: 0;
     border: none;
-}
+}  @media (max-width: 600px) {
+    .banner-image {
+        height: 120px; /* Reduz a altura em telas menores para melhor proporção */
+    }
+}                                                                                                                                      
     </style>
 </head>
 <body>
