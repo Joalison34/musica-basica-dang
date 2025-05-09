@@ -926,7 +926,7 @@
                 postsSnapshot.forEach(doc => {
                     const post = doc.data();
                     const postDate = new Date(post.timestamp);
-                   if (postDate >= threeDaysAgo && post.parentId !== null && (post.board === currentBoard || (post.isFunzerReply && post.board === currentBoard))) {
+                   if (postDate >= threeDaysAgo && post.parentId !== null && post.board === currentBoard && (post.isFunzerReply === true || !post.isFunzerReply)) {
                         posts.push({ id: doc.id, data: post });
                     }
                 });
