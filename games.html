@@ -366,7 +366,7 @@
         <div id="commentSection" class="comment-section hidden">
             <button id="logoutBtn">Logout</button>
             <textarea id="commentInput" placeholder="Comment"></textarea>
-            <input type="file" id="mediaInput" accept="image/jpeg,image/png,video/mp4,video/webm">
+            <input type="file" id="mediaInput" accept="image/jpeg,image/png,image/gif,video/mp4,video/webm">
             <input type="text" id="replyTo" placeholder="Reply to post ID (optional)">
             <button id="postCommentBtn">Post Comment</button>
             <div id="banSection" class="ban-section hidden">
@@ -744,9 +744,9 @@
                         alert('File must be max 10 MB.');
                         return;
                     }
-                    const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'video/webm'];
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif' 'video/mp4', 'video/webm'];
                     if (!allowedTypes.includes(mediaInput.type)) {
-                        alert('Only JPEG, PNG images or MP4, WebM videos allowed.');
+                        alert('Only JPEG, GIF, PNG images or MP4, WebM videos allowed.');
                         return;
                     }
                     const uploadResult = await uploadToImageKit(mediaInput);
