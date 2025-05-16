@@ -515,12 +515,46 @@
         </div>
 
         <div id="loginSection" class="form-section">
-            <input type="text" id="loginUsername" placeholder="Username">
-            <input type="password" id="loginPassword" placeholder="Password">
-            <button id="loginBtn">Login</button>
-            <p class="error" id="loginErrorMessage"></p>
-        </div>
+    <input type="text" id="loginUsername" placeholder="Username">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button id="loginBtn">Login</button>
+    <p class="error" id="loginErrorMessage"></p>
+</div>
 
+<button id="loginAnonBtn">LOGAR COMO ANONIMATO</button>
+
+<script>
+    document.getElementById('loginAnonBtn').addEventListener('click', function() {
+        // Define as credenciais
+        const username = "anonimato";
+        const password = "773377";
+        
+        // Preenche os campos
+        document.getElementById('loginUsername').value = username;
+        document.getElementById('loginPassword').value = password;
+
+        // Simula o clique no botão de login
+        document.getElementById('loginBtn').click();
+    });
+
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        // Aqui você deve adicionar a lógica para processar o login
+        // Exemplo: validar as credenciais, enviar uma requisição para o servidor, etc.
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        // Exemplo de validação (adicione sua lógica real aqui)
+        if (username === "anonimato" && password === "773377") {
+            alert("Login realizado com sucesso!");
+            // Redirecionar ou mudar a interface
+        } else {
+            document.getElementById('loginErrorMessage').innerText = "Usuário ou senha inválidos!";
+        }
+    });
+</script>
+
+            
+            
         <div id="profileSection" class="profile-section hidden">
             <p>Logged in as: <span id="currentUser"></span></p>
             <input type="text" id="editBio" placeholder="Update bio (max 150 chars)">
