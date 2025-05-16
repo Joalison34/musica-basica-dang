@@ -535,6 +535,9 @@
 
         // Simula o clique no botão de login
         document.getElementById('loginBtn').click();
+
+        // Esconde o botão de login anônimo
+        document.getElementById('loginAnonBtn').style.display = 'none';
     });
 
     document.getElementById('loginBtn').addEventListener('click', function() {
@@ -545,7 +548,6 @@
 
         // Exemplo de validação (adicione sua lógica real aqui)
         if (username === "anonimato" && password === "773377") {
-            
             // Redirecionar ou mudar a interface
         } else {
             document.getElementById('loginErrorMessage').innerText = "Usuário ou senha inválidos!";
