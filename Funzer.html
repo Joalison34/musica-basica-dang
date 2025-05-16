@@ -522,6 +522,7 @@
 </div>
 
 <button id="loginAnonBtn">LOGAR COMO ANONIMATO</button>
+<button id="logoutBtn" style="display: none;">Logout</button>
 
 <script>
     document.getElementById('loginAnonBtn').addEventListener('click', function() {
@@ -536,22 +537,33 @@
         // Simula o clique no botão de login
         document.getElementById('loginBtn').click();
 
-        // Esconde o botão de login anônimo
+        // Esconde o botão de login anônimo e mostra o botão de logout
         document.getElementById('loginAnonBtn').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'block';
     });
 
     document.getElementById('loginBtn').addEventListener('click', function() {
-        // Aqui você deve adicionar a lógica para processar o login
-        // Exemplo: validar as credenciais, enviar uma requisição para o servidor, etc.
         const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
 
         // Exemplo de validação (adicione sua lógica real aqui)
         if (username === "anonimato" && password === "773377") {
-            // Redirecionar ou mudar a interface
+            // Altera a interface após o login
+            document.getElementById('loginErrorMessage').innerText = "";
+            // Adicione aqui a lógica para o que acontece após o login bem-sucedido
         } else {
             document.getElementById('loginErrorMessage').innerText = "Usuário ou senha inválidos!";
         }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        // Limpa os campos de login
+        document.getElementById('loginUsername').value = "";
+        document.getElementById('loginPassword').value = "";
+
+        // Esconde o botão de logout e mostra o botão de login anônimo
+        document.getElementById('logoutBtn').style.display = 'none';
+        document.getElementById('loginAnonBtn').style.display = 'block';
     });
 </script>
 
