@@ -582,6 +582,7 @@
             <button id="userPanelBtn" class="user-panel-btn hidden">Painel Users</button>
             <button id="feedbackBtn" class="feedback-btn hidden">Feedback</button>
             <button id="rulesBtn" class="rules-btn hidden" onclick="window.location.href='rules.html'">Regras</button>
+            <a href="javascript:void(0)" onclick="openPanel('updatesPanel')">Atualizações</a>
             <textarea id="commentInput" placeholder="Comment"></textarea>
             <input type="file" id="mediaInput" accept="image/jpeg,image/png,image/gif,video/mp4,video/webm">
             <input type="text" id="replyTo" placeholder="Reply to post ID (optional)">
@@ -643,8 +644,90 @@
             </div>
             <button class="close-modal-btn" id="closeFeedbackBtn">Close</button>
         </div>
+
+      <div id="updatesPanel" style="display:none;">
+    <h3>Atualizações</h3>
+    <div id="postUpdateForm" style="display:none;">
+        <textarea id="updateMessage" placeholder="Escreva a mensagem da atualização..."></textarea>
+        <button onclick="submitUpdate()">Enviar Atualização</button>
+    </div>
+    <div id="updatesList">
+        <h4>Total Atualizações: 0</h4>
+        <table>
+            <tr>
+                <th>Usuário</th>
+                <th>Mensagem</th>
+                <th>Data</th>
+                <th>Ações</th>
+            </tr>
+        </table>
+    </div>
+    <button onclick="closePanel('updatesPanel')">Fechar</button>
+</div>
+            
         <div id="modalBackdrop" class="modal-backdrop"></div>
     </div>
+
+        <script>
+let updates = [];
+let currentUser = { username: "Joalison", role: "owner" }; // Example; replace with your actual user logic
+
+function showUpdatesPanel() {
+    const updateForm = document.getElementById("postUpdateForm");
+    if (currentUser.role === "owner") {
+        updateForm.style.display = "block";
+    } else {
+        updateForm.style.display = "none";
+    }
+    renderUpdates();
+    openPanel("updatesPanel");
+}
+
+function submitUpdate() {
+    const message = document.getElementById("updateMessage").value;
+    if (message.trim() === "") return;
+    updates.push({
+        id: updates.length + 1,
+        username: currentUser.username,
+        message: message,
+        date: new Date().toLocaleString()
+    });
+    document.getElementById("updateMessage").value = "";
+    renderUpdates();
+}
+
+function deleteUpdate(id) {
+    if (currentUser.role !== "owner") return;
+    updates = updates.filter(update => update.id !== id);
+    renderUpdates();
+}
+
+function renderUpdates() {
+    const updatesList = document.getElementById("updatesList");
+    updatesList.innerHTML = `
+        <h4>Total Atualizações: ${updates.length}</h4>
+        <table>
+            <tr>
+                <th>Usuário</th>
+                <th>Mensagem</th>
+                <th>Data</th>
+                <th>Ações</th>
+            </tr>
+            ${updates.map(update => `
+                <tr>
+                    <td>${update.username}</td>
+                    <td>${update.message}</td>
+                    <td>${update.date}</td>
+                    <td>${currentUser.role === "owner" ? `<button onclick="deleteUpdate(${update.id})">Apagar</button>` : ""}</td>
+                </tr>
+            `).join("")}
+        </table>
+    `;
+}
+
+// Update the onclick handler for the Atualizações button
+document.querySelector("a[onclick=\"openPanel('updatesPanel')\"]").onclick = showUpdatesPanel;
+</script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
