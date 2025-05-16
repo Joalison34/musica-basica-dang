@@ -582,6 +582,7 @@
             <button id="userPanelBtn" class="user-panel-btn hidden">Painel Users</button>
             <button id="feedbackBtn" class="feedback-btn hidden">Feedback</button>
             <button id="rulesBtn" class="rules-btn hidden" onclick="window.location.href='rules.html'">Regras</button>
+            <button onclick="mostrarAtualizacoes()">Atualizações</button>
             <textarea id="commentInput" placeholder="Comment"></textarea>
             <input type="file" id="mediaInput" accept="image/jpeg,image/png,image/gif,video/mp4,video/webm">
             <input type="text" id="replyTo" placeholder="Reply to post ID (optional)">
@@ -1674,4 +1675,49 @@
         } else {
             loadPosts();
         }
-    </script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9399eb42fb69bf84',t:'MTc0NjIxNDA3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+
+        <!-- Painel de Atualizações (inserido antes de </body>) -->
+<div id="painelAtualizacoes" style="display:none; border:1px solid #ccc; padding:10px; margin:10px; background:#fff;">
+  <h3>Atualizações</h3>
+  <div id="conteudoAtualizacoes">
+    <!-- As atualizações aparecerão aqui -->
+  </div>
+  <div id="editorAtualizacoes" style="margin-top:10px;">
+    <textarea id="novaAtualizacao" placeholder="Digite a atualização..." rows="3" style="width:100%;"></textarea>
+    <button onclick="postarAtualizacao()">Postar</button>
+  </div>
+</div>
+
+<script>
+function mostrarAtualizacoes() {
+  const painel = document.getElementById("painelAtualizacoes");
+  painel.style.display = painel.style.display === "none" ? "block" : "none";
+}
+
+function postarAtualizacao() {
+  const ehDono = currentUser?.role === 'owner'; // Verifica se é dono
+
+  if (!ehDono) {
+    alert("Apenas o dono pode postar.");
+    return;
+  }
+
+  const texto = document.getElementById("novaAtualizacao").value;
+  if (texto.trim() === "") return;
+
+  const div = document.createElement("div");
+  div.innerHTML = `
+    <p>${texto}</p>
+    <button onclick="this.parentElement.remove()">Apagar</button>
+    <hr>
+  `;
+  document.getElementById("conteudoAtualizacoes").prepend(div);
+  document.getElementById("novaAtualizacao").value = "";
+}
+</script>
+
+</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9399eb42fb69bf84',t:'MTc0NjIxNDA3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+
+        
+  </body>
+</html>
