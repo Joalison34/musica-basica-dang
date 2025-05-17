@@ -487,7 +487,44 @@
         height: 120px; /* Reduz a altura em telas menores para melhor proporção */
         width: 70%;    
     }
-}                                                                                                                                      
+}
+
+    <!-- Painel de Atualizações -->
+<div id="painelAtualizacoes" style="display:none; border:1px solid #000; padding:10px; margin:10px; background:#fff;">
+  <h3>Atualizações</h3>
+  <div id="conteudoAtualizacoes"></div>
+  <div id="editorAtualizacoes" style="margin-top:10px;">
+    <textarea id="novaAtualizacao" placeholder="Digite a atualização..." rows="3" style="width:100%;"></textarea>
+    <button onclick="postarAtualizacao()">Postar</button>
+  </div>
+</div>
+
+<script>
+  function mostrarAtualizacoes() {
+    const painel = document.getElementById("painelAtualizacoes");
+    painel.style.display = painel.style.display === "none" ? "block" : "none";
+  }
+
+  function postarAtualizacao() {
+    if (!currentUser || currentUser.role !== "owner") {
+      alert("Apenas o dono pode postar.");
+      return;
+    }
+
+    const texto = document.getElementById("novaAtualizacao").value;
+    if (texto.trim() === "") return;
+
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <p>${texto}</p>
+      <button onclick="this.parentElement.remove()">Apagar</button>
+      <hr>
+    `;
+    document.getElementById("conteudoAtualizacoes").prepend(div);
+    document.getElementById("novaAtualizacao").value = "";
+  }
+</script>        
+            
     </style>
 </head>
 <body>
@@ -582,6 +619,7 @@
             <button id="userPanelBtn" class="user-panel-btn hidden">Painel Users</button>
             <button id="feedbackBtn" class="feedback-btn hidden">Feedback</button>
             <button id="rulesBtn" class="rules-btn hidden" onclick="window.location.href='rules.html'">Regras</button>
+            <button id="updatesBtn" class="rules-btn hidden" onclick="mostrarAtualizacoes()">Atualizações</button>
             <textarea id="commentInput" placeholder="Comment"></textarea>
             <input type="file" id="mediaInput" accept="image/jpeg,image/png,image/gif,video/mp4,video/webm">
             <input type="text" id="replyTo" placeholder="Reply to post ID (optional)">
@@ -846,6 +884,10 @@
             document.getElementById('userPanelBtn').classList.toggle('hidden', !['moderator', 'owner'].includes(currentUser.role));
             document.getElementById('feedbackBtn').classList.remove('hidden');
             document.getElementById('rulesBtn').classList.remove('hidden');
+            if (currentUser.role === 'owner') {
+    document.getElementById('updatesBtn').classList.remove('hidden');
+}
+
             document.getElementById('editBio').value = currentUser.bio || '';
             loadPosts();
         }
