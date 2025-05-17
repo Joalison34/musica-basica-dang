@@ -489,21 +489,6 @@
     }
 }
 
-    <!-- Painel de Atualizações -->
-<div id="painelAtualizacoes" style="display:none; border:1px solid #000; padding:10px; margin:10px; background:#fff;">
-  <h3>Atualizações</h3>
-  <div id="conteudoAtualizacoes"></div>
-  <div id="editorAtualizacoes" style="margin-top:10px;">
-    <textarea id="novaAtualizacao" placeholder="Digite a atualização..." rows="3" style="width:100%;"></textarea>
-    <button onclick="postarAtualizacao()">Postar</button>
-  </div>
-</div>
-
-<script>
-  function mostrarAtualizacoes() {
-    const painel = document.getElementById("painelAtualizacoes");
-    painel.style.display = painel.style.display === "none" ? "block" : "none";
-  }
 
   function postarAtualizacao() {
     if (!currentUser || currentUser.role !== "owner") {
@@ -523,7 +508,22 @@
     document.getElementById("conteudoAtualizacoes").prepend(div);
     document.getElementById("novaAtualizacao").value = "";
   }
-</script>        
+</script>   
+
+            <!-- Painel de Atualizações -->
+<div id="painelAtualizacoes" style="display:none; border:1px solid #000; padding:10px; margin:10px; background:#fff;">
+  <h3>Atualizações</h3>
+  <div id="conteudoAtualizacoes"></div>
+  <div id="editorAtualizacoes" style="margin-top:10px;">
+    <textarea id="novaAtualizacao" placeholder="Digite a atualização..." rows="3" style="width:100%;"></textarea>
+    <button onclick="postarAtualizacao()">Postar</button>
+  </div>
+</div>
+
+<script>
+  function mostrarAtualizacoes() { ... }
+  function postarAtualizacao() { ... }
+</script>
             
     </style>
 </head>
