@@ -1709,7 +1709,30 @@
     };
     return boardUrls[board] || 'Funzer.html'; // Fallback para Funzer se a board não for encontrada
 }
-    
+
+      window.mostrarAtualizacoes = function () {
+  const painel = document.getElementById("painelAtualizacoes");
+  painel.style.display = painel.style.display === "none" ? "block" : "none";
+};
+
+window.postarAtualizacao = function () {
+  if (!currentUser || currentUser.role !== "owner") {
+    alert("Apenas o dono pode postar.");
+    return;
+  }
+
+  const texto = document.getElementById("novaAtualizacao").value;
+  if (texto.trim() === "") return;
+
+  const div = document.createElement("div");
+  div.innerHTML = `
+    <p>${texto}</p>
+    <button onclick="this.parentElement.remove()">Apagar</button>
+    <hr>
+  `;
+  document.getElementById("conteudoAtualizacoes").prepend(div);
+  document.getElementById("novaAtualizacao").value = "";
+};      
 
         if (currentUser) {
             updateUIForLoggedInUser();
