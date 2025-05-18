@@ -178,12 +178,14 @@
           deleteButton = `<button onclick="deletarPost('${docSnap.id}')">🗑️ Apagar</button>`;
         }
 
+        // Corações
         const likesRef = doc(db, "likes", docSnap.id);
         const likesSnap = await getDoc(likesRef);
         const likesData = likesSnap.exists() ? likesSnap.data() : {};
         const totalLikes = Object.keys(likesData).length;
         const userLiked = currentUser?.username && likesData[currentUser.username];
 
+        // Comentários
         const comentariosRef = collection(db, "comentarios", docSnap.id, "itens");
         const comentariosSnap = await getDocs(comentariosRef);
         let comentariosHtml = "";
@@ -200,7 +202,9 @@
           <div>${data.text || ""}</div>
           ${mediaHtml}
           <div style="margin-top: 10px;">
-            <button onclick="toggleCora('${docSnap.id}')" style="color: ${userLiked ? '#800000' : '#555'}">❤️ ${totalLikes}</button>
+            <button id="like-btn-${docSnap.id}" onclick="toggleCora('${docSnap.id}')" ${userLiked ? 'disabled' : ''}>
+              ❤️ ${totalLikes}
+            </button>
           </div>
           <div class="comentar-box">
             <input type="text" id="comentario-${docSnap.id}" placeholder="Escreva um comentário..." style="width:80%">
@@ -220,23 +224,28 @@
     };
 
     window.toggleCora = async function(postId) {
-      if (!currentUser?.username) {
-        alert("Você precisa estar logado.");
-        return;
-      }
+      if (!currentUser?.username) return alert("Você precisa estar logado.");
 
       const likesRef = doc(db, "likes", postId);
       const snap = await getDoc(likesRef);
       const likes = snap.exists() ? snap.data() : {};
 
-      if (likes[currentUser.username]) {
-        delete likes[currentUser.username]; // remove like
+      const jaCurtiu = !!likes[currentUser.username];
+
+      if (jaCurtiu) {
+        delete likes[currentUser.username];
       } else {
-        likes[currentUser.username] = true; // adiciona like
+        likes[currentUser.username] = true;
       }
 
       await setDoc(likesRef, likes);
-      carregarAnunciamentos();
+
+      const totalLikes = Object.keys(likes).length;
+      const botao = document.querySelector(`#like-btn-${postId}`);
+      if (botao) {
+        botao.innerText = `❤️ ${totalLikes}`;
+        botao.disabled = !jaCurtiu ? true : false;
+      }
     };
 
     window.comentar = async function(postId) {
