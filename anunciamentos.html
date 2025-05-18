@@ -58,7 +58,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, query, where, orderBy, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, query, orderBy, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
@@ -80,7 +80,7 @@
       document.getElementById("formAnuncio").style.display = "block";
     }
 
-    carregarAnunciamentos(); // Chamada correta para todos
+    carregarAnunciamentos(); // garantir que todos vejam
 
     document.getElementById("postarBtn").addEventListener("click", async () => {
       const texto = document.getElementById("texto").value.trim();
@@ -106,16 +106,22 @@
             body: formData
           });
           const data = await response.json();
-          imageUrl = data.url;
+          if (data?.url) {
+            imageUrl = data.url;
+          } else {
+            status.innerText = "Erro ao obter URL da imagem.";
+            console.error("Resposta do ImageKit:", data);
+            return;
+          }
         } catch (e) {
-          status.innerText = "Erro ao enviar arquivo.";
+          status.innerText = "Erro ao enviar imagem.";
+          console.error(e);
           return;
         }
       }
 
       try {
-        await addDoc(collection(db, "posts"), {
-          board: "anunciamentos",
+        await addDoc(collection(db, "post-anunci"), {
           text: texto,
           image: imageUrl || null,
           timestamp: Date.now(),
@@ -124,26 +130,37 @@
         status.innerText = "Postagem feita com sucesso!";
         document.getElementById("texto").value = "";
         document.getElementById("arquivo").value = "";
+        carregarAnunciamentos(); // recarrega após postagem
       } catch (e) {
         status.innerText = "Erro ao salvar no banco.";
+        console.error(e);
       }
     });
 
     async function carregarAnunciamentos() {
       const container = document.getElementById("anuncios");
-      const q = query(collection(db, "posts"), where("board", "==", "anunciamentos"), orderBy("timestamp", "desc"));
-      const snapshot = await getDocs(q);
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = "post";
-        div.innerHTML = `
-          <div class="meta">${data.username} - ${new Date(data.timestamp).toLocaleString("pt-BR")}</div>
-          <div>${data.text || ""}</div>
-          ${data.image ? `<img src="${data.image}" loading="lazy">` : ""}
-        `;
-        container.appendChild(div);
-      });
+      container.innerHTML = ""; // limpa antes de recarregar
+      try {
+        const q = query(collection(db, "post-anunci"), orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          container.innerHTML = "<p style='text-align:center;color:#444'>Nenhum anunciamento ainda.</p>";
+        }
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "post";
+          div.innerHTML = `
+            <div class="meta">${data.username || "Anônimo"} - ${new Date(data.timestamp).toLocaleString("pt-BR")}</div>
+            <div>${data.text || ""}</div>
+            ${data.image ? `<img src="${data.image}" loading="lazy">` : ""}
+          `;
+          container.appendChild(div);
+        });
+      } catch (e) {
+        console.error("Erro ao carregar anunciamentos:", e);
+        container.innerHTML = "<p style='text-align:center;color:red'>Erro ao carregar anunciamentos.</p>";
+      }
     }
   </script>
 </body>
