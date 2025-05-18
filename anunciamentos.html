@@ -75,7 +75,7 @@
       const userRef = doc(db, "users", user.uid);  // Acessa o usuário no Firestore
       const userDoc = await getDoc(userRef);
 
-      if (userDoc.exists() && userDoc.data().role === "Owner") {
+      if (userDoc.exists() && userDoc.data().role === "owner") {
         document.getElementById("formAnuncio").style.display = "block";
       }
     }
