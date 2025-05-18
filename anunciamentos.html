@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -81,6 +80,8 @@
       document.getElementById("formAnuncio").style.display = "block";
     }
 
+    carregarAnunciamentos(); // Chamada correta para todos
+
     document.getElementById("postarBtn").addEventListener("click", async () => {
       const texto = document.getElementById("texto").value.trim();
       const arquivo = document.getElementById("arquivo").files[0];
@@ -144,8 +145,6 @@
         container.appendChild(div);
       });
     }
-
-    carregarAnunciamentos();
   </script>
 </body>
 </html>
