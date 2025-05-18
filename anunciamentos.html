@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Anunciamentos</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       background: #f0e0d6;
@@ -42,18 +42,16 @@
       border: 1px solid #d99;
     }
     .comentario {
-      background: #f9f9f9;
-      border-left: 3px solid #ccc;
-      padding: 5px;
-      margin-top: 4px;
-      font-size: 14px;
-    }
-    textarea {
-      resize: vertical;
-    }
-    button {
-      cursor: pointer;
+      font-size: 13px;
+      border-top: 1px solid #ddd;
       margin-top: 5px;
+      padding-top: 5px;
+    }
+    .comentario strong {
+      color: #800000;
+    }
+    .comentar-box {
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -72,7 +70,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, query, orderBy, limit, getDocs, addDoc, deleteDoc, doc, updateDoc, increment, getDoc, startAfter } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, query, orderBy, getDocs, addDoc, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
@@ -93,12 +91,6 @@
     if (currentUser?.role === "owner") {
       document.getElementById("formAnuncio").style.display = "block";
     }
-
-    const carregarBtn = document.createElement("button");
-    carregarBtn.textContent = "Carregar mais";
-    carregarBtn.style.display = "block";
-    carregarBtn.style.margin = "20px auto";
-    let lastVisible = null;
 
     document.getElementById("postarBtn").addEventListener("click", async () => {
       const texto = document.getElementById("texto").value.trim();
@@ -147,126 +139,114 @@
           image: imageUrl || null,
           fileType: fileType || null,
           timestamp: Date.now(),
-          username: currentUser?.username || "Anônimo",
-          likes: 0,
-          comentarios: []
+          username: currentUser?.username || "Anônimo"
         });
         status.innerText = "Postagem feita com sucesso!";
         document.getElementById("texto").value = "";
         document.getElementById("arquivo").value = "";
-        lastVisible = null;
-        carregarAnunciamentos(true);
+        carregarAnunciamentos();
       } catch (e) {
         status.innerText = "Erro ao salvar no banco.";
       }
     });
 
-    async function carregarAnunciamentos(reset = false) {
+    async function carregarAnunciamentos() {
       const container = document.getElementById("anuncios");
-      if (reset) container.innerHTML = "";
+      container.innerHTML = "";
 
-      let q = query(collection(db, "post-anunci"), orderBy("timestamp", "desc"), limit(5));
-      if (lastVisible && !reset) {
-        q = query(collection(db, "post-anunci"), orderBy("timestamp", "desc"), startAfter(lastVisible), limit(5));
+      const q = query(collection(db, "post-anunci"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        container.innerHTML = "<p style='text-align:center;color:#444'>Nenhum anunciamento ainda.</p>";
       }
 
-      try {
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-          carregarBtn.style.display = "none";
-          return;
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+        const div = document.createElement("div");
+        div.className = "post";
+
+        let mediaHtml = "";
+        if (data.image) {
+          mediaHtml = data.fileType === "video"
+            ? `<video src="${data.image}" controls></video>`
+            : `<img src="${data.image}" loading="lazy">`;
         }
 
-        lastVisible = snapshot.docs[snapshot.docs.length - 1];
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          const div = document.createElement("div");
-          div.className = "post";
+        let deleteButton = "";
+        if (currentUser?.role === "owner" || currentUser?.username === data.username) {
+          deleteButton = `<button onclick="deletarPost('${docSnap.id}')">🗑️ Apagar</button>`;
+        }
 
-          let mediaHtml = "";
-          if (data.image) {
-            mediaHtml = data.fileType === "video"
-              ? `<video src="${data.image}" controls></video>`
-              : `<img src="${data.image}" loading="lazy">`;
-          }
+        // Corações
+        const likesRef = doc(db, "likes", docSnap.id);
+        const likesSnap = await getDoc(likesRef);
+        const likesData = likesSnap.exists() ? likesSnap.data() : {};
+        const totalLikes = Object.keys(likesData).length;
+        const userLiked = currentUser?.username && likesData[currentUser.username];
 
-          const deleteButton = (currentUser?.role === "owner" || currentUser?.username === data.username)
-            ? `<button onclick="deletarPost('${docSnap.id}')">🗑️ Apagar</button>`
-            : "";
-
-          const comentariosHtml = data.comentarios?.map(c => `<div class="comentario"><strong>${c.user}:</strong> ${c.text}</div>`).join("") || "";
-
-          div.innerHTML = `
-            <div class="meta">
-              ${data.username || "Anônimo"} - ${new Date(data.timestamp).toLocaleString("pt-BR")}
-              ${deleteButton}
-            </div>
-            <div>${data.text || ""}</div>
-            ${mediaHtml}
-            <div style="margin-top: 10px;">
-              ❤️ <span id="likes-${docSnap.id}">${data.likes || 0}</span>
-              <button onclick="curtir('${docSnap.id}')">Curtir</button>
-            </div>
-            <div style="margin-top:10px;">
-              <textarea id="comentario-${docSnap.id}" placeholder="Comentar..." style="width:100%; height:40px;"></textarea>
-              <button onclick="comentar('${docSnap.id}')">Comentar</button>
-              <div id="comentarios-${docSnap.id}" style="margin-top:5px;">${comentariosHtml}</div>
-            </div>
-          `;
-          container.appendChild(div);
+        // Comentários
+        const comentariosRef = collection(db, "comentarios", docSnap.id, "itens");
+        const comentariosSnap = await getDocs(comentariosRef);
+        let comentariosHtml = "";
+        comentariosSnap.forEach(com => {
+          const c = com.data();
+          comentariosHtml += `<div class="comentario"><strong>${c.username}:</strong> ${c.text}</div>`;
         });
-        container.appendChild(carregarBtn);
-      } catch (e) {
-        console.error("Erro ao carregar anunciamentos:", e);
-        container.innerHTML = "<p style='text-align:center;color:red'>Erro ao carregar anunciamentos.</p>";
+
+        div.innerHTML = `
+          <div class="meta">
+            ${data.username || "Anônimo"} - ${new Date(data.timestamp).toLocaleString("pt-BR")}
+            ${deleteButton}
+          </div>
+          <div>${data.text || ""}</div>
+          ${mediaHtml}
+          <div style="margin-top: 10px;">
+            <button onclick="toggleCora('${docSnap.id}')" ${userLiked ? 'disabled' : ''}>❤️ ${totalLikes}</button>
+          </div>
+          <div class="comentar-box">
+            <input type="text" id="comentario-${docSnap.id}" placeholder="Escreva um comentário..." style="width:80%">
+            <button onclick="comentar('${docSnap.id}')">Comentar</button>
+          </div>
+          <div>${comentariosHtml}</div>
+        `;
+        container.appendChild(div);
       }
     }
 
     window.deletarPost = async function(id) {
       if (!confirm("Tem certeza que deseja apagar este post?")) return;
-
-      try {
-        await deleteDoc(doc(db, "post-anunci", id));
-        alert("Post apagado.");
-        lastVisible = null;
-        carregarAnunciamentos(true);
-      } catch (e) {
-        alert("Erro ao apagar post.");
-      }
+      await deleteDoc(doc(db, "post-anunci", id));
+      alert("Post apagado.");
+      carregarAnunciamentos();
     };
 
-    window.curtir = async function(id) {
-      try {
-        const ref = doc(db, "post-anunci", id);
-        await updateDoc(ref, { likes: increment(1) });
-        const snap = await getDoc(ref);
-        document.getElementById(`likes-${id}`).innerText = snap.data().likes;
-      } catch (e) {
-        alert("Erro ao curtir.");
-      }
+    window.toggleCora = async function(postId) {
+      if (!currentUser?.username) return alert("Você precisa estar logado.");
+      const likesRef = doc(db, "likes", postId);
+      const snap = await getDoc(likesRef);
+      const likes = snap.exists() ? snap.data() : {};
+      if (likes[currentUser.username]) return;
+
+      likes[currentUser.username] = true;
+      await setDoc(likesRef, likes);
+      carregarAnunciamentos();
     };
 
-    window.comentar = async function(id) {
-      const textarea = document.getElementById(`comentario-${id}`);
-      const comentario = textarea.value.trim();
-      if (!comentario) return;
+    window.comentar = async function(postId) {
+      const input = document.getElementById(`comentario-${postId}`);
+      const texto = input.value.trim();
+      if (!texto) return;
 
-      try {
-        const ref = doc(db, "post-anunci", id);
-        const snap = await getDoc(ref);
-        const dados = snap.data();
-        const novos = [...(dados.comentarios || []), { user: currentUser?.username || "Anônimo", text: comentario }];
-        await updateDoc(ref, { comentarios: novos });
-
-        const comentariosDiv = document.getElementById(`comentarios-${id}`);
-        comentariosDiv.innerHTML += `<div class="comentario"><strong>${currentUser?.username || "Anônimo"}:</strong> ${comentario}</div>`;
-        textarea.value = "";
-      } catch (e) {
-        alert("Erro ao comentar.");
-      }
+      await addDoc(collection(db, "comentarios", postId, "itens"), {
+        username: currentUser?.username || "Anônimo",
+        text: texto,
+        timestamp: Date.now()
+      });
+      input.value = "";
+      carregarAnunciamentos();
     };
 
-    carregarBtn.addEventListener("click", () => carregarAnunciamentos());
     carregarAnunciamentos();
   </script>
 </body>
