@@ -178,14 +178,12 @@
           deleteButton = `<button onclick="deletarPost('${docSnap.id}')">🗑️ Apagar</button>`;
         }
 
-        // Corações
         const likesRef = doc(db, "likes", docSnap.id);
         const likesSnap = await getDoc(likesRef);
         const likesData = likesSnap.exists() ? likesSnap.data() : {};
         const totalLikes = Object.keys(likesData).length;
         const userLiked = currentUser?.username && likesData[currentUser.username];
 
-        // Comentários
         const comentariosRef = collection(db, "comentarios", docSnap.id, "itens");
         const comentariosSnap = await getDocs(comentariosRef);
         let comentariosHtml = "";
@@ -202,7 +200,7 @@
           <div>${data.text || ""}</div>
           ${mediaHtml}
           <div style="margin-top: 10px;">
-            <button onclick="toggleCora('${docSnap.id}')" ${userLiked ? 'disabled' : ''}>❤️ ${totalLikes}</button>
+            <button onclick="toggleCora('${docSnap.id}')" style="color: ${userLiked ? '#800000' : '#555'}">❤️ ${totalLikes}</button>
           </div>
           <div class="comentar-box">
             <input type="text" id="comentario-${docSnap.id}" placeholder="Escreva um comentário..." style="width:80%">
@@ -222,13 +220,21 @@
     };
 
     window.toggleCora = async function(postId) {
-      if (!currentUser?.username) return alert("Você precisa estar logado.");
+      if (!currentUser?.username) {
+        alert("Você precisa estar logado.");
+        return;
+      }
+
       const likesRef = doc(db, "likes", postId);
       const snap = await getDoc(likesRef);
       const likes = snap.exists() ? snap.data() : {};
-      if (likes[currentUser.username]) return;
 
-      likes[currentUser.username] = true;
+      if (likes[currentUser.username]) {
+        delete likes[currentUser.username]; // remove like
+      } else {
+        likes[currentUser.username] = true; // adiciona like
+      }
+
       await setDoc(likesRef, likes);
       carregarAnunciamentos();
     };
