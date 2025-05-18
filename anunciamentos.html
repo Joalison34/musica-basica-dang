@@ -38,6 +38,7 @@
 <body>
   <h1>Anunciamentos</h1>
 
+  <!-- Formulário para postagem, visível apenas para o usuário Joalison -->
   <div id="formAnuncio" style="display: none; max-width: 700px; margin: 20px auto; background: #fff0f0; padding: 15px; border: 1px solid #d99;">
     <h3>Nova postagem</h3>
     <textarea id="texto" placeholder="Digite o texto..." style="width: 100%; height: 80px;"></textarea><br>
@@ -51,7 +52,7 @@
   <!-- Substitua com suas credenciais do Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getFirestore, collection, query, where, orderBy, getDocs, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { getFirestore, collection, query, where, orderBy, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
   const firebaseConfig = {
@@ -70,14 +71,17 @@
   const db = getFirestore(app);
   const auth = getAuth();
 
+  // Verifica o usuário logado
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      // Verifique se o nome do usuário é "Joalison"
+      // Verifica se o nome do usuário é "Joalison"
       if (user.displayName === "Joalison") {
         document.getElementById("formAnuncio").style.display = "block";  // Exibe o formulário de postagem
+      } else {
+        console.log("Usuário não autorizado para postar.");
       }
     } else {
-      console.log("Usuário não autenticado.");
+      console.log("Nenhum usuário autenticado.");
     }
   });
 
@@ -126,6 +130,7 @@
     document.getElementById("arquivo").value = "";
   });
 
+  // Função para carregar os anúncios
   async function carregarAnunciamentos() {
     const container = document.getElementById("anuncios");
     const q = query(collection(db, "posts"), where("board", "==", "anunciamentos"), orderBy("timestamp", "desc"));
