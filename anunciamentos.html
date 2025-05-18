@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Anunciamentos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #f0e0d6;
+      font-family: Tahoma, sans-serif;
+      color: #000;
+      margin: 0;
+      padding: 10px;
+    }
+    h1 {
+      color: #800000;
+      text-align: center;
+    }
+    .post {
+      background: #fefefe;
+      border: 1px solid #aaa;
+      margin: 10px auto;
+      padding: 10px;
+      max-width: 700px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    .post img, .post video {
+      max-width: 100%;
+      margin-top: 10px;
+    }
+    .meta {
+      font-size: 12px;
+      color: #444;
+      margin-bottom: 5px;
+    }
+    #formAnuncio {
+      display: none;
+      max-width: 700px;
+      margin: 20px auto;
+      background: #fff0f0;
+      padding: 15px;
+      border: 1px solid #d99;
+    }
+    .comentario {
+      background: #f9f9f9;
+      border-left: 3px solid #ccc;
+      padding: 5px;
+      margin-top: 4px;
+      font-size: 14px;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      cursor: pointer;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Anunciamentos</h1>
+
+  <div id="formAnuncio">
+    <h3>Nova postagem</h3>
+    <textarea id="texto" placeholder="Digite o texto..." style="width: 100%; height: 80px;"></textarea><br>
+    <input type="file" id="arquivo" accept="image/*,video/*"><br><br>
+    <button id="postarBtn">Postar</button>
+    <div id="statusPostagem"></div>
+  </div>
+
+  <div id="anuncios"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, limit, getDocs, addDoc, deleteDoc, doc, updateDoc, increment, getDoc, startAfter } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+      authDomain: "funzer.firebaseapp.com",
+      projectId: "funzer",
+      storageBucket: "funzer.firebasestorage.app",
+      messagingSenderId: "723068647417",
+      appId: "1:723068647417:web:7ae58205191b0099a1ef28"
+    };
+
+    const IMAGEKIT_PRIVATE_KEY = 'private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=';
+    const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (currentUser?.role === "owner") {
+      document.getElementById("formAnuncio").style.display = "block";
+    }
+
+    const carregarBtn = document.createElement("button");
+    carregarBtn.textContent = "Carregar mais";
+    carregarBtn.style.display = "block";
+    carregarBtn.style.margin = "20px auto";
+    let lastVisible = null;
+
+    document.getElementById("postarBtn").addEventListener("click", async () => {
+      const texto = document.getElementById("texto").value.trim();
+      const arquivo = document.getElementById("arquivo").files[0];
+      const status = document.getElementById("statusPostagem");
+
+      if (!texto && !arquivo) {
+        status.innerText = "Escreva algo ou selecione um arquivo.";
+        return;
+      }
+
+      let imageUrl = "";
+      let fileType = "";
+
+      if (arquivo) {
+        const formData = new FormData();
+        formData.append("file", arquivo);
+        formData.append("fileName", arquivo.name);
+
+        try {
+          const response = await fetch(IMAGEKIT_UPLOAD_URL, {
+            method: "POST",
+            headers: {
+              Authorization: `Basic ${btoa(IMAGEKIT_PRIVATE_KEY + ':')}`
+            },
+            body: formData
+          });
+
+          const result = await response.json();
+          if (result.url) {
+            imageUrl = result.url;
+            fileType = result.fileType;
+          } else {
+            status.innerText = "Erro ao obter URL da imagem.";
+            return;
+          }
+        } catch (e) {
+          status.innerText = "Erro ao enviar mídia.";
+          return;
+        }
+      }
+
+      try {
+        await addDoc(collection(db, "post-anunci"), {
+          text: texto,
+          image: imageUrl || null,
+          fileType: fileType || null,
+          timestamp: Date.now(),
+          username: currentUser?.username || "Anônimo",
+          likes: 0,
+          comentarios: []
+        });
+        status.innerText = "Postagem feita com sucesso!";
+        document.getElementById("texto").value = "";
+        document.getElementById("arquivo").value = "";
+        lastVisible = null;
+        carregarAnunciamentos(true);
+      } catch (e) {
+        status.innerText = "Erro ao salvar no banco.";
+      }
+    });
+
+    async function carregarAnunciamentos(reset = false) {
+      const container = document.getElementById("anuncios");
+      if (reset) container.innerHTML = "";
+
+      let q = query(collection(db, "post-anunci"), orderBy("timestamp", "desc"), limit(5));
+      if (lastVisible && !reset) {
+        q = query(collection(db, "post-anunci"), orderBy("timestamp", "desc"), startAfter(lastVisible), limit(5));
+      }
+
+      try {
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          carregarBtn.style.display = "none";
+          return;
+        }
+
+        lastVisible = snapshot.docs[snapshot.docs.length - 1];
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const div = document.createElement("div");
+          div.className = "post";
+
+          let mediaHtml = "";
+          if (data.image) {
+            mediaHtml = data.fileType === "video"
+              ? `<video src="${data.image}" controls></video>`
+              : `<img src="${data.image}" loading="lazy">`;
+          }
+
+          const deleteButton = (currentUser?.role === "owner" || currentUser?.username === data.username)
+            ? `<button onclick="deletarPost('${docSnap.id}')">🗑️ Apagar</button>`
+            : "";
+
+          const comentariosHtml = data.comentarios?.map(c => `<div class="comentario"><strong>${c.user}:</strong> ${c.text}</div>`).join("") || "";
+
+          div.innerHTML = `
+            <div class="meta">
+              ${data.username || "Anônimo"} - ${new Date(data.timestamp).toLocaleString("pt-BR")}
+              ${deleteButton}
+            </div>
+            <div>${data.text || ""}</div>
+            ${mediaHtml}
+            <div style="margin-top: 10px;">
+              ❤️ <span id="likes-${docSnap.id}">${data.likes || 0}</span>
+              <button onclick="curtir('${docSnap.id}')">Curtir</button>
+            </div>
+            <div style="margin-top:10px;">
+              <textarea id="comentario-${docSnap.id}" placeholder="Comentar..." style="width:100%; height:40px;"></textarea>
+              <button onclick="comentar('${docSnap.id}')">Comentar</button>
+              <div id="comentarios-${docSnap.id}" style="margin-top:5px;">${comentariosHtml}</div>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+        container.appendChild(carregarBtn);
+      } catch (e) {
+        console.error("Erro ao carregar anunciamentos:", e);
+        container.innerHTML = "<p style='text-align:center;color:red'>Erro ao carregar anunciamentos.</p>";
+      }
+    }
+
+    window.deletarPost = async function(id) {
+      if (!confirm("Tem certeza que deseja apagar este post?")) return;
+
+      try {
+        await deleteDoc(doc(db, "post-anunci", id));
+        alert("Post apagado.");
+        lastVisible = null;
+        carregarAnunciamentos(true);
+      } catch (e) {
+        alert("Erro ao apagar post.");
+      }
+    };
+
+    window.curtir = async function(id) {
+      try {
+        const ref = doc(db, "post-anunci", id);
+        await updateDoc(ref, { likes: increment(1) });
+        const snap = await getDoc(ref);
+        document.getElementById(`likes-${id}`).innerText = snap.data().likes;
+      } catch (e) {
+        alert("Erro ao curtir.");
+      }
+    };
+
+    window.comentar = async function(id) {
+      const textarea = document.getElementById(`comentario-${id}`);
+      const comentario = textarea.value.trim();
+      if (!comentario) return;
+
+      try {
+        const ref = doc(db, "post-anunci", id);
+        const snap = await getDoc(ref);
+        const dados = snap.data();
+        const novos = [...(dados.comentarios || []), { user: currentUser?.username || "Anônimo", text: comentario }];
+        await updateDoc(ref, { comentarios: novos });
+
+        const comentariosDiv = document.getElementById(`comentarios-${id}`);
+        comentariosDiv.innerHTML += `<div class="comentario"><strong>${currentUser?.username || "Anônimo"}:</strong> ${comentario}</div>`;
+        textarea.value = "";
+      } catch (e) {
+        alert("Erro ao comentar.");
+      }
+    };
+
+    carregarBtn.addEventListener("click", () => carregarAnunciamentos());
+    carregarAnunciamentos();
+  </script>
+</body>
+</html>
