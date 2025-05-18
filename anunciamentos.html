@@ -202,9 +202,7 @@
           <div>${data.text || ""}</div>
           ${mediaHtml}
           <div style="margin-top: 10px;">
-            <button id="like-btn-${docSnap.id}" onclick="toggleCora('${docSnap.id}')" ${userLiked ? 'disabled' : ''}>
-              ❤️ ${totalLikes}
-            </button>
+            <button id="like-btn-${docSnap.id}" onclick="toggleCora('${docSnap.id}')">❤️ ${totalLikes}</button>
           </div>
           <div class="comentar-box">
             <input type="text" id="comentario-${docSnap.id}" placeholder="Escreva um comentário..." style="width:80%">
@@ -244,7 +242,6 @@
       const botao = document.querySelector(`#like-btn-${postId}`);
       if (botao) {
         botao.innerText = `❤️ ${totalLikes}`;
-        botao.disabled = !jaCurtiu ? true : false;
       }
     };
 
