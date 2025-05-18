@@ -1,101 +1,4 @@
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getFirestore, collection, query, where, orderBy, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
-    authDomain: "funzer.firebaseapp.com",
-    projectId: "funzer",
-    storageBucket: "funzer.firebasestorage.app",
-    messagingSenderId: "723068647417",
-    appId: "1:723068647417:web:7ae58205191b0099a1ef28"
-  };
-
-  const IMAGEKIT_ID = 'lksjdf7sd';
-  const IMAGEKIT_UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload';
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth();
-
-  onAuthStateChanged(auth, async (user) => {
-    if (user && user.displayName === "Joalison") {
-      document.getElementById("formAnuncio").style.display = "block";
-    } else if (user) {
-      document.getElementById("statusPostagem").innerText = "Você não tem permissão para postar.";
-    } else {
-      document.getElementById("statusPostagem").innerText = "Por favor, faça login primeiro.";
-    }
-  });
-
-  document.getElementById("postarBtn").addEventListener("click", async () => {
-    const texto = document.getElementById("texto").value.trim();
-    const arquivo = document.getElementById("arquivo").files[0];
-    const status = document.getElementById("statusPostagem");
-
-    if (!texto && !arquivo) {
-      status.innerText = "Escreva algo ou selecione um arquivo.";
-      return;
-    }
-
-    let imageUrl = "";
-    if (arquivo) {
-      const formData = new FormData();
-      formData.append("file", arquivo);
-      formData.append("publicKey", IMAGEKIT_ID);
-      formData.append("fileName", arquivo.name);
-
-      try {
-        const response = await fetch(IMAGEKIT_UPLOAD_URL, {
-          method: "POST",
-          body: formData
-        });
-        const data = await response.json();
-        imageUrl = data.url;
-      } catch (e) {
-        status.innerText = "Erro ao enviar imagem.";
-        return;
-      }
-    }
-
-    try {
-      await addDoc(collection(db, "posts"), {
-        board: "anunciamentos",
-        text: texto,
-        image: imageUrl || null,
-        timestamp: Date.now(),
-        username: "Joalison"
-      });
-      status.innerText = "Postagem feita com sucesso!";
-      document.getElementById("texto").value = "";
-      document.getElementById("arquivo").value = "";
-    } catch (e) {
-      status.innerText = "Erro ao salvar no banco.";
-    }
-  });
-
-  async function carregarAnunciamentos() {
-    const container = document.getElementById("anuncios");
-    const q = query(collection(db, "posts"), where("board", "==", "anunciamentos"), orderBy("timestamp", "desc"));
-    const snapshot = await getDocs(q);
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const div = document.createElement("div");
-      div.className = "post";
-      div.innerHTML = `
-        <div class="meta">${data.username} - ${new Date(data.timestamp).toLocaleString("pt-BR")}</div>
-        <div>${data.text || ""}</div>
-        ${data.image ? `<img src="${data.image}" loading="lazy">` : ""}
-      `;
-      container.appendChild(div);
-    });
-  }
-
-  carregarAnunciamentos();
-</script>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -153,5 +56,96 @@
   </div>
 
   <div id="anuncios"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, query, where, orderBy, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+      authDomain: "funzer.firebaseapp.com",
+      projectId: "funzer",
+      storageBucket: "funzer.firebasestorage.app",
+      messagingSenderId: "723068647417",
+      appId: "1:723068647417:web:7ae58205191b0099a1ef28"
+    };
+
+    const IMAGEKIT_ID = 'lksjdf7sd';
+    const IMAGEKIT_UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload';
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (currentUser?.role === "owner") {
+      document.getElementById("formAnuncio").style.display = "block";
+    }
+
+    document.getElementById("postarBtn").addEventListener("click", async () => {
+      const texto = document.getElementById("texto").value.trim();
+      const arquivo = document.getElementById("arquivo").files[0];
+      const status = document.getElementById("statusPostagem");
+
+      if (!texto && !arquivo) {
+        status.innerText = "Escreva algo ou selecione um arquivo.";
+        return;
+      }
+
+      let imageUrl = "";
+
+      if (arquivo) {
+        const formData = new FormData();
+        formData.append("file", arquivo);
+        formData.append("publicKey", IMAGEKIT_ID);
+        formData.append("fileName", arquivo.name);
+
+        try {
+          const response = await fetch(IMAGEKIT_UPLOAD_URL, {
+            method: "POST",
+            body: formData
+          });
+          const data = await response.json();
+          imageUrl = data.url;
+        } catch (e) {
+          status.innerText = "Erro ao enviar arquivo.";
+          return;
+        }
+      }
+
+      try {
+        await addDoc(collection(db, "posts"), {
+          board: "anunciamentos",
+          text: texto,
+          image: imageUrl || null,
+          timestamp: Date.now(),
+          username: currentUser.username
+        });
+        status.innerText = "Postagem feita com sucesso!";
+        document.getElementById("texto").value = "";
+        document.getElementById("arquivo").value = "";
+      } catch (e) {
+        status.innerText = "Erro ao salvar no banco.";
+      }
+    });
+
+    async function carregarAnunciamentos() {
+      const container = document.getElementById("anuncios");
+      const q = query(collection(db, "posts"), where("board", "==", "anunciamentos"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = `
+          <div class="meta">${data.username} - ${new Date(data.timestamp).toLocaleString("pt-BR")}</div>
+          <div>${data.text || ""}</div>
+          ${data.image ? `<img src="${data.image}" loading="lazy">` : ""}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    carregarAnunciamentos();
+  </script>
 </body>
 </html>
