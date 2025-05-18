@@ -1,147 +1,207 @@
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore, collection, query, orderBy, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Anunciamentos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #f0e0d6;
+      font-family: Tahoma, sans-serif;
+      color: #000;
+      margin: 0;
+      padding: 10px;
+    }
+    h1 {
+      color: #800000;
+      text-align: center;
+    }
+    .post {
+      background: #fefefe;
+      border: 1px solid #aaa;
+      margin: 10px auto;
+      padding: 10px;
+      max-width: 700px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    .post img, .post video {
+      max-width: 100%;
+      margin-top: 10px;
+    }
+    .meta {
+      font-size: 12px;
+      color: #444;
+      margin-bottom: 5px;
+    }
+    #formAnuncio {
+      display: none;
+      max-width: 700px;
+      margin: 20px auto;
+      background: #fff0f0;
+      padding: 15px;
+      border: 1px solid #d99;
+    }
+  </style>
+</head>
+<body>
+  <h1>Anunciamentos</h1>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
-  authDomain: "funzer.firebaseapp.com",
-  projectId: "funzer",
-  storageBucket: "funzer.firebasestorage.app",
-  messagingSenderId: "723068647417",
-  appId: "1:723068647417:web:7ae58205191b0099a1ef28"
-};
+  <div id="formAnuncio">
+    <h3>Nova postagem</h3>
+    <textarea id="texto" placeholder="Digite o texto..." style="width: 100%; height: 80px;"></textarea><br>
+    <input type="file" id="arquivo" accept="image/*,video/*"><br><br>
+    <button id="postarBtn">Postar</button>
+    <div id="statusPostagem"></div>
+  </div>
 
-const IMAGEKIT_PRIVATE_KEY = 'private_K0G6BijrJQ5r+PBaDTPnw1x7hLY='; // do Funzer
-const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+  <div id="anuncios"></div>
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-if (currentUser?.role === "owner") {
-  document.getElementById("formAnuncio").style.display = "block";
-}
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+      authDomain: "funzer.firebaseapp.com",
+      projectId: "funzer",
+      storageBucket: "funzer.firebasestorage.app",
+      messagingSenderId: "723068647417",
+      appId: "1:723068647417:web:7ae58205191b0099a1ef28"
+    };
 
-document.getElementById("postarBtn").addEventListener("click", async () => {
-  const texto = document.getElementById("texto").value.trim();
-  const arquivo = document.getElementById("arquivo").files[0];
-  const status = document.getElementById("statusPostagem");
+    const IMAGEKIT_PRIVATE_KEY = 'private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=';
+    const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
 
-  if (!texto && !arquivo) {
-    status.innerText = "Escreva algo ou selecione um arquivo.";
-    return;
-  }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  let imageUrl = "";
-  let fileType = "";
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (currentUser?.role === "owner") {
+      document.getElementById("formAnuncio").style.display = "block";
+    }
 
-  if (arquivo) {
-    const formData = new FormData();
-    formData.append("file", arquivo);
-    formData.append("fileName", arquivo.name);
+    document.getElementById("postarBtn").addEventListener("click", async () => {
+      const texto = document.getElementById("texto").value.trim();
+      const arquivo = document.getElementById("arquivo").files[0];
+      const status = document.getElementById("statusPostagem");
 
-    try {
-      const response = await fetch(IMAGEKIT_UPLOAD_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${btoa(IMAGEKIT_PRIVATE_KEY + ':')}`
-        },
-        body: formData
-      });
-
-      const result = await response.json();
-      if (result.url) {
-        imageUrl = result.url;
-        fileType = result.fileType;
-      } else {
-        status.innerText = "Erro ao obter URL da imagem.";
-        console.error("Resposta do ImageKit:", result);
+      if (!texto && !arquivo) {
+        status.innerText = "Escreva algo ou selecione um arquivo.";
         return;
       }
-    } catch (e) {
-      status.innerText = "Erro ao enviar mídia.";
-      console.error("Erro ImageKit:", e);
-      return;
-    }
-  }
 
-  try {
-    const docRef = await addDoc(collection(db, "post-anunci"), {
-      text: texto,
-      image: imageUrl || null,
-      fileType: fileType || null,
-      timestamp: Date.now(),
-      username: currentUser?.username || "Anônimo"
-    });
-    status.innerText = "Postagem feita com sucesso!";
-    document.getElementById("texto").value = "";
-    document.getElementById("arquivo").value = "";
-    carregarAnunciamentos();
-  } catch (e) {
-    status.innerText = "Erro ao salvar no banco.";
-    console.error("Erro Firestore:", e);
-  }
-});
+      let imageUrl = "";
+      let fileType = "";
 
-async function carregarAnunciamentos() {
-  const container = document.getElementById("anuncios");
-  container.innerHTML = "";
+      if (arquivo) {
+        const formData = new FormData();
+        formData.append("file", arquivo);
+        formData.append("fileName", arquivo.name);
 
-  try {
-    const q = query(collection(db, "post-anunci"), orderBy("timestamp", "desc"));
-    const snapshot = await getDocs(q);
+        try {
+          const response = await fetch(IMAGEKIT_UPLOAD_URL, {
+            method: "POST",
+            headers: {
+              Authorization: `Basic ${btoa(IMAGEKIT_PRIVATE_KEY + ':')}`
+            },
+            body: formData
+          });
 
-    if (snapshot.empty) {
-      container.innerHTML = "<p style='text-align:center;color:#444'>Nenhum anunciamento ainda.</p>";
-    }
-
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const div = document.createElement("div");
-      div.className = "post";
-
-      let mediaHtml = "";
-      if (data.image) {
-        if (data.fileType === "video") {
-          mediaHtml = `<video src="${data.image}" controls style="max-width:100%; margin-top:10px;"></video>`;
-        } else {
-          mediaHtml = `<img src="${data.image}" loading="lazy">`;
+          const result = await response.json();
+          if (result.url) {
+            imageUrl = result.url;
+            fileType = result.fileType;
+          } else {
+            status.innerText = "Erro ao obter URL da imagem.";
+            console.error("Resposta do ImageKit:", result);
+            return;
+          }
+        } catch (e) {
+          status.innerText = "Erro ao enviar mídia.";
+          console.error("Erro ImageKit:", e);
+          return;
         }
       }
 
-      let deleteButton = "";
-      if (currentUser?.role === "owner" || currentUser?.username === data.username) {
-        deleteButton = `<button onclick="deletarPost('${docSnap.id}')">🗑️ Apagar</button>`;
+      try {
+        await addDoc(collection(db, "post-anunci"), {
+          text: texto,
+          image: imageUrl || null,
+          fileType: fileType || null,
+          timestamp: Date.now(),
+          username: currentUser?.username || "Anônimo"
+        });
+        status.innerText = "Postagem feita com sucesso!";
+        document.getElementById("texto").value = "";
+        document.getElementById("arquivo").value = "";
+        carregarAnunciamentos();
+      } catch (e) {
+        status.innerText = "Erro ao salvar no banco.";
+        console.error("Erro Firestore:", e);
       }
-
-      div.innerHTML = `
-        <div class="meta">
-          ${data.username || "Anônimo"} - ${new Date(data.timestamp).toLocaleString("pt-BR")}
-          ${deleteButton}
-        </div>
-        <div>${data.text || ""}</div>
-        ${mediaHtml}
-      `;
-      container.appendChild(div);
     });
-  } catch (e) {
-    console.error("Erro ao carregar anunciamentos:", e);
-    container.innerHTML = "<p style='text-align:center;color:red'>Erro ao carregar anunciamentos.</p>";
-  }
-}
 
-window.deletarPost = async function(id) {
-  if (!confirm("Tem certeza que deseja apagar este post?")) return;
+    async function carregarAnunciamentos() {
+      const container = document.getElementById("anuncios");
+      container.innerHTML = "";
 
-  try {
-    await deleteDoc(doc(db, "post-anunci", id));
-    alert("Post apagado.");
+      try {
+        const q = query(collection(db, "post-anunci"), orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          container.innerHTML = "<p style='text-align:center;color:#444'>Nenhum anunciamento ainda.</p>";
+        }
+
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const div = document.createElement("div");
+          div.className = "post";
+
+          let mediaHtml = "";
+          if (data.image) {
+            if (data.fileType === "video") {
+              mediaHtml = `<video src="${data.image}" controls style="max-width:100%; margin-top:10px;"></video>`;
+            } else {
+              mediaHtml = `<img src="${data.image}" loading="lazy">`;
+            }
+          }
+
+          let deleteButton = "";
+          if (currentUser?.role === "owner" || currentUser?.username === data.username) {
+            deleteButton = `<button onclick="deletarPost('${docSnap.id}')">🗑️ Apagar</button>`;
+          }
+
+          div.innerHTML = `
+            <div class="meta">
+              ${data.username || "Anônimo"} - ${new Date(data.timestamp).toLocaleString("pt-BR")}
+              ${deleteButton}
+            </div>
+            <div>${data.text || ""}</div>
+            ${mediaHtml}
+          `;
+          container.appendChild(div);
+        });
+      } catch (e) {
+        console.error("Erro ao carregar anunciamentos:", e);
+        container.innerHTML = "<p style='text-align:center;color:red'>Erro ao carregar anunciamentos.</p>";
+      }
+    }
+
+    window.deletarPost = async function(id) {
+      if (!confirm("Tem certeza que deseja apagar este post?")) return;
+
+      try {
+        await deleteDoc(doc(db, "post-anunci", id));
+        alert("Post apagado.");
+        carregarAnunciamentos();
+      } catch (e) {
+        console.error("Erro ao apagar:", e);
+        alert("Erro ao apagar post.");
+      }
+    };
+
     carregarAnunciamentos();
-  } catch (e) {
-    console.error("Erro ao apagar:", e);
-    alert("Erro ao apagar post.");
-  }
-};
-
-carregarAnunciamentos();
-</script>
+  </script>
+</body>
+</html>
