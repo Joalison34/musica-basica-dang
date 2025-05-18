@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Anunciamentos</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       background: #f0e0d6;
@@ -22,17 +22,7 @@
       margin: 10px auto;
       padding: 10px;
       max-width: 700px;
-      box-shadow: 2px 2px 10px rgba(0,0,0,0.15);
-      border-radius: 8px;
-      transition: transform 0.2s ease;
-    }
-    .post.owner {
-      animation: pulse 2s infinite ease-in-out;
-      border-color: #d44;
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 10px rgba(255,0,0,0.1); }
-      50% { box-shadow: 0 0 20px rgba(255,0,0,0.4); }
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
     }
     .post img, .post video {
       max-width: 100%;
@@ -51,36 +41,23 @@
       padding: 15px;
       border: 1px solid #d99;
     }
-    .like-button {
-      background: #ffe6e6;
-      border: 1px solid #d33;
-      border-radius: 4px;
-      padding: 5px 10px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-right: 8px;
+    .comentario {
+      font-size: 13px;
+      border-top: 1px solid #ddd;
+      margin-top: 5px;
+      padding-top: 5px;
     }
-    .comment-section {
+    .comentario strong {
+      color: #800000;
+    }
+    .comentar-box {
       margin-top: 10px;
-    }
-    .comment {
-      padding: 5px;
-      margin-top: 3px;
-      background: #f5f5f5;
-      border-radius: 4px;
-    }
-    .comment .delete-btn {
-      background: none;
-      border: none;
-      color: red;
-      font-size: 12px;
-      float: right;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <h1>Anunciamentos</h1>
+
   <div id="formAnuncio">
     <h3>Nova postagem</h3>
     <textarea id="texto" placeholder="Digite o texto..." style="width: 100%; height: 80px;"></textarea><br>
@@ -93,10 +70,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import {
-      getFirestore, collection, query, orderBy, getDocs, addDoc,
-      deleteDoc, doc, updateDoc, getDoc, setDoc
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, query, orderBy, getDocs, addDoc, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
@@ -107,10 +81,13 @@
       appId: "1:723068647417:web:7ae58205191b0099a1ef28"
     };
 
+    const IMAGEKIT_PRIVATE_KEY = 'private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=';
+    const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     if (currentUser?.role === "owner") {
       document.getElementById("formAnuncio").style.display = "block";
     }
@@ -132,14 +109,16 @@
         const formData = new FormData();
         formData.append("file", arquivo);
         formData.append("fileName", arquivo.name);
+
         try {
-          const response = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
+          const response = await fetch(IMAGEKIT_UPLOAD_URL, {
             method: "POST",
             headers: {
-              Authorization: `Basic ${btoa('private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=')}`
+              Authorization: `Basic ${btoa(IMAGEKIT_PRIVATE_KEY + ':')}`
             },
             body: formData
           });
+
           const result = await response.json();
           if (result.url) {
             imageUrl = result.url;
@@ -154,18 +133,21 @@
         }
       }
 
-      await addDoc(collection(db, "post-anunci"), {
-        text: texto,
-        image: imageUrl || null,
-        fileType: fileType || null,
-        timestamp: Date.now(),
-        username: currentUser?.username || "Anônimo",
-        likes: [],
-      });
-      status.innerText = "Postagem feita com sucesso!";
-      document.getElementById("texto").value = "";
-      document.getElementById("arquivo").value = "";
-      carregarAnunciamentos();
+      try {
+        await addDoc(collection(db, "post-anunci"), {
+          text: texto,
+          image: imageUrl || null,
+          fileType: fileType || null,
+          timestamp: Date.now(),
+          username: currentUser?.username || "Anônimo"
+        });
+        status.innerText = "Postagem feita com sucesso!";
+        document.getElementById("texto").value = "";
+        document.getElementById("arquivo").value = "";
+        carregarAnunciamentos();
+      } catch (e) {
+        status.innerText = "Erro ao salvar no banco.";
+      }
     });
 
     async function carregarAnunciamentos() {
@@ -175,11 +157,14 @@
       const q = query(collection(db, "post-anunci"), orderBy("timestamp", "desc"));
       const snapshot = await getDocs(q);
 
-      snapshot.forEach(async docSnap => {
+      if (snapshot.empty) {
+        container.innerHTML = "<p style='text-align:center;color:#444'>Nenhum anunciamento ainda.</p>";
+      }
+
+      for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
-        const id = docSnap.id;
         const div = document.createElement("div");
-        div.className = "post" + (data.username === "Joalison" ? " owner" : "");
+        div.className = "post";
 
         let mediaHtml = "";
         if (data.image) {
@@ -188,76 +173,77 @@
             : `<img src="${data.image}" loading="lazy">`;
         }
 
-        const isLiked = data.likes?.includes(currentUser?.username);
-        const likeBtn = document.createElement("button");
-        likeBtn.className = "like-button";
-        likeBtn.innerHTML = `❤️ ${data.likes?.length || 0}`;
-        likeBtn.onclick = async () => {
-          const docRef = doc(db, "post-anunci", id);
-          const docAtual = await getDoc(docRef);
-          let likes = docAtual.data().likes || [];
-          if (likes.includes(currentUser.username)) {
-            likes = likes.filter(u => u !== currentUser.username);
-          } else {
-            likes.push(currentUser.username);
-          }
-          await updateDoc(docRef, { likes });
-          carregarAnunciamentos();
-        };
-
         let deleteButton = "";
         if (currentUser?.role === "owner" || currentUser?.username === data.username) {
-          deleteButton = `<button onclick="deletarPost('${id}')">🗑️ Apagar</button>`;
+          deleteButton = `<button onclick="deletarPost('${docSnap.id}')">🗑️ Apagar</button>`;
         }
 
-        const commentInput = document.createElement("input");
-        commentInput.placeholder = "Comentário...";
-        commentInput.style = "width: 100%; margin-top: 5px";
-        commentInput.onkeypress = async e => {
-          if (e.key === "Enter" && commentInput.value.trim()) {
-            await addDoc(collection(db, `post-anunci/${id}/comentarios`), {
-              texto: commentInput.value.trim(),
-              autor: currentUser.username,
-              timestamp: Date.now()
-            });
-            commentInput.value = "";
-            carregarAnunciamentos();
-          }
-        };
+        // Corações
+        const likesRef = doc(db, "likes", docSnap.id);
+        const likesSnap = await getDoc(likesRef);
+        const likesData = likesSnap.exists() ? likesSnap.data() : {};
+        const totalLikes = Object.keys(likesData).length;
+        const userLiked = currentUser?.username && likesData[currentUser.username];
 
-        const commentsSnap = await getDocs(collection(db, `post-anunci/${id}/comentarios`));
+        // Comentários
+        const comentariosRef = collection(db, "comentarios", docSnap.id, "itens");
+        const comentariosSnap = await getDocs(comentariosRef);
         let comentariosHtml = "";
-        commentsSnap.forEach(c => {
-          const d = c.data();
-          comentariosHtml += `<div class="comment">${d.autor}: ${d.texto}`;
-          if (d.autor === currentUser.username) {
-            comentariosHtml += ` <button class="delete-btn" onclick="deletarComentario('${id}', '${c.id}')">Apagar</button>`;
-          }
-          comentariosHtml += `</div>`;
+        comentariosSnap.forEach(com => {
+          const c = com.data();
+          comentariosHtml += `<div class="comentario"><strong>${c.username}:</strong> ${c.text}</div>`;
         });
 
         div.innerHTML = `
           <div class="meta">
-            ${data.username} - ${new Date(data.timestamp).toLocaleString("pt-BR")} ${deleteButton}
+            ${data.username || "Anônimo"} - ${new Date(data.timestamp).toLocaleString("pt-BR")}
+            ${deleteButton}
           </div>
-          <div>${data.text}</div>
+          <div>${data.text || ""}</div>
           ${mediaHtml}
+          <div style="margin-top: 10px;">
+            <button onclick="toggleCora('${docSnap.id}')" ${userLiked ? 'disabled' : ''}>❤️ ${totalLikes}</button>
+          </div>
+          <div class="comentar-box">
+            <input type="text" id="comentario-${docSnap.id}" placeholder="Escreva um comentário..." style="width:80%">
+            <button onclick="comentar('${docSnap.id}')">Comentar</button>
+          </div>
+          <div>${comentariosHtml}</div>
         `;
-        div.appendChild(likeBtn);
-        div.innerHTML += `<div class="comment-section">${comentariosHtml}</div>`;
-        div.appendChild(commentInput);
         container.appendChild(div);
-      });
+      }
     }
 
     window.deletarPost = async function(id) {
-      if (!confirm("Apagar este post?")) return;
+      if (!confirm("Tem certeza que deseja apagar este post?")) return;
       await deleteDoc(doc(db, "post-anunci", id));
+      alert("Post apagado.");
       carregarAnunciamentos();
     };
 
-    window.deletarComentario = async function(postId, commentId) {
-      await deleteDoc(doc(db, `post-anunci/${postId}/comentarios`, commentId));
+    window.toggleCora = async function(postId) {
+      if (!currentUser?.username) return alert("Você precisa estar logado.");
+      const likesRef = doc(db, "likes", postId);
+      const snap = await getDoc(likesRef);
+      const likes = snap.exists() ? snap.data() : {};
+      if (likes[currentUser.username]) return;
+
+      likes[currentUser.username] = true;
+      await setDoc(likesRef, likes);
+      carregarAnunciamentos();
+    };
+
+    window.comentar = async function(postId) {
+      const input = document.getElementById(`comentario-${postId}`);
+      const texto = input.value.trim();
+      if (!texto) return;
+
+      await addDoc(collection(db, "comentarios", postId, "itens"), {
+        username: currentUser?.username || "Anônimo",
+        text: texto,
+        timestamp: Date.now()
+      });
+      input.value = "";
       carregarAnunciamentos();
     };
 
