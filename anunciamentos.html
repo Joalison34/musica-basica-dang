@@ -70,22 +70,21 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, query, orderBy, getDocs, addDoc, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, query, orderBy, getDocs, addDoc, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
       authDomain: "funzer.firebaseapp.com",
       projectId: "funzer",
-      storageBucket: "funzer.firebasestorage.app",
+      storageBucket: "funzer.appspot.com",
       messagingSenderId: "723068647417",
       appId: "1:723068647417:web:7ae58205191b0099a1ef28"
     };
 
-    const IMAGEKIT_PRIVATE_KEY = 'private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=';
-    const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     if (currentUser?.role === "owner") {
@@ -102,32 +101,17 @@
         return;
       }
 
-      let imageUrl = "";
-      let fileType = "";
+      let fileUrl = null;
+      let fileType = null;
 
       if (arquivo) {
-        const formData = new FormData();
-        formData.append("file", arquivo);
-        formData.append("fileName", arquivo.name);
-
         try {
-          const response = await fetch(IMAGEKIT_UPLOAD_URL, {
-            method: "POST",
-            headers: {
-              Authorization: `Basic ${btoa(IMAGEKIT_PRIVATE_KEY + ':')}`
-            },
-            body: formData
-          });
-
-          const result = await response.json();
-          if (result.url) {
-            imageUrl = result.url;
-            fileType = result.fileType;
-          } else {
-            status.innerText = "Erro ao obter URL da imagem.";
-            return;
-          }
+          const storageRef = ref(storage, `anunciamentos/${Date.now()}-${arquivo.name}`);
+          await uploadBytes(storageRef, arquivo);
+          fileUrl = await getDownloadURL(storageRef);
+          fileType = arquivo.type.startsWith("video") ? "video" : "image";
         } catch (e) {
+          console.error(e);
           status.innerText = "Erro ao enviar mídia.";
           return;
         }
@@ -136,7 +120,7 @@
       try {
         await addDoc(collection(db, "post-anunci"), {
           text: texto,
-          image: imageUrl || null,
+          image: fileUrl || null,
           fileType: fileType || null,
           timestamp: Date.now(),
           username: currentUser?.username || "Anônimo"
@@ -146,6 +130,7 @@
         document.getElementById("arquivo").value = "";
         carregarAnunciamentos();
       } catch (e) {
+        console.error(e);
         status.innerText = "Erro ao salvar no banco.";
       }
     });
@@ -159,6 +144,7 @@
 
       if (snapshot.empty) {
         container.innerHTML = "<p style='text-align:center;color:#444'>Nenhum anunciamento ainda.</p>";
+        return;
       }
 
       for (const docSnap of snapshot.docs) {
@@ -178,7 +164,7 @@
           deleteButton = `<button onclick="deletarPost('${docSnap.id}')">🗑️ Apagar</button>`;
         }
 
-        // Corações
+        // Curtidas
         const likesRef = doc(db, "likes", docSnap.id);
         const likesSnap = await getDoc(likesRef);
         const likesData = likesSnap.exists() ? likesSnap.data() : {};
@@ -186,8 +172,7 @@
         const userLiked = currentUser?.username && likesData[currentUser.username];
 
         // Comentários
-        const comentariosRef = collection(db, "comentarios", docSnap.id, "itens");
-        const comentariosSnap = await getDocs(comentariosRef);
+        const comentariosSnap = await getDocs(collection(db, "comentarios", docSnap.id, "itens"));
         let comentariosHtml = "";
         comentariosSnap.forEach(com => {
           const c = com.data();
@@ -229,7 +214,6 @@
       const likes = snap.exists() ? snap.data() : {};
 
       const jaCurtiu = !!likes[currentUser.username];
-
       if (jaCurtiu) {
         delete likes[currentUser.username];
       } else {
@@ -237,12 +221,7 @@
       }
 
       await setDoc(likesRef, likes);
-
-      const totalLikes = Object.keys(likes).length;
-      const botao = document.querySelector(`#like-btn-${postId}`);
-      if (botao) {
-        botao.innerText = `❤️ ${totalLikes}`;
-      }
+      carregarAnunciamentos();
     };
 
     window.comentar = async function(postId) {
