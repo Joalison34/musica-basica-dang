@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Projetos Criativos e Sustentáveis</title>
   <style>
     body { font-family: Arial, sans-serif; background: #e8f5e9; color: #333; }
     header { background: linear-gradient(135deg, #4CAF50, #66BB6A); padding: 20px; text-align: center; color: white; }
     .container { width: 90%; margin: auto; padding: 20px; }
     .project { background: white; margin-bottom: 20px; padding: 20px; border-radius: 10px; }
-    .media-item { margin: 10px 0; max-width: 100%; height: auto; }
+    .media-item { margin: 10px 10px 10px 0; max-width: 100px; max-height: 80px; height: auto; display: inline-block; vertical-align: middle; }
     button { margin: 5px; padding: 10px; background: #FFEB3B; border: none; border-radius: 5px; cursor: pointer; }
-    textarea, input { width: 100%; margin: 5px 0; padding: 5px; }
+    textarea, input { width: 100%; margin: 5px 0; padding: 5px; box-sizing: border-box; }
   </style>
 </head>
 <body>
@@ -36,7 +36,7 @@
   const db = firebase.firestore();
 
   const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
-  const IMAGEKIT_PRIVATE_KEY = "private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=";
+  const IMAGEKIT_PRIVATE_KEY = "private_K0G6BijrJQ5rJ-KYTE-oSz6pRfbF6mBdQ";
 
   let isEditing = false;
   let currentProject = null;
@@ -112,19 +112,49 @@
               mediaDiv.appendChild(el);
             });
           }
-        }
-        if (isEditing && currentProject == i) {
-          const form = document.createElement('div');
-          form.innerHTML = `
-            <input placeholder="Grupo" id="grupo-${i}"><br>
-            <input placeholder="Classe" id="classe-${i}"><br>
-            <textarea placeholder="Resumo" id="resumo-${i}"></textarea><br>
-            <textarea placeholder="Intenções" id="intencao-${i}"></textarea><br>
-            <textarea placeholder="Finalidades" id="finalidade-${i}"></textarea><br>
-            <input type="file" id="file-${i}" multiple><br>
-            <button onclick="salvarTudo(${i})">Salvar Tudo</button>
-          `;
-          projDiv.appendChild(form);
+
+          if (isEditing && currentProject == i) {
+            const form = document.createElement('div');
+            form.innerHTML = `
+              <input placeholder="Grupo" id="grupo-${i}" value="${data.grupo || ''}"><br>
+              <input placeholder="Classe" id="classe-${i}" value="${data.classe || ''}"><br>
+              <textarea placeholder="Resumo" id="resumo-${i}">${data.resumo || ''}</textarea><br>
+              <textarea placeholder="Intenções" id="intencao-${i}">${data.intencao || ''}</textarea><br>
+              <textarea placeholder="Finalidades" id="finalidade-${i}">${data.finalidade || ''}</textarea><br>
+              <div id="medias-preview-${i}"></div>
+              <input type="file" id="file-${i}" multiple><br>
+              <button onclick="salvarTudo(${i})">Salvar Tudo</button>
+            `;
+
+            const previewDiv = form.querySelector(`#medias-preview-${i}`);
+            if (data.medias && data.medias.length) {
+              data.medias.forEach((m) => {
+                const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
+                el.src = m.url;
+                el.className = 'media-item';
+                if (m.tipo === 'video') el.controls = true;
+                previewDiv.appendChild(el);
+              });
+            }
+
+            projDiv.appendChild(form);
+          }
+
+        } else {
+          // Caso não exista doc ainda e esteja editando o projeto atual, mostrar formulário vazio
+          if (isEditing && currentProject == i) {
+            const form = document.createElement('div');
+            form.innerHTML = `
+              <input placeholder="Grupo" id="grupo-${i}"><br>
+              <input placeholder="Classe" id="classe-${i}"><br>
+              <textarea placeholder="Resumo" id="resumo-${i}"></textarea><br>
+              <textarea placeholder="Intenções" id="intencao-${i}"></textarea><br>
+              <textarea placeholder="Finalidades" id="finalidade-${i}"></textarea><br>
+              <input type="file" id="file-${i}" multiple><br>
+              <button onclick="salvarTudo(${i})">Salvar Tudo</button>
+            `;
+            projDiv.appendChild(form);
+          }
         }
       });
       container.appendChild(projDiv);
