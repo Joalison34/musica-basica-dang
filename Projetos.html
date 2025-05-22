@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projetos de Materiais Descartáveis</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #e8f5e9; color: #333; }
+        header { background: linear-gradient(135deg, #4CAF50, #66BB6A); padding: 20px; text-align: center; color: white; }
+        .container { width: 90%; margin: auto; padding: 20px; }
+        .project { background: white; margin-bottom: 20px; padding: 20px; border-radius: 10px; }
+        .media-item { margin: 10px 0; }
+        button { margin: 5px; padding: 10px; background: #FFEB3B; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Projetos Criativos e Sustentáveis</h1>
+    <button id="passwordsKeyBtn">PasswordsKey</button>
+    <button id="logoutEditBtn" style="display:none;">Sair da Edição</button>
+</header>
+
+<div class="container" id="projectsContainer">
+    <!-- Os projetos serão carregados aqui dinamicamente -->
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+// Configuração Firebase - substitua pelas suas credenciais reais
+const firebaseConfig = {
+    apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+    authDomain: "funzer.firebaseapp.com",
+    projectId: "funzer",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+const IMAGEKIT_PRIVATE_KEY = "private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=";
+</script>
+
+<script>
+let isEditing = false;
+let currentProject = null;
+let isOwner = false;
+
+// Modal de senha
+const passwordsKeyBtn = document.getElementById('passwordsKeyBtn');
+const logoutEditBtn = document.getElementById('logoutEditBtn');
+
+passwordsKeyBtn.onclick = () => {
+    const senha = prompt('Digite a senha:');
+    if (senha === '774488') {
+        isOwner = true;
+        openOwnerPanel();
+    } else {
+        verificarSenhaDeGrupo(senha);
+    }
+};
+
+logoutEditBtn.onclick = () => {
+    isEditing = false;
+    currentProject = null;
+    logoutEditBtn.style.display = 'none';
+    alert('Saiu do modo de edição');
+};
+
+function openOwnerPanel() {
+    const novaSenha = prompt('Digite nova senha para um grupo:');
+    const projeto = prompt('Escolha o projeto (1 a 7):');
+    if (novaSenha && projeto >= 1 && projeto <= 7) {
+        db.collection('senhas').add({
+            senha: novaSenha,
+            projeto: projeto
+        }).then(() => alert('Senha cadastrada com sucesso!'));
+    }
+}
+
+function verificarSenhaDeGrupo(senha) {
+    db.collection('senhas').where('senha', '==', senha).get().then(snapshot => {
+        if (!snapshot.empty) {
+            const data = snapshot.docs[0].data();
+            currentProject = data.projeto;
+            isEditing = true;
+            logoutEditBtn.style.display = 'inline-block';
+            alert('Modo de edição ativado para o Projeto ' + currentProject);
+            carregarProjetos();
+        } else {
+            alert('Senha inválida');
+        }
+    });
+}
+
+async function uploadToImageKit(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('fileName', file.name);
+
+    const response = await fetch(IMAGEKIT_UPLOAD_URL, {
+        method: 'POST',
+        headers: {
+            Authorization: 'Basic ' + btoa(IMAGEKIT_PRIVATE_KEY + ':')
+        },
+        body: formData
+    });
+    const data = await response.json();
+    return data.url;
+}
+
+function carregarProjetos() {
+    const container = document.getElementById('projectsContainer');
+    container.innerHTML = '';
+    for (let i = 1; i <= 7; i++) {
+        const projDiv = document.createElement('div');
+        projDiv.className = 'project';
+        projDiv.innerHTML = `<h2>Projeto ${i}</h2><div id="media-${i}"></div>`;
+
+        db.collection('projetos').doc('projeto' + i).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                const mediaDiv = projDiv.querySelector('#media-' + i);
+                if (data.medias) {
+                    data.medias.forEach(m => {
+                        const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
+                        el.src = m.url;
+                        if (m.tipo === 'video') el.controls = true;
+                        el.className = 'media-item';
+                        const desc = document.createElement('p');
+                        desc.textContent = m.descricao;
+                        mediaDiv.appendChild(el);
+                        mediaDiv.appendChild(desc);
+                    });
+                }
+            }
+        });
+
+        if (isEditing && currentProject == i) {
+            const inputFile = document.createElement('input');
+            inputFile.type = 'file';
+            inputFile.multiple = true;
+            const descInput = document.createElement('input');
+            descInput.placeholder = 'Descrição da mídia';
+            const btn = document.createElement('button');
+            btn.textContent = 'Adicionar Mídia';
+            btn.onclick = async () => {
+                const files = inputFile.files;
+                if (files.length + await contarMidias(i) > 5) {
+                    alert('Limite de 5 mídias por projeto');
+                    return;
+                }
+                const novasMedias = [];
+                for (let f of files) {
+                    const url = await uploadToImageKit(f);
+                    novasMedias.push({
+                        url: url,
+                        tipo: f.type.startsWith('video') ? 'video' : 'image',
+                        descricao: descInput.value
+                    });
+                }
+                salvarMidia(i, novasMedias);
+            };
+            projDiv.appendChild(inputFile);
+            projDiv.appendChild(descInput);
+            projDiv.appendChild(btn);
+        }
+        container.appendChild(projDiv);
+    }
+}
+
+async function contarMidias(projNum) {
+    const doc = await db.collection('projetos').doc('projeto' + projNum).get();
+    if (doc.exists && doc.data().medias) return doc.data().medias.length;
+    return 0;
+}
+
+function salvarMidia(projNum, novasMedias) {
+    const ref = db.collection('projetos').doc('projeto' + projNum);
+    ref.get().then(doc => {
+        let medias = [];
+        if (doc.exists && doc.data().medias) medias = doc.data().medias;
+        medias = medias.concat(novasMedias).slice(0, 5);
+        ref.set({ medias: medias }).then(() => {
+            alert('Mídia adicionada!');
+            carregarProjetos();
+        });
+    });
+}
+
+carregarProjetos();
+</script>
+
+<footer style="text-align:center; margin-top:20px;">&copy; 2025 Projetos Sustentáveis</footer>
+</body>
+</html>
