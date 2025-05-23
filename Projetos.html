@@ -8,8 +8,46 @@
     body { font-family: Arial, sans-serif; background: #e8f5e9; color: #333; }
     header { background: linear-gradient(135deg, #4CAF50, #66BB6A); padding: 20px; text-align: center; color: white; }
     .container { width: 90%; margin: auto; padding: 20px; }
-    .project { background: white; margin-bottom: 20px; padding: 20px; border-radius: 10px; }
-    .media-item { margin: 10px 10px 10px 0; max-width: 100px; max-height: 80px; height: auto; display: inline-block; vertical-align: middle; }
+    .project { background: white; margin-bottom: 20px; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .info-item {
+      background: #f1f8e9;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .info-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .info-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #388e3c;
+      font-weight: bold;
+    }
+
+    .media-item {
+      margin: 10px 10px 10px 0;
+      max-width: 100px;
+      max-height: 80px;
+      height: auto;
+      display: inline-block;
+      vertical-align: middle;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
     button { margin: 5px; padding: 10px; background: #FFEB3B; border: none; border-radius: 5px; cursor: pointer; }
     textarea, input { width: 100%; margin: 5px 0; padding: 5px; box-sizing: border-box; }
   </style>
@@ -97,12 +135,15 @@
         if (doc.exists) {
           const data = doc.data();
           infoDiv.innerHTML = `
-            <p><strong>Grupo:</strong> ${data.grupo || ''}</p>
-            <p><strong>Classe:</strong> ${data.classe || ''}</p>
-            <p><strong>Resumo:</strong> ${data.resumo || ''}</p>
-            <p><strong>Intenções:</strong> ${data.intencao || ''}</p>
-            <p><strong>Finalidades:</strong> ${data.finalidade || ''}</p>
+            <div class="info-grid">
+              <div class="info-item"><strong>Grupo:</strong>${data.grupo || ''}</div>
+              <div class="info-item"><strong>Classe:</strong>${data.classe || ''}</div>
+              <div class="info-item"><strong>Resumo:</strong>${data.resumo || ''}</div>
+              <div class="info-item"><strong>Intenções:</strong>${data.intencao || ''}</div>
+              <div class="info-item"><strong>Finalidades:</strong>${data.finalidade || ''}</div>
+            </div>
           `;
+
           if (data.medias) {
             data.medias.forEach(m => {
               const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
@@ -141,7 +182,6 @@
           }
 
         } else {
-          // Caso não exista doc ainda e esteja editando o projeto atual, mostrar formulário vazio
           if (isEditing && currentProject == i) {
             const form = document.createElement('div');
             form.innerHTML = `
