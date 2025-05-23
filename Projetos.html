@@ -22,33 +22,11 @@
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .info-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
+    .info-item strong { display: block; margin-bottom: 5px; color: #388e3c; font-weight: bold; }
 
-    .info-item strong {
-      display: block;
-      margin-bottom: 5px;
-      color: #388e3c;
-      font-weight: bold;
-    }
-
-    .media-item {
-      margin: 10px 10px 10px 0;
-      max-width: 100px;
-      max-height: 80px;
-      height: auto;
-      display: inline-block;
-      vertical-align: middle;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .edit-panel {
+    .panel {
       background: #f9fbe7;
       border: 1px solid #c5e1a5;
       border-radius: 8px;
@@ -57,15 +35,14 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
-    .edit-panel label {
+    .panel label {
       display: block;
       margin-top: 10px;
       font-weight: bold;
       color: #33691e;
     }
 
-    .edit-panel input,
-    .edit-panel textarea {
+    .panel input, .panel select {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
@@ -75,7 +52,7 @@
       font-family: Arial, sans-serif;
     }
 
-    .edit-panel button {
+    .panel button {
       background: #aed581;
       color: #2e7d32;
       font-weight: bold;
@@ -87,20 +64,7 @@
       transition: background 0.2s ease;
     }
 
-    .edit-panel button:hover {
-      background: #9ccc65;
-    }
-
-    .remove-media-btn {
-      background: #e53935;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      margin-left: 5px;
-      padding: 3px 8px;
-      cursor: pointer;
-      font-size: 12px;
-    }
+    .panel button:hover { background: #9ccc65; }
 
     button { margin: 5px; padding: 10px; background: #FFEB3B; border: none; border-radius: 5px; cursor: pointer; }
   </style>
@@ -113,7 +77,33 @@
   <button id="logoutEditBtn" style="display:none;">Sair da Edição</button>
 </header>
 
-<div class="container" id="projectsContainer"></div>
+<div class="container">
+  <div id="passwordsPanel" class="panel" style="display:none;">
+    <h2>Painel de Acesso</h2>
+    <label for="senhaAcesso">Senha</label>
+    <input type="password" id="senhaAcesso">
+    <button id="confirmarSenhaBtn">Confirmar</button>
+
+    <div id="ownerExtra" style="display:none;">
+      <label for="groupSelect">Selecionar Grupo</label>
+      <select id="groupSelect">
+        <option value="1">Grupo 1</option>
+        <option value="2">Grupo 2</option>
+        <option value="3">Grupo 3</option>
+        <option value="4">Grupo 4</option>
+        <option value="5">Grupo 5</option>
+        <option value="6">Grupo 6</option>
+        <option value="7">Grupo 7</option>
+      </select>
+
+      <label for="novaSenhaGrupo">Nova Senha para o Grupo</label>
+      <input type="text" id="novaSenhaGrupo">
+      <button id="salvarSenhaBtn">Salvar Senha</button>
+    </div>
+  </div>
+
+  <div id="projectsContainer"></div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -126,31 +116,42 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
-  const IMAGEKIT_PRIVATE_KEY = "private_K0G6BijrJQ5rJ-KYTE-oSz6pRfbF6mBdQ";
-
   let isEditing = false;
   let currentProject = null;
 
   document.getElementById('passwordsKeyBtn').onclick = () => {
-    const senha = prompt('Digite a senha:');
+    document.getElementById('passwordsPanel').style.display = 'block';
+  };
+
+  document.getElementById('confirmarSenhaBtn').onclick = () => {
+    const senha = document.getElementById('senhaAcesso').value.trim();
     if (senha === '774488') {
-      const novaSenha = prompt('Digite nova senha para um grupo:');
-      const projeto = prompt('Escolha o projeto (1 a 7):');
-      if (novaSenha && projeto >= 1 && projeto <= 7) {
-        db.collection('senhas').add({ senha: novaSenha, projeto }).then(() => alert('Senha cadastrada!'));
-      }
+      document.getElementById('ownerExtra').style.display = 'block';
     } else {
       db.collection('senhas').where('senha', '==', senha).get().then(snapshot => {
         if (!snapshot.empty) {
-          currentProject = snapshot.docs[0].data().projeto;
+          currentProject = parseInt(snapshot.docs[0].data().projeto);
           isEditing = true;
           document.getElementById('logoutEditBtn').style.display = 'inline-block';
+          document.getElementById('passwordsPanel').style.display = 'none';
           carregarProjetos();
         } else {
-          alert('Senha inválida');
+          alert('Senha inválida!');
         }
       });
+    }
+  };
+
+  document.getElementById('salvarSenhaBtn').onclick = () => {
+    const novaSenha = document.getElementById('novaSenhaGrupo').value.trim();
+    const projeto = document.getElementById('groupSelect').value;
+    if (novaSenha) {
+      db.collection('senhas').add({ senha: novaSenha, projeto }).then(() => {
+        alert('Senha cadastrada!');
+        document.getElementById('novaSenhaGrupo').value = '';
+      });
+    } else {
+      alert('Digite uma senha!');
     }
   };
 
@@ -161,30 +162,19 @@
     carregarProjetos();
   };
 
-  async function uploadToImageKit(file) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('fileName', file.name);
-    const response = await fetch(IMAGEKIT_UPLOAD_URL, {
-      method: 'POST',
-      headers: { Authorization: 'Basic ' + btoa(IMAGEKIT_PRIVATE_KEY + ':') },
-      body: formData
-    });
-    const data = await response.json();
-    return data.url;
-  }
-
   function carregarProjetos() {
     const container = document.getElementById('projectsContainer');
     container.innerHTML = '';
-    for (let i = 1; i <= 7; i++) {
+
+    const projetosParaMostrar = isEditing ? [currentProject] : [1,2,3,4,5,6,7];
+
+    projetosParaMostrar.forEach(i => {
       const projDiv = document.createElement('div');
       projDiv.className = 'project';
-      projDiv.innerHTML = `<h2>Projeto ${i}</h2><div id="info-${i}"></div><div id="media-${i}"></div>`;
+      projDiv.innerHTML = `<h2>Projeto ${i}</h2><div id="info-${i}"></div>`;
 
       db.collection('projetos').doc('projeto' + i).get().then(doc => {
         const infoDiv = projDiv.querySelector('#info-' + i);
-        const mediaDiv = projDiv.querySelector('#media-' + i);
         if (doc.exists) {
           const data = doc.data();
           infoDiv.innerHTML = `
@@ -197,42 +187,9 @@
             </div>
           `;
 
-          if (data.medias) {
-            if (isEditing && currentProject == i) {
-              const previewDiv = document.createElement('div');
-              data.medias.forEach((m, index) => {
-                const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
-                el.src = m.url;
-                el.className = 'media-item';
-                if (m.tipo === 'video') el.controls = true;
-
-                const btn = document.createElement('button');
-                btn.textContent = 'Apagar';
-                btn.className = 'remove-media-btn';
-                btn.onclick = () => removerMidia(i, index);
-
-                const wrapper = document.createElement('div');
-                wrapper.style.display = 'inline-block';
-                wrapper.appendChild(el);
-                wrapper.appendChild(btn);
-
-                previewDiv.appendChild(wrapper);
-              });
-              mediaDiv.appendChild(previewDiv);
-            } else {
-              data.medias.forEach(m => {
-                const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
-                el.src = m.url;
-                if (m.tipo === 'video') el.controls = true;
-                el.className = 'media-item';
-                mediaDiv.appendChild(el);
-              });
-            }
-          }
-
-          if (isEditing && currentProject == i) {
+          if (isEditing && currentProject === i) {
             const form = document.createElement('div');
-            form.className = 'edit-panel';
+            form.className = 'panel';
             form.innerHTML = `
               <label for="grupo-${i}">Grupo</label>
               <input id="grupo-${i}" value="${data.grupo || ''}">
@@ -241,44 +198,13 @@
               <input id="classe-${i}" value="${data.classe || ''}">
 
               <label for="resumo-${i}">Resumo</label>
-              <textarea id="resumo-${i}">${data.resumo || ''}</textarea>
+              <input id="resumo-${i}" value="${data.resumo || ''}">
 
               <label for="intencao-${i}">Intenções</label>
-              <textarea id="intencao-${i}">${data.intencao || ''}</textarea>
+              <input id="intencao-${i}" value="${data.intencao || ''}">
 
               <label for="finalidade-${i}">Finalidades</label>
-              <textarea id="finalidade-${i}">${data.finalidade || ''}</textarea>
-
-              <label>Mídias</label>
-              <input type="file" id="file-${i}" multiple>
-
-              <button onclick="salvarTudo(${i})">Salvar Tudo</button>
-            `;
-            projDiv.appendChild(form);
-          }
-
-        } else {
-          if (isEditing && currentProject == i) {
-            const form = document.createElement('div');
-            form.className = 'edit-panel';
-            form.innerHTML = `
-              <label for="grupo-${i}">Grupo</label>
-              <input id="grupo-${i}">
-
-              <label for="classe-${i}">Classe</label>
-              <input id="classe-${i}">
-
-              <label for="resumo-${i}">Resumo</label>
-              <textarea id="resumo-${i}"></textarea>
-
-              <label for="intencao-${i}">Intenções</label>
-              <textarea id="intencao-${i}"></textarea>
-
-              <label for="finalidade-${i}">Finalidades</label>
-              <textarea id="finalidade-${i}"></textarea>
-
-              <label>Mídias</label>
-              <input type="file" id="file-${i}" multiple>
+              <input id="finalidade-${i}" value="${data.finalidade || ''}">
 
               <button onclick="salvarTudo(${i})">Salvar Tudo</button>
             `;
@@ -287,7 +213,7 @@
         }
       });
       container.appendChild(projDiv);
-    }
+    });
   }
 
   async function salvarTudo(projNum) {
@@ -296,37 +222,11 @@
     const resumo = document.getElementById('resumo-' + projNum).value;
     const intencao = document.getElementById('intencao-' + projNum).value;
     const finalidade = document.getElementById('finalidade-' + projNum).value;
-    const files = document.getElementById('file-' + projNum).files;
 
-    let medias = [];
     const ref = db.collection('projetos').doc('projeto' + projNum);
-    const doc = await ref.get();
-    if (doc.exists && doc.data().medias) {
-      medias = doc.data().medias;
-    }
-    if (files.length + medias.length > 5) {
-      alert('Limite de 5 mídias por projeto.');
-      return;
-    }
-    for (let f of files) {
-      const url = await uploadToImageKit(f);
-      medias.push({ url, tipo: f.type.startsWith('video') ? 'video' : 'image' });
-    }
-    await ref.set({ grupo, classe, resumo, intencao, finalidade, medias });
-    alert('Informações e mídias atualizadas!');
+    await ref.set({ grupo, classe, resumo, intencao, finalidade });
+    alert('Informações atualizadas!');
     carregarProjetos();
-  }
-
-  async function removerMidia(projNum, mediaIndex) {
-    const ref = db.collection('projetos').doc('projeto' + projNum);
-    const doc = await ref.get();
-    if (doc.exists) {
-      let data = doc.data();
-      data.medias.splice(mediaIndex, 1);
-      await ref.set(data);
-      alert('Mídia removida!');
-      carregarProjetos();
-    }
   }
 
   carregarProjetos();
