@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Projetos Criativos e Sustentáveis</title>
   <style>
     body { font-family: Arial, sans-serif; background: #e8f5e9; color: #333; }
@@ -22,11 +22,33 @@
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .info-item strong { display: block; margin-bottom: 5px; color: #388e3c; font-weight: bold; }
+    .info-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
 
-    .panel {
+    .info-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #388e3c;
+      font-weight: bold;
+    }
+
+    .media-item {
+      margin: 10px 10px 10px 0;
+      max-width: 200px;
+      max-height: 160px;
+      height: auto;
+      display: inline-block;
+      vertical-align: middle;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .edit-panel {
       background: #f9fbe7;
       border: 1px solid #c5e1a5;
       border-radius: 8px;
@@ -35,14 +57,15 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
-    .panel label {
+    .edit-panel label {
       display: block;
       margin-top: 10px;
       font-weight: bold;
       color: #33691e;
     }
 
-    .panel input, .panel select {
+    .edit-panel input,
+    .edit-panel textarea {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
@@ -52,7 +75,7 @@
       font-family: Arial, sans-serif;
     }
 
-    .panel button {
+    .edit-panel button {
       background: #aed581;
       color: #2e7d32;
       font-weight: bold;
@@ -64,7 +87,20 @@
       transition: background 0.2s ease;
     }
 
-    .panel button:hover { background: #9ccc65; }
+    .edit-panel button:hover {
+      background: #9ccc65;
+    }
+
+    .remove-media-btn {
+      background: #e53935;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-left: 5px;
+      padding: 3px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
 
     button { margin: 5px; padding: 10px; background: #FFEB3B; border: none; border-radius: 5px; cursor: pointer; }
   </style>
@@ -77,33 +113,7 @@
   <button id="logoutEditBtn" style="display:none;">Sair da Edição</button>
 </header>
 
-<div class="container">
-  <div id="passwordsPanel" class="panel" style="display:none;">
-    <h2>Painel de Acesso</h2>
-    <label for="senhaAcesso">Senha</label>
-    <input type="password" id="senhaAcesso">
-    <button id="confirmarSenhaBtn">Confirmar</button>
-
-    <div id="ownerExtra" style="display:none;">
-      <label for="groupSelect">Selecionar Grupo</label>
-      <select id="groupSelect">
-        <option value="1">Grupo 1</option>
-        <option value="2">Grupo 2</option>
-        <option value="3">Grupo 3</option>
-        <option value="4">Grupo 4</option>
-        <option value="5">Grupo 5</option>
-        <option value="6">Grupo 6</option>
-        <option value="7">Grupo 7</option>
-      </select>
-
-      <label for="novaSenhaGrupo">Nova Senha para o Grupo</label>
-      <input type="text" id="novaSenhaGrupo">
-      <button id="salvarSenhaBtn">Salvar Senha</button>
-    </div>
-  </div>
-
-  <div id="projectsContainer"></div>
-</div>
+<div class="container" id="projectsContainer"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -116,42 +126,31 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
+  const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+  const IMAGEKIT_PRIVATE_KEY = "private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=";
+
   let isEditing = false;
   let currentProject = null;
 
   document.getElementById('passwordsKeyBtn').onclick = () => {
-    document.getElementById('passwordsPanel').style.display = 'block';
-  };
-
-  document.getElementById('confirmarSenhaBtn').onclick = () => {
-    const senha = document.getElementById('senhaAcesso').value.trim();
+    const senha = prompt('Digite a senha:');
     if (senha === '774488') {
-      document.getElementById('ownerExtra').style.display = 'block';
+      const novaSenha = prompt('Digite nova senha para um grupo:');
+      const projeto = prompt('Escolha o projeto (1 a 7):');
+      if (novaSenha && projeto >= 1 && projeto <= 7) {
+        db.collection('senhas').add({ senha: novaSenha, projeto }).then(() => alert('Senha cadastrada!'));
+      }
     } else {
       db.collection('senhas').where('senha', '==', senha).get().then(snapshot => {
         if (!snapshot.empty) {
-          currentProject = parseInt(snapshot.docs[0].data().projeto);
+          currentProject = snapshot.docs[0].data().projeto;
           isEditing = true;
           document.getElementById('logoutEditBtn').style.display = 'inline-block';
-          document.getElementById('passwordsPanel').style.display = 'none';
           carregarProjetos();
         } else {
-          alert('Senha inválida!');
+          alert('Senha inválida');
         }
       });
-    }
-  };
-
-  document.getElementById('salvarSenhaBtn').onclick = () => {
-    const novaSenha = document.getElementById('novaSenhaGrupo').value.trim();
-    const projeto = document.getElementById('groupSelect').value;
-    if (novaSenha) {
-      db.collection('senhas').add({ senha: novaSenha, projeto }).then(() => {
-        alert('Senha cadastrada!');
-        document.getElementById('novaSenhaGrupo').value = '';
-      });
-    } else {
-      alert('Digite uma senha!');
     }
   };
 
@@ -162,58 +161,101 @@
     carregarProjetos();
   };
 
+  async function uploadToImageKit(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('fileName', file.name);
+    const response = await fetch(IMAGEKIT_UPLOAD_URL, {
+      method: 'POST',
+      headers: { Authorization: 'Basic ' + btoa(IMAGEKIT_PRIVATE_KEY + ':') },
+      body: formData
+    });
+    const data = await response.json();
+    return data.url;
+  }
+
   function carregarProjetos() {
     const container = document.getElementById('projectsContainer');
     container.innerHTML = '';
 
-    const projetosParaMostrar = isEditing ? [currentProject] : [1,2,3,4,5,6,7];
-
-    projetosParaMostrar.forEach(i => {
+    for (let i = 1; i <= 7; i++) {
       const projDiv = document.createElement('div');
       projDiv.className = 'project';
-      projDiv.innerHTML = `<h2>Projeto ${i}</h2><div id="info-${i}"></div>`;
+      projDiv.innerHTML = `<h2>Projeto ${i}</h2><div class="info-grid" id="info-${i}"></div><div id="media-${i}"></div>`;
 
       db.collection('projetos').doc('projeto' + i).get().then(doc => {
         const infoDiv = projDiv.querySelector('#info-' + i);
-        if (doc.exists) {
-          const data = doc.data();
-          infoDiv.innerHTML = `
-            <div class="info-grid">
-              <div class="info-item"><strong>Grupo:</strong>${data.grupo || ''}</div>
-              <div class="info-item"><strong>Classe:</strong>${data.classe || ''}</div>
-              <div class="info-item"><strong>Resumo:</strong>${data.resumo || ''}</div>
-              <div class="info-item"><strong>Intenções:</strong>${data.intencao || ''}</div>
-              <div class="info-item"><strong>Finalidades:</strong>${data.finalidade || ''}</div>
-            </div>
+        const mediaDiv = projDiv.querySelector('#media-' + i);
+        let data = doc.exists ? doc.data() : {};
+
+        const fields = ['grupo', 'classe', 'resumo', 'intencao', 'finalidade'];
+        fields.forEach(field => {
+          const div = document.createElement('div');
+          div.className = 'info-item';
+          div.innerHTML = `<strong>${field.charAt(0).toUpperCase() + field.slice(1)}:</strong> ${data[field] || ''}`;
+          infoDiv.appendChild(div);
+        });
+
+        if (data.medias) {
+          data.medias.forEach((m, idx) => {
+            const container = document.createElement('div');
+            container.style.display = 'inline-block';
+            const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
+            el.src = m.url;
+            if (m.tipo === 'video') el.controls = true;
+            el.className = 'media-item';
+
+            if (isEditing && Number(currentProject) === i) {
+              const delBtn = document.createElement('button');
+              delBtn.className = 'remove-media-btn';
+              delBtn.textContent = 'Remover';
+              delBtn.onclick = async () => {
+                if (confirm('Deseja apagar esta mídia?')) {
+                  data.medias.splice(idx, 1);
+                  await db.collection('projetos').doc('projeto' + i).update({ medias: data.medias });
+                  carregarProjetos();
+                }
+              };
+              container.appendChild(el);
+              container.appendChild(delBtn);
+            } else {
+              container.appendChild(el);
+            }
+
+            mediaDiv.appendChild(container);
+          });
+        }
+
+        if (isEditing && Number(currentProject) === i) {
+          const form = document.createElement('div');
+          form.className = 'edit-panel';
+          form.innerHTML = `
+            <label for="grupo-${i}">Grupo</label>
+            <input id="grupo-${i}" value="${data.grupo || ''}">
+
+            <label for="classe-${i}">Classe</label>
+            <input id="classe-${i}" value="${data.classe || ''}">
+
+            <label for="resumo-${i}">Resumo</label>
+            <textarea id="resumo-${i}">${data.resumo || ''}</textarea>
+
+            <label for="intencao-${i}">Intenções</label>
+            <textarea id="intencao-${i}">${data.intencao || ''}</textarea>
+
+            <label for="finalidade-${i}">Finalidades</label>
+            <textarea id="finalidade-${i}">${data.finalidade || ''}</textarea>
+
+            <label>Mídias</label>
+            <input type="file" id="file-${i}" multiple>
+
+            <button onclick="salvarTudo(${i})">Salvar Tudo</button>
           `;
-
-          if (isEditing && currentProject === i) {
-            const form = document.createElement('div');
-            form.className = 'panel';
-            form.innerHTML = `
-              <label for="grupo-${i}">Grupo</label>
-              <input id="grupo-${i}" value="${data.grupo || ''}">
-
-              <label for="classe-${i}">Classe</label>
-              <input id="classe-${i}" value="${data.classe || ''}">
-
-              <label for="resumo-${i}">Resumo</label>
-              <input id="resumo-${i}" value="${data.resumo || ''}">
-
-              <label for="intencao-${i}">Intenções</label>
-              <input id="intencao-${i}" value="${data.intencao || ''}">
-
-              <label for="finalidade-${i}">Finalidades</label>
-              <input id="finalidade-${i}" value="${data.finalidade || ''}">
-
-              <button onclick="salvarTudo(${i})">Salvar Tudo</button>
-            `;
-            projDiv.appendChild(form);
-          }
+          projDiv.appendChild(form);
         }
       });
+
       container.appendChild(projDiv);
-    });
+    }
   }
 
   async function salvarTudo(projNum) {
@@ -222,10 +264,28 @@
     const resumo = document.getElementById('resumo-' + projNum).value;
     const intencao = document.getElementById('intencao-' + projNum).value;
     const finalidade = document.getElementById('finalidade-' + projNum).value;
+    const files = document.getElementById('file-' + projNum).files;
 
     const ref = db.collection('projetos').doc('projeto' + projNum);
-    await ref.set({ grupo, classe, resumo, intencao, finalidade });
-    alert('Informações atualizadas!');
+    const doc = await ref.get();
+
+    let medias = [];
+    if (doc.exists && doc.data().medias) {
+      medias = doc.data().medias;
+    }
+
+    if (files.length + medias.length > 5) {
+      alert('Limite de 5 mídias por projeto.');
+      return;
+    }
+
+    for (let f of files) {
+      const url = await uploadToImageKit(f);
+      medias.push({ url, tipo: f.type.startsWith('video') ? 'video' : 'image' });
+    }
+
+    await ref.set({ grupo, classe, resumo, intencao, finalidade, medias });
+    alert('Informações e mídias atualizadas!');
     carregarProjetos();
   }
 
