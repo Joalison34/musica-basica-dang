@@ -58,8 +58,6 @@ const IMAGEKIT_PRIVATE_KEY = "private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=";
 
 let isEditing = false, currentProject = null;
 
-let editingLock = null;
-
 async function checkEditingLock(projectNum) {
   const doc = await db.collection('locks').doc('projeto' + projectNum).get();
   return doc.exists ? doc.data().locked : false;
@@ -114,10 +112,16 @@ async function uploadToImageKit(file) {
 
 function carregarProjetos() {
   const container = document.getElementById('projectsContainer');
-  container.innerHTML = '';
+
   for (let i = 1; i <= 7; i++) {
-    const projDiv = document.createElement('div');
-    projDiv.className = 'project';
+    let projDiv = document.getElementById('projeto' + i);
+
+    if (!projDiv) {
+      projDiv = document.createElement('div');
+      projDiv.id = 'projeto' + i;
+      projDiv.className = 'project';
+      container.appendChild(projDiv);
+    }
 
     db.collection('projetos').doc('projeto' + i).onSnapshot(doc => {
       const data = doc.exists ? doc.data() : {};
@@ -144,6 +148,8 @@ function carregarProjetos() {
       });
 
       const mediaDiv = projDiv.querySelector(`#media-${i}`);
+      mediaDiv.innerHTML = '';
+
       if (data.medias) {
         data.medias.forEach((m) => {
           const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
@@ -162,18 +168,16 @@ function carregarProjetos() {
         projDiv.appendChild(form);
         new Sortable(mediaDiv, { animation: 150 });
       }
-
-      container.appendChild(projDiv);
     });
   }
 }
 
 async function salvarTudo(projNum) {
-  const grupo = document.querySelector(`.project:nth-child(${projNum}) .info-top div:nth-child(1) span`).innerText;
-  const classe = document.querySelector(`.project:nth-child(${projNum}) .info-top div:nth-child(2) span`).innerText;
-  const resumo = document.querySelector(`.project:nth-child(${projNum}) .info-block .info-item:nth-child(1) span`).innerText;
-  const intencao = document.querySelector(`.project:nth-child(${projNum}) .info-block .info-item:nth-child(2) span`).innerText;
-  const finalidade = document.querySelector(`.project:nth-child(${projNum}) .info-block .info-item:nth-child(3) span`).innerText;
+  const grupo = document.querySelector(`#projeto${projNum} .info-top div:nth-child(1) span`).innerText;
+  const classe = document.querySelector(`#projeto${projNum} .info-top div:nth-child(2) span`).innerText;
+  const resumo = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(1) span`).innerText;
+  const intencao = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(2) span`).innerText;
+  const finalidade = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(3) span`).innerText;
   const files = document.getElementById('file-' + projNum).files;
 
   const ref = db.collection('projetos').doc('projeto' + projNum);
