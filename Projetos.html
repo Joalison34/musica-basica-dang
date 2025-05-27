@@ -67,6 +67,22 @@ async function setEditingLock(projectNum, status) {
   await db.collection('locks').doc('projeto' + projectNum).set({ locked: status });
 }
 
+// Carregar estado de edição do localStorage
+window.onload = function() {
+  const savedEditingState = localStorage.getItem('isEditing');
+  const savedProject = localStorage.getItem('currentProject');
+  
+  if (savedEditingState === 'true' && savedProject) {
+    currentProject = savedProject;
+    isEditing = true;
+    document.getElementById('logoutEditBtn').style.display = 'inline-block';
+    carregarProjetos();
+  } else {
+    carregarProjetos(); // Carregar projetos normalmente se não estiver editando
+  }
+};
+
+// Função para lidar com o botão de "PasswordsKey"
 document.getElementById('passwordsKeyBtn').onclick = () => {
   const senha = prompt('Digite a senha:');
   if (senha === '774488') {
@@ -85,6 +101,8 @@ document.getElementById('passwordsKeyBtn').onclick = () => {
           } else {
             setEditingLock(currentProject, true);
             isEditing = true;
+            localStorage.setItem('isEditing', 'true');  // Salva o estado de edição
+            localStorage.setItem('currentProject', currentProject); // Salva o projeto atual
             document.getElementById('logoutEditBtn').style.display = 'inline-block';
             carregarProjetos();
           }
@@ -94,13 +112,21 @@ document.getElementById('passwordsKeyBtn').onclick = () => {
   }
 };
 
+// Função de logout (sair da edição)
 document.getElementById('logoutEditBtn').onclick = function() {
   if (currentProject) setEditingLock(currentProject, false);
-  isEditing = false; currentProject = null;
+  isEditing = false; 
+  currentProject = null;
+  
+  // Limpar o estado no localStorage
+  localStorage.removeItem('isEditing');
+  localStorage.removeItem('currentProject');
+  
   this.style.display = 'none';
   carregarProjetos();
 };
 
+// Função de upload para o ImageKit
 async function uploadToImageKit(file) {
   const formData = new FormData();
   formData.append('file', file);
@@ -110,6 +136,7 @@ async function uploadToImageKit(file) {
   return data.url;
 }
 
+// Função para carregar projetos
 function carregarProjetos() {
   const container = document.getElementById('projectsContainer');
 
@@ -196,8 +223,6 @@ async function salvarTudo(projNum) {
   alert('Informações e mídias atualizadas!');
   carregarProjetos();
 }
-
-carregarProjetos();
 </script>
 
 <footer style="text-align:center; margin-top:20px;">&copy; 2025 Projetos Sustentáveis</footer>
