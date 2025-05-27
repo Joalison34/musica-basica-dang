@@ -1,4 +1,4 @@
-]<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -58,15 +58,14 @@ const IMAGEKIT_PRIVATE_KEY = "private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=";
 
 let isEditing = false, currentProject = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
-  // Verificar se o usuário ainda está editando e, se sim, remover o bloqueio
-  if (isEditing && currentProject) {
-    await setEditingLock(currentProject, false);
-    isEditing = false;
-    currentProject = null;
-  }
-  carregarProjetos();
-});
+async function checkEditingLock(projectNum) {
+  const doc = await db.collection('locks').doc('projeto' + projectNum).get();
+  return doc.exists ? doc.data().locked : false;
+}
+
+async function setEditingLock(projectNum, status) {
+  await db.collection('locks').doc('projeto' + projectNum).set({ locked: status });
+}
 
 document.getElementById('passwordsKeyBtn').onclick = () => {
   const senha = prompt('Digite a senha:');
@@ -96,30 +95,27 @@ document.getElementById('passwordsKeyBtn').onclick = () => {
 };
 
 document.getElementById('logoutEditBtn').onclick = function() {
-  if (currentProject) {
-    setEditingLock(currentProject, false); // Remover o bloqueio ao sair
-  }
-  isEditing = false;
-  currentProject = null;
+  if (currentProject) setEditingLock(currentProject, false);
+  isEditing = false; currentProject = null;
   this.style.display = 'none';
   carregarProjetos();
 };
 
-async function checkEditingLock(projectNum) {
-  const doc = await db.collection('locks').doc('projeto' + projectNum).get();
-  return doc.exists ? doc.data().locked : false;
+async function uploadToImageKit(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('fileName', file.name);
+  const response = await fetch(IMAGEKIT_UPLOAD_URL, { method: 'POST', headers: { Authorization: 'Basic ' + btoa(IMAGEKIT_PRIVATE_KEY + ':') }, body: formData });
+  const data = await response.json();
+  return data.url;
 }
 
-async function setEditingLock(projectNum, status) {
-  await db.collection('locks').doc('projeto' + projectNum).set({ locked: status });
-}
-
-async function carregarProjetos() {
+function carregarProjetos() {
   const container = document.getElementById('projectsContainer');
-  
+
   for (let i = 1; i <= 7; i++) {
     let projDiv = document.getElementById('projeto' + i);
-    
+
     if (!projDiv) {
       projDiv = document.createElement('div');
       projDiv.id = 'projeto' + i;
@@ -176,7 +172,34 @@ async function carregarProjetos() {
     });
   }
 }
+
+async function salvarTudo(projNum) {
+  const grupo = document.querySelector(`#projeto${projNum} .info-top div:nth-child(1) span`).innerText;
+  const classe = document.querySelector(`#projeto${projNum} .info-top div:nth-child(2) span`).innerText;
+  const resumo = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(1) span`).innerText;
+  const intencao = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(2) span`).innerText;
+  const finalidade = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(3) span`).innerText;
+  const files = document.getElementById('file-' + projNum).files;
+
+  const ref = db.collection('projetos').doc('projeto' + projNum);
+  const doc = await ref.get();
+  let medias = doc.exists && doc.data().medias ? doc.data().medias : [];
+
+  if (files.length + medias.length > 5) return alert('Limite de 5 mídias por projeto.');
+
+  for (let f of files) {
+    const url = await uploadToImageKit(f);
+    medias.push({ url, tipo: f.type.startsWith('video') ? 'video' : 'image' });
+  }
+
+  await ref.set({ grupo, classe, resumo, intencao, finalidade, medias });
+  alert('Informações e mídias atualizadas!');
+  carregarProjetos();
+}
+
+carregarProjetos();
 </script>
 
+<footer style="text-align:center; margin-top:20px;">&copy; 2025 Projetos Sustentáveis</footer>
 </body>
 </html>
