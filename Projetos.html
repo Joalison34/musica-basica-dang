@@ -136,16 +136,8 @@ function carregarProjetos() {
           <div class="info-item">Intencao: <span ${isEditing && Number(currentProject) === i ? 'contenteditable="true" class="editable"' : ''}>${data.intencao || ''}</span></div>
           <div class="info-item">Finalidade: <span ${isEditing && Number(currentProject) === i ? 'contenteditable="true" class="editable"' : ''}>${data.finalidade || ''}</span></div>
         </div>
-        <div id="media-${i}" class="sortable-media"></div>`;
-
-      const lockInfo = document.createElement('div');
-      lockInfo.className = 'editing-lock';
-      db.collection('locks').doc('projeto' + i).get().then(lockDoc => {
-        if (lockDoc.exists && lockDoc.data().locked && !(isEditing && Number(currentProject) === i)) {
-          lockInfo.innerText = 'Outro usuário está editando este projeto.';
-          projDiv.appendChild(lockInfo);
-        }
-      });
+        <div id="media-${i}" class="sortable-media"></div>
+        <div id="lock-${i}" class="editing-lock"></div>`;
 
       const mediaDiv = projDiv.querySelector(`#media-${i}`);
       mediaDiv.innerHTML = '';
@@ -167,6 +159,15 @@ function carregarProjetos() {
           <button onclick="salvarTudo(${i})">Salvar Tudo</button>`;
         projDiv.appendChild(form);
         new Sortable(mediaDiv, { animation: 150 });
+      }
+    });
+
+    db.collection('locks').doc('projeto' + i).onSnapshot(lockDoc => {
+      const lockInfo = document.getElementById('lock-' + i);
+      if (lockDoc.exists && lockDoc.data().locked && !(isEditing && Number(currentProject) === i)) {
+        lockInfo.innerText = 'Outro usuário está editando este projeto.';
+      } else {
+        lockInfo.innerText = '';
       }
     });
   }
