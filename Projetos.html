@@ -30,6 +30,17 @@
       display: grid; 
       gap: 20px; 
     }
+    .filtro {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .filtro input, .filtro select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
     .project { 
       background: white; 
       padding: 20px; 
@@ -71,11 +82,17 @@
       padding: 15px; 
       margin-top: 15px; 
     }
+    .edit-panel label {
+      display: block;
+      margin-bottom: 10px;
+    }
     .edit-panel input, .edit-panel textarea { 
       width: 100%; 
       padding: 10px; 
       border-radius: 8px; 
+      border: 1px solid #ccc;
       margin-top: 5px; 
+      box-sizing: border-box;
     }
     .edit-panel button { 
       background: #aed581; 
@@ -84,6 +101,16 @@
       padding: 10px; 
       border-radius: 8px; 
       cursor: pointer; 
+      margin-right: 10px;
+    }
+    .edit-panel .cancel-btn {
+      background: #e0e0e0;
+      color: #333;
+    }
+    .edit-panel .error {
+      color: red;
+      font-size: 12px;
+      margin-left: 10px;
     }
     .remove-media-btn { 
       background: #e53935; 
@@ -92,25 +119,6 @@
       padding: 5px 10px; 
       margin-left: 5px; 
       cursor: pointer; 
-    }
-    .editable { 
-      border: 1px dashed #bbb; 
-      padding: 2px; 
-      border-radius: 4px; 
-      position: relative; 
-    }
-    .editable::after {
-      content: '\270E';
-      position: absolute;
-      top: 4px;
-      right: -18px;
-      color: #777;
-      font-size: 14px;
-      opacity: 0.6;
-      transition: opacity 0.3s;
-    }
-    .editable:hover::after { 
-      opacity: 1; 
     }
     .editing-lock { 
       color: red; 
@@ -136,7 +144,16 @@
   <button id="logoutEditBtn" style="display:none;">Sair da Edição</button>
 </header>
 
-<div class="container" id="projectsContainer"></div>
+<div class="container" id="projectsContainer">
+  <div class="filtro">
+    <input type="text" id="filtro-projetos" placeholder="Filtrar por grupo ou classe">
+    <select id="ordenar-projetos">
+      <option value="numero">Ordenar por Número</option>
+      <option value="grupo">Ordenar por Grupo</option>
+      <option value="ultima-edicao">Ordenar por Última Edição</option>
+    </select>
+  </div>
+</div>
 
 <div id="oneko" style="display: none;"></div>
 
@@ -172,7 +189,7 @@ window.onload = function() {
     document.getElementById('logoutEditBtn').style.display = 'inline-block';
     carregarProjetos();
   } else {
-    carregarProjetos(); // Carregar projetos normalmente se não estiver editando
+    carregarProjetos();
   }
 };
 
@@ -195,8 +212,9 @@ document.getElementById('passwordsKeyBtn').onclick = () => {
           } else {
             setEditingLock(currentProject, true);
             isEditing = true;
-            localStorage.setItem('isEditing', 'true');  // Salva o estado de edição
-            localStorage.setItem('currentProject', currentProject); // Salva o projeto atual
+            localStorage.setItem('isEditing', 'true');
+            localStorage.setItem('currentProject', currentProject);
+            localStorage.setItem('senhaUsada', senha); // Armazenar senha para uso futuro
             document.getElementById('logoutEditBtn').style.display = 'inline-block';
             carregarProjetos();
           }
@@ -211,11 +229,9 @@ document.getElementById('logoutEditBtn').onclick = function() {
   if (currentProject) setEditingLock(currentProject, false);
   isEditing = false; 
   currentProject = null;
-  
-  // Limpar o estado no localStorage
   localStorage.removeItem('isEditing');
   localStorage.removeItem('currentProject');
-  
+  localStorage.removeItem('senhaUsada');
   this.style.display = 'none';
   carregarProjetos();
 };
@@ -230,39 +246,103 @@ async function uploadToImageKit(file) {
   return data.url;
 }
 
+// Função para criar o formulário de edição
+function criarFormularioEdicao(projNum, data) {
+  const form = document.createElement('div');
+  form.className = 'edit-panel';
+  form.innerHTML = `
+    <label>Grupo: <input type="text" id="grupo-${projNum}" value="${data.grupo || ''}" maxlength="50" required></label>
+    <span id="erro-grupo-${projNum}" class="error"></span>
+    <label>Classe: <input type="text" id="classe-${projNum}" value="${data.classe || ''}" maxlength="50" required></label>
+    <span id="erro-classe-${projNum}" class="error"></span>
+    <label>Resumo: <textarea id="resumo-${projNum}" maxlength="500" required>${data.resumo || ''}</textarea></label>
+    <span id="erro-resumo-${projNum}" class="error"></span>
+    <label>Intenção: <textarea id="intencao-${projNum}" maxlength="500" required>${data.intencao || ''}</textarea></label>
+    <span id="erro-intencao-${projNum}" class="error"></span>
+    <label>Finalidade: <textarea id="finalidade-${projNum}" maxlength="500" required>${data.finalidade || ''}</textarea></label>
+    <span id="erro-finalidade-${projNum}" class="error"></span>
+    <input type="file" id="file-${projNum}" multiple>
+    <span id="erro-file-${projNum}" class="error"></span>
+    <button onclick="salvarTudo(${projNum})">Salvar Tudo</button>
+    <button onclick="cancelarEdicao(${projNum})" class="cancel-btn">Cancelar</button>
+  `;
+  
+  // Adicionar validação em tempo real
+  form.querySelector(`#grupo-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'grupo', 50));
+  form.querySelector(`#classe-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'classe', 50));
+  form.querySelector(`#resumo-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'resumo', 500, 10));
+  form.querySelector(`#intencao-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'intencao', 500, 10));
+  form.querySelector(`#finalidade-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'finalidade', 500, 10));
+  
+  return form;
+}
+
+// Função de validação em tempo real
+function validarCampo(projNum, campo, maxLength, minLength = 0) {
+  const input = document.getElementById(`${campo}-${projNum}`);
+  const erroSpan = document.getElementById(`erro-${campo}-${projNum}`);
+  const valor = input.value.trim();
+  
+  if (!valor) {
+    erroSpan.innerText = `${campo.charAt(0).toUpperCase() + campo.slice(1)} é obrigatório.`;
+    return false;
+  } else if (valor.length > maxLength) {
+    erroSpan.innerText = `Máximo de ${maxLength} caracteres.`;
+    return false;
+  } else if (minLength && valor.length < minLength) {
+    erroSpan.innerText = `Mínimo de ${minLength} caracteres.`;
+    return false;
+  } else {
+    erroSpan.innerText = '';
+    return true;
+  }
+}
+
+// Função para cancelar edição
+function cancelarEdicao(projNum) {
+  carregarProjetos();
+}
+
 // Função para carregar projetos
 function carregarProjetos() {
   const container = document.getElementById('projectsContainer');
+  container.innerHTML = `
+    <div class="filtro">
+      <input type="text" id="filtro-projetos" placeholder="Filtrar por grupo ou classe">
+      <select id="ordenar-projetos">
+        <option value="numero">Ordenar por Número</option>
+        <option value="grupo">Ordenar por Grupo</option>
+        <option value="ultima-edicao">Ordenar por Última Edição</option>
+      </select>
+    </div>
+  `;
 
   for (let i = 1; i <= 7; i++) {
-    let projDiv = document.getElementById('projeto' + i);
-
-    if (!projDiv) {
-      projDiv = document.createElement('div');
-      projDiv.id = 'projeto' + i;
-      projDiv.className = 'project';
-      container.appendChild(projDiv);
-    }
+    let projDiv = document.createElement('div');
+    projDiv.id = 'projeto' + i;
+    projDiv.className = 'project';
+    projDiv.dataset.projetoNum = i; // Para facilitar ordenação
+    container.appendChild(projDiv);
 
     db.collection('projetos').doc('projeto' + i).onSnapshot(doc => {
       const data = doc.exists ? doc.data() : {};
-
-      projDiv.innerHTML = `<h2 ${isEditing && Number(currentProject) === i ? 'contenteditable="true" class="editable"' : ''}>Projeto ${i}</h2>
+      projDiv.innerHTML = `
+        <h2>Projeto ${i}</h2>
         <div class="info-top">
-          <div>Grupo: <span ${isEditing && Number(currentProject) === i ? 'contenteditable="true" class="editable"' : ''}>${data.grupo || ''}</span></div>
-          <div>Classe: <span ${isEditing && Number(currentProject) === i ? 'contenteditable="true" class="editable"' : ''}>${data.classe || ''}</span></div>
+          <div>Grupo: <span>${data.grupo || ''}</span></div>
+          <div>Classe: <span>${data.classe || ''}</span></div>
         </div>
         <div class="info-block">
-          <div class="info-item">Resumo: <span ${isEditing && Number(currentProject) === i ? 'contenteditable="true" class="editable"' : ''}>${data.resumo || ''}</span></div>
-          <div class="info-item">Intencao: <span ${isEditing && Number(currentProject) === i ? 'contenteditable="true" class="editable"' : ''}>${data.intencao || ''}</span></div>
-          <div class="info-item">Finalidade: <span ${isEditing && Number(currentProject) === i ? 'contenteditable="true" class="editable"' : ''}>${data.finalidade || ''}</span></div>
+          <div class="info-item">Resumo: <span>${data.resumo || ''}</span></div>
+          <div class="info-item">Intencao: <span>${data.intencao || ''}</span></div>
+          <div class="info-item">Finalidade: <span>${data.finalidade || ''}</span></div>
         </div>
         <div id="media-${i}" class="sortable-media"></div>
-        <div id="lock-${i}" class="editing-lock"></div>`;
+        <div id="lock-${i}" class="editing-lock"></div>
+      `;
 
       const mediaDiv = projDiv.querySelector(`#media-${i}`);
       mediaDiv.innerHTML = '';
-
       if (data.medias) {
         data.medias.forEach((m) => {
           const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
@@ -274,11 +354,7 @@ function carregarProjetos() {
       }
 
       if (isEditing && Number(currentProject) === i) {
-        const form = document.createElement('div');
-        form.className = 'edit-panel';
-        form.innerHTML = `<input type="file" id="file-${i}" multiple>
-          <button onclick="salvarTudo(${i})">Salvar Tudo</button>`;
-        projDiv.appendChild(form);
+        projDiv.appendChild(criarFormularioEdicao(i, data));
         new Sortable(mediaDiv, { animation: 150 });
       }
     });
@@ -292,33 +368,97 @@ function carregarProjetos() {
       }
     });
   }
+
+  // Configurar filtro e ordenação
+  configurarFiltroEOrdenacao();
 }
 
+// Função para configurar filtro e ordenação
+function configurarFiltroEOrdenacao() {
+  document.getElementById('filtro-projetos').addEventListener('input', function() {
+    const filtro = this.value.toLowerCase();
+    document.querySelectorAll('.project').forEach(proj => {
+      const grupo = proj.querySelector('.info-top div:nth-child(1) span').innerText.toLowerCase();
+      const classe = proj.querySelector('.info-top div:nth-child(2) span').innerText.toLowerCase();
+      proj.style.display = (grupo.includes(filtro) || classe.includes(filtro)) ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('ordenar-projetos').addEventListener('change', function() {
+    const criterio = this.value;
+    const container = document.getElementById('projectsContainer');
+    const projetos = Array.from(container.querySelectorAll('.project'));
+    
+    projetos.sort((a, b) => {
+      if (criterio === 'numero') {
+        return Number(a.dataset.projetoNum) - Number(b.dataset.projetoNum);
+      } else if (criterio === 'grupo') {
+        const grupoA = a.querySelector('.info-top div:nth-child(1) span').innerText.toLowerCase();
+        const grupoB = b.querySelector('.info-top div:nth-child(1) span').innerText.toLowerCase();
+        return grupoA.localeCompare(grupoB);
+      } else if (criterio === 'ultima-edicao') {
+        // Supõe que o Firestore tem um campo ultimaEdicao (timestamp)
+        // Requer consulta ao Firestore para obter a data
+        // Aqui usamos um placeholder, pois a lógica real depende de dados
+        return 0; // Implementar com Firestore se necessário
+      }
+      return 0;
+    });
+
+    // Reorganizar projetos no container
+    const filtroDiv = container.querySelector('.filtro');
+    container.innerHTML = '';
+    container.appendChild(filtroDiv);
+    projetos.forEach(proj => container.appendChild(proj));
+  });
+}
+
+// Função para salvar projetos
 async function salvarTudo(projNum) {
-  const grupo = document.querySelector(`#projeto${projNum} .info-top div:nth-child(1) span`).innerText;
-  const classe = document.querySelector(`#projeto${projNum} .info-top div:nth-child(2) span`).innerText;
-  const resumo = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(1) span`).innerText;
-  const intencao = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(2) span`).innerText;
-  const finalidade = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(3) span`).innerText;
-  const files = document.getElementById('file-' + projNum).files;
+  const grupo = document.getElementById(`grupo-${projNum}`).value.trim();
+  const classe = document.getElementById(`classe-${projNum}`).value.trim();
+  const resumo = document.getElementById(`resumo-${projNum}`).value.trim();
+  const intencao = document.getElementById(`intencao-${projNum}`).value.trim();
+  const finalidade = document.getElementById(`finalidade-${projNum}`).value.trim();
+  const files = document.getElementById(`file-${projNum}`).files;
+
+  // Validar todos os campos antes de salvar
+  if (!validarCampo(projNum, 'grupo', 50) ||
+      !validarCampo(projNum, 'classe', 50) ||
+      !validarCampo(projNum, 'resumo', 500, 10) ||
+      !validarCampo(projNum, 'intencao', 500, 10) ||
+      !validarCampo(projNum, 'finalidade', 500, 10)) {
+    return;
+  }
 
   const ref = db.collection('projetos').doc('projeto' + projNum);
   const doc = await ref.get();
   let medias = doc.exists && doc.data().medias ? doc.data().medias : [];
 
-  if (files.length + medias.length > 5) return alert('Limite de 5 mídias por projeto.');
+  if (files.length + medias.length > 5) {
+    document.getElementById(`erro-file-${projNum}`).innerText = 'Limite de 5 mídias por projeto.';
+    return;
+  }
 
   for (let f of files) {
     const url = await uploadToImageKit(f);
     medias.push({ url, tipo: f.type.startsWith('video') ? 'video' : 'image' });
   }
 
-  await ref.set({ grupo, classe, resumo, intencao, finalidade, medias });
+  await ref.set({ 
+    grupo, 
+    classe, 
+    resumo, 
+    intencao, 
+    finalidade, 
+    medias,
+    ultimaEdicao: firebase.firestore.FieldValue.serverTimestamp() // Adiciona timestamp
+  });
   alert('Informações e mídias atualizadas!');
   carregarProjetos();
 }
 
-// Lógica do gatinho (isolada em um IIFE)
+// Lógica do gatinho (mantida intacta)
 (function() {
   const Cat = {
     nekoEl: null,
@@ -428,7 +568,6 @@ async function salvarTudo(projNum) {
     }
   };
 
-  // Iniciar o gato após o DOM carregar
   document.addEventListener('DOMContentLoaded', () => {
     try {
       Cat.init();
