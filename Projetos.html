@@ -8,20 +8,97 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
   <style>
-    body { font-family: 'Montserrat', sans-serif; background: linear-gradient(135deg, #f5f7fa, #c3cfe2); color: #333; }
-    header { background: linear-gradient(135deg, #4CAF50, #66BB6A); padding: 20px; text-align: center; color: white; border-radius: 0 0 20px 20px; }
-    .container { width: 90%; margin: auto; padding: 20px; display: grid; gap: 20px; }
-    .project { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease; position: relative; }
-    .project:hover { transform: scale(1.02); }
-    .info-top div, .info-block div { font-weight: bold; color: #388e3c; margin-bottom: 5px; position: relative; }
-    .info-item { background: #f1f8e9; padding: 10px; border-radius: 10px; margin-bottom: 10px; position: relative; }
-    .media-item { margin: 10px; max-width: 200px; max-height: 160px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: filter 0.3s ease; }
-    .media-item:hover { filter: grayscale(50%) sepia(20%); }
-    .edit-panel { background: #f9fbe7; border-radius: 10px; padding: 15px; margin-top: 15px; }
-    .edit-panel input, .edit-panel textarea { width: 100%; padding: 10px; border-radius: 8px; margin-top: 5px; }
-    .edit-panel button { background: #aed581; color: #2e7d32; font-weight: bold; padding: 10px; border-radius: 8px; cursor: pointer; }
-    .remove-media-btn { background: #e53935; color: white; border-radius: 5px; padding: 5px 10px; margin-left: 5px; cursor: pointer; }
-    .editable { border: 1px dashed #bbb; padding: 2px; border-radius: 4px; position: relative; }
+    body { 
+      font-family: 'Montserrat', sans-serif; 
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2); 
+      color: #333; 
+      margin: 0;
+      position: relative;
+      overflow-x: hidden;
+    }
+    header { 
+      background: linear-gradient(135deg, #4CAF50, #66BB6A); 
+      padding: 20px; 
+      text-align: center; 
+      color: white; 
+      border-radius: 0 0 20px 20px; 
+    }
+    .container { 
+      width: 90%; 
+      margin: auto; 
+      padding: 20px; 
+      display: grid; 
+      gap: 20px; 
+    }
+    .project { 
+      background: white; 
+      padding: 20px; 
+      border-radius: 15px; 
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+      transition: transform 0.3s ease; 
+      position: relative; 
+    }
+    .project:hover { 
+      transform: scale(1.02); 
+    }
+    .info-top div, .info-block div { 
+      font-weight: bold; 
+      color: #388e3c; 
+      margin-bottom: 5px; 
+      position: relative; 
+    }
+    .info-item { 
+      background: #f1f8e9; 
+      padding: 10px; 
+      border-radius: 10px; 
+      margin-bottom: 10px; 
+      position: relative; 
+    }
+    .media-item { 
+      margin: 10px; 
+      max-width: 200px; 
+      max-height: 160px; 
+      border-radius: 10px; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+      transition: filter 0.3s ease; 
+    }
+    .media-item:hover { 
+      filter: grayscale(50%) sepia(20%); 
+    }
+    .edit-panel { 
+      background: #f9fbe7; 
+      border-radius: 10px; 
+      padding: 15px; 
+      margin-top: 15px; 
+    }
+    .edit-panel input, .edit-panel textarea { 
+      width: 100%; 
+      padding: 10px; 
+      border-radius: 8px; 
+      margin-top: 5px; 
+    }
+    .edit-panel button { 
+      background: #aed581; 
+      color: #2e7d32; 
+      font-weight: bold; 
+      padding: 10px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+    }
+    .remove-media-btn { 
+      background: #e53935; 
+      color: white; 
+      border-radius: 5px; 
+      padding: 5px 10px; 
+      margin-left: 5px; 
+      cursor: pointer; 
+    }
+    .editable { 
+      border: 1px dashed #bbb; 
+      padding: 2px; 
+      border-radius: 4px; 
+      position: relative; 
+    }
     .editable::after {
       content: '\270E';
       position: absolute;
@@ -32,8 +109,23 @@
       opacity: 0.6;
       transition: opacity 0.3s;
     }
-    .editable:hover::after { opacity: 1; }
-    .editing-lock { color: red; font-weight: bold; margin-top: 10px; }
+    .editable:hover::after { 
+      opacity: 1; 
+    }
+    .editing-lock { 
+      color: red; 
+      font-weight: bold; 
+      margin-top: 10px; 
+    }
+    #oneko {
+      width: 32px;
+      height: 32px;
+      position: fixed;
+      pointer-events: none;
+      background-image: url('https://i.imgur.com/ok5b9Sz.gif');
+      image-rendering: pixelated;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
@@ -45,6 +137,8 @@
 </header>
 
 <div class="container" id="projectsContainer"></div>
+
+<div id="oneko" style="display: none;"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -224,7 +318,7 @@ async function salvarTudo(projNum) {
   carregarProjetos();
 }
 </script>
-
-<footer style="text-align:center; margin-top:20px;">&copy; 2025 Projetos Sustentáveis</footer>
+<script src="cat.js" defer></script>
+<footer style="text-align:center; margin-top:20px;">© 2025 Projetos Sustentáveis</footer>
 </body>
 </html>
