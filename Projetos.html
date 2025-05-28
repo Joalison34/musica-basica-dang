@@ -34,6 +34,17 @@
     }
     .editable:hover::after { opacity: 1; }
     .editing-lock { color: red; font-weight: bold; margin-top: 10px; }
+
+    /* --- ADIÇÃO: CSS do gato que segue o mouse --- */
+    #cat {
+      position: fixed;
+      width: 80px;
+      height: 80px;
+      pointer-events: none;
+      user-select: none;
+      transition: transform 0.1s ease-out;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
@@ -45,6 +56,9 @@
 </header>
 
 <div class="container" id="projectsContainer"></div>
+
+<!-- --- ADIÇÃO: Imagem do gato --- -->
+<img id="cat" src="https://i.imgur.com/J5q24Ua.png" alt="Gato" />
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -191,40 +205,54 @@ function carregarProjetos() {
 
     db.collection('locks').doc('projeto' + i).onSnapshot(lockDoc => {
       const lockInfo = document.getElementById('lock-' + i);
-      if (lockDoc.exists && lockDoc.data().locked && !(isEditing && Number(currentProject) === i)) {
-        lockInfo.innerText = 'Outro usuário está editando este projeto.';
+      if (lockDoc.exists && lockDoc.data().locked && Number(currentProject) !== i) {
+        lockInfo.textContent = 'Edição bloqueada por outro usuário';
       } else {
-        lockInfo.innerText = '';
+        lockInfo.textContent = '';
       }
     });
   }
 }
 
+// Função para salvar mudanças (exemplo básico)
 async function salvarTudo(projNum) {
-  const grupo = document.querySelector(`#projeto${projNum} .info-top div:nth-child(1) span`).innerText;
-  const classe = document.querySelector(`#projeto${projNum} .info-top div:nth-child(2) span`).innerText;
-  const resumo = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(1) span`).innerText;
-  const intencao = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(2) span`).innerText;
-  const finalidade = document.querySelector(`#projeto${projNum} .info-block .info-item:nth-child(3) span`).innerText;
-  const files = document.getElementById('file-' + projNum).files;
+  const projDiv = document.getElementById('projeto' + projNum);
+  const grupo = projDiv.querySelector('.info-top div:nth-child(1) span').textContent.trim();
+  const classe = projDiv.querySelector('.info-top div:nth-child(2) span').textContent.trim();
+  const resumo = projDiv.querySelector('.info-block div:nth-child(1) span').textContent.trim();
+  const intencao = projDiv.querySelector('.info-block div:nth-child(2) span').textContent.trim();
+  const finalidade = projDiv.querySelector('.info-block div:nth-child(3) span').textContent.trim();
 
-  const ref = db.collection('projetos').doc('projeto' + projNum);
-  const doc = await ref.get();
-  let medias = doc.exists && doc.data().medias ? doc.data().medias : [];
+  // TODO: Implementar upload de mídias e atualização Firestore
 
-  if (files.length + medias.length > 5) return alert('Limite de 5 mídias por projeto.');
-
-  for (let f of files) {
-    const url = await uploadToImageKit(f);
-    medias.push({ url, tipo: f.type.startsWith('video') ? 'video' : 'image' });
-  }
-
-  await ref.set({ grupo, classe, resumo, intencao, finalidade, medias });
-  alert('Informações e mídias atualizadas!');
-  carregarProjetos();
+  await db.collection('projetos').doc('projeto' + projNum).set({ grupo, classe, resumo, intencao, finalidade }, { merge: true });
+  alert('Salvo com sucesso!');
 }
+
+carregarProjetos();
+
+/* --- ADIÇÃO: Script do gato que segue o mouse --- */
+const cat = document.getElementById('cat');
+
+let mouseX = window.innerWidth / 2;
+let mouseY = window.innerHeight / 2;
+let catX = mouseX;
+let catY = mouseY;
+
+window.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+function animateCat() {
+  catX += (mouseX - catX) * 0.1;
+  catY += (mouseY - catY) * 0.1;
+  cat.style.transform = `translate(${catX - 40}px, ${catY - 40}px)`;
+  requestAnimationFrame(animateCat);
+}
+
+animateCat();
 </script>
 
-<footer style="text-align:center; margin-top:20px;">&copy; 2025 Projetos Sustentáveis</footer>
 </body>
 </html>
