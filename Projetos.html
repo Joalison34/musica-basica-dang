@@ -146,7 +146,7 @@
 
 <div class="container" id="projectsContainer">
   <div class="filtro">
-    <input type="text" id="filtro-projetos" placeholder="Filtrar por grupo ou classe">
+    <input type="text" id="filtro-projetos" placeholder="Filtrar por grupo, classe ou número (1-7)">
     <select id="ordenar-projetos">
       <option value="numero">Ordenar por Número</option>
       <option value="grupo">Ordenar por Grupo</option>
@@ -214,7 +214,7 @@ document.getElementById('passwordsKeyBtn').onclick = () => {
             isEditing = true;
             localStorage.setItem('isEditing', 'true');
             localStorage.setItem('currentProject', currentProject);
-            localStorage.setItem('senhaUsada', senha); // Armazenar senha para uso futuro
+            localStorage.setItem('senhaUsada', senha);
             document.getElementById('logoutEditBtn').style.display = 'inline-block';
             carregarProjetos();
           }
@@ -251,15 +251,15 @@ function criarFormularioEdicao(projNum, data) {
   const form = document.createElement('div');
   form.className = 'edit-panel';
   form.innerHTML = `
-    <label>Grupo: <input type="text" id="grupo-${projNum}" value="${data.grupo || ''}" maxlength="50" required></label>
+    <label>Grupo: <input type="text" id="grupo-${projNum}" value="${data.grupo || ''}" maxlength="50"></label>
     <span id="erro-grupo-${projNum}" class="error"></span>
-    <label>Classe: <input type="text" id="classe-${projNum}" value="${data.classe || ''}" maxlength="50" required></label>
+    <label>Classe: <input type="text" id="classe-${projNum}" value="${data.classe || ''}" maxlength="50"></label>
     <span id="erro-classe-${projNum}" class="error"></span>
-    <label>Resumo: <textarea id="resumo-${projNum}" maxlength="500" required>${data.resumo || ''}</textarea></label>
+    <label>Resumo: <textarea id="resumo-${projNum}" maxlength="500">${data.resumo || ''}</textarea></label>
     <span id="erro-resumo-${projNum}" class="error"></span>
-    <label>Intenção: <textarea id="intencao-${projNum}" maxlength="500" required>${data.intencao || ''}</textarea></label>
+    <label>Intenção: <textarea id="intencao-${projNum}" maxlength="500">${data.intencao || ''}</textarea></label>
     <span id="erro-intencao-${projNum}" class="error"></span>
-    <label>Finalidade: <textarea id="finalidade-${projNum}" maxlength="500" required>${data.finalidade || ''}</textarea></label>
+    <label>Finalidade: <textarea id="finalidade-${projNum}" maxlength="500">${data.finalidade || ''}</textarea></label>
     <span id="erro-finalidade-${projNum}" class="error"></span>
     <input type="file" id="file-${projNum}" multiple>
     <span id="erro-file-${projNum}" class="error"></span>
@@ -267,30 +267,24 @@ function criarFormularioEdicao(projNum, data) {
     <button onclick="cancelarEdicao(${projNum})" class="cancel-btn">Cancelar</button>
   `;
   
-  // Adicionar validação em tempo real
+  // Adicionar validação em tempo real (apenas para limite máximo)
   form.querySelector(`#grupo-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'grupo', 50));
   form.querySelector(`#classe-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'classe', 50));
-  form.querySelector(`#resumo-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'resumo', 500, 10));
-  form.querySelector(`#intencao-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'intencao', 500, 10));
-  form.querySelector(`#finalidade-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'finalidade', 500, 10));
+  form.querySelector(`#resumo-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'resumo', 500));
+  form.querySelector(`#intencao-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'intencao', 500));
+  form.querySelector(`#finalidade-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'finalidade', 500));
   
   return form;
 }
 
-// Função de validação em tempo real
-function validarCampo(projNum, campo, maxLength, minLength = 0) {
+// Função de validação em tempo real (apenas limite máximo)
+function validarCampo(projNum, campo, maxLength) {
   const input = document.getElementById(`${campo}-${projNum}`);
   const erroSpan = document.getElementById(`erro-${campo}-${projNum}`);
   const valor = input.value.trim();
   
-  if (!valor) {
-    erroSpan.innerText = `${campo.charAt(0).toUpperCase() + campo.slice(1)} é obrigatório.`;
-    return false;
-  } else if (valor.length > maxLength) {
+  if (valor.length > maxLength) {
     erroSpan.innerText = `Máximo de ${maxLength} caracteres.`;
-    return false;
-  } else if (minLength && valor.length < minLength) {
-    erroSpan.innerText = `Mínimo de ${minLength} caracteres.`;
     return false;
   } else {
     erroSpan.innerText = '';
@@ -308,7 +302,7 @@ function carregarProjetos() {
   const container = document.getElementById('projectsContainer');
   container.innerHTML = `
     <div class="filtro">
-      <input type="text" id="filtro-projetos" placeholder="Filtrar por grupo ou classe">
+      <input type="text" id="filtro-projetos" placeholder="Filtrar por grupo, classe ou número (1-7)">
       <select id="ordenar-projetos">
         <option value="numero">Ordenar por Número</option>
         <option value="grupo">Ordenar por Grupo</option>
@@ -321,7 +315,7 @@ function carregarProjetos() {
     let projDiv = document.createElement('div');
     projDiv.id = 'projeto' + i;
     projDiv.className = 'project';
-    projDiv.dataset.projetoNum = i; // Para facilitar ordenação
+    projDiv.dataset.projetoNum = i;
     container.appendChild(projDiv);
 
     db.collection('projetos').doc('projeto' + i).onSnapshot(doc => {
@@ -369,7 +363,6 @@ function carregarProjetos() {
     });
   }
 
-  // Configurar filtro e ordenação
   configurarFiltroEOrdenacao();
 }
 
@@ -380,7 +373,8 @@ function configurarFiltroEOrdenacao() {
     document.querySelectorAll('.project').forEach(proj => {
       const grupo = proj.querySelector('.info-top div:nth-child(1) span').innerText.toLowerCase();
       const classe = proj.querySelector('.info-top div:nth-child(2) span').innerText.toLowerCase();
-      proj.style.display = (grupo.includes(filtro) || classe.includes(filtro)) ? 'block' : 'none';
+      const numero = proj.dataset.projetoNum;
+      proj.style.display = (grupo.includes(filtro) || classe.includes(filtro) || numero.includes(filtro)) ? 'block' : 'none';
     });
   });
 
@@ -397,15 +391,11 @@ function configurarFiltroEOrdenacao() {
         const grupoB = b.querySelector('.info-top div:nth-child(1) span').innerText.toLowerCase();
         return grupoA.localeCompare(grupoB);
       } else if (criterio === 'ultima-edicao') {
-        // Supõe que o Firestore tem um campo ultimaEdicao (timestamp)
-        // Requer consulta ao Firestore para obter a data
-        // Aqui usamos um placeholder, pois a lógica real depende de dados
-        return 0; // Implementar com Firestore se necessário
+        return 0; // Placeholder, implementar com Firestore se necessário
       }
       return 0;
     });
 
-    // Reorganizar projetos no container
     const filtroDiv = container.querySelector('.filtro');
     container.innerHTML = '';
     container.appendChild(filtroDiv);
@@ -422,12 +412,12 @@ async function salvarTudo(projNum) {
   const finalidade = document.getElementById(`finalidade-${projNum}`).value.trim();
   const files = document.getElementById(`file-${projNum}`).files;
 
-  // Validar todos os campos antes de salvar
+  // Validar apenas limite máximo de caracteres
   if (!validarCampo(projNum, 'grupo', 50) ||
       !validarCampo(projNum, 'classe', 50) ||
-      !validarCampo(projNum, 'resumo', 500, 10) ||
-      !validarCampo(projNum, 'intencao', 500, 10) ||
-      !validarCampo(projNum, 'finalidade', 500, 10)) {
+      !validarCampo(projNum, 'resumo', 500) ||
+      !validarCampo(projNum, 'intencao', 500) ||
+      !validarCampo(projNum, 'finalidade', 500)) {
     return;
   }
 
@@ -452,7 +442,7 @@ async function salvarTudo(projNum) {
     intencao, 
     finalidade, 
     medias,
-    ultimaEdicao: firebase.firestore.FieldValue.serverTimestamp() // Adiciona timestamp
+    ultimaEdicao: firebase.firestore.FieldValue.serverTimestamp()
   });
   alert('Informações e mídias atualizadas!');
   carregarProjetos();
