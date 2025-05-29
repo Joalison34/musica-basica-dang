@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -159,7 +120,7 @@
             top: 0;
             left: 0;
             height: 5px;
-            background: linear-gradient(to right, #ff4040, #66b2ff);
+            background: linearized-gradient(to right, #ff4040, #66b2ff);
             z-index: 10;
             transition: width 0.1s;
         }
@@ -436,9 +397,23 @@
             0%, 100% { transform: translateX(-50%) scale(1); }
             50% { transform: translateX(-50%) scale(1.05); }
         }
+
+        /* Estilo do gatinho */
+        #oneko {
+            width: 32px;
+            height: 32px;
+            position: fixed;
+            pointer-events: none;
+            background-image: url('https://i.imgur.com/ok5b9Sz.gif');
+            image-rendering: pixelated;
+            z-index: 9999;
+        }
     </style>
 </head>
 <body class="light">
+    <!-- Elemento do gatinho -->
+    <div id="oneko" style="display: none;"></div>
+
     <div class="progress-bar" id="progressBar"></div>
     <header>
         <canvas id="pistonCanvas"></canvas>
@@ -517,7 +492,46 @@
         </p>
     </footer>
 
-    <script>
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+
         function toggleContent(contentId) {
             const content = document.getElementById(contentId);
             const isVisible = content.classList.contains('show');
@@ -698,6 +712,125 @@
 
             animate();
         }
+
+        // Lógica do gatinho (isolada)
+        (function() {
+            const Cat = {
+                nekoEl: null,
+                nekoPosX: -16,
+                nekoPosY: -16,
+                mousePosX: 0,
+                mousePosY: 0,
+                frameCount: 0,
+                idleTime: 0,
+                idleAnimation: null,
+                idleAnimationFrame: 0,
+                nekoSpeed: 12,
+
+                spriteSets: {
+                    idle: [[-3, -3]],
+                    alert: [[-7, -3]],
+                    scratchSelf: [[-5, 0], [-6, 0], [-7, 0]],
+                    scratchWallN: [[0, 0], [0, -1]],
+                    scratchWallS: [[-7, -1], [-6, -2]],
+                    scratchWallE: [[-2, -2], [-2, -3]],
+                    scratchWallW: [[-4, 0], [-4, -1]],
+                    tired: [[-3, -2]],
+                    sleeping: [[-2, 0], [-2, -1]],
+                    N: [[-1, -2], [-1, -3]],
+                    NE: [[0, -2], [0, -3]],
+                    E: [[-3, 0], [-3, -1]],
+                    SE: [[-5, -1], [-5, -2]],
+                    S: [[-6, -3], [-7, -2]],
+                    SW: [[-5, -3], [-6, -1]],
+                    W: [[-4, -2], [-4, -3]],
+                    NW: [[-1, 0], [-1, -1]],
+                },
+
+                init: function() {
+                    this.nekoEl = document.querySelector("#oneko");
+                    if (!this.nekoEl) {
+                        console.warn("Elemento #oneko não encontrado!");
+                        return;
+                    }
+                    this.nekoEl.style.display = "block";
+                    this.nekoEl.style.left = `${this.nekoPosX - 16}px`;
+                    this.nekoEl.style.top = `${this.nekoPosY - 16}px`;
+
+                    document.addEventListener('mousemove', (event) => {
+                        this.mousePosX = event.clientX;
+                        this.mousePosY = event.clientY;
+                    });
+
+                    window.setInterval(() => this.frame(), 100);
+                },
+
+                setSprite: function(name, frame) {
+                    const sprite = this.spriteSets[name][frame % this.spriteSets[name].length];
+                    this.nekoEl.style.backgroundPosition = `${sprite[0] * 32}px ${sprite[1] * 32}px`;
+                },
+
+                idle: function() {
+                    this.idleTime += 1;
+
+                    if (this.idleTime > 10 && Math.floor(Math.random() * 200) === 0 && this.idleAnimation === null) {
+                        const availableIdleAnimations = ["sleeping", "scratchSelf"];
+                        this.idleAnimation = availableIdleAnimations[Math.floor(Math.random() * availableIdleAnimations.length)];
+                    }
+
+                    switch (this.idleAnimation) {
+                        case "sleeping":
+                            this.setSprite("tired", 0);
+                            if (++this.idleAnimationFrame > 192) this.idleAnimation = null;
+                            break;
+                        case "scratchSelf":
+                            this.setSprite(this.idleAnimation, this.idleAnimationFrame);
+                            if (++this.idleAnimationFrame > 9) this.idleAnimation = null;
+                            break;
+                        default:
+                            this.setSprite("idle", 0);
+                    }
+                },
+
+                frame: function() {
+                    if (!this.nekoEl) return;
+                    this.frameCount += 1;
+                    const targetX = Math.min(Math.max(0, this.mousePosX), window.innerWidth);
+                    const targetY = Math.min(Math.max(1, this.mousePosY - 32), window.innerHeight - 1);
+                    const diffX = this.nekoPosX - targetX;
+                    const diffY = this.nekoPosY - targetY;
+                    const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
+
+                    if (distance < this.nekoSpeed || (distance < 48 && Math.abs(diffY) < 16)) {
+                        this.idle();
+                        return;
+                    }
+
+                    this.idleAnimation = null;
+                    this.idleAnimationFrame = 0;
+                    const direction = (diffY / distance > 0.5 ? "N" : "") + (diffY / distance < -0.5 ? "S" : "") +
+                        (diffX / distance > 0.5 ? "W" : "") + (diffX / distance < -0.5 ? "E" : "");
+                    this.setSprite(direction, this.frameCount);
+
+                    this.nekoPosX -= (diffX / distance) * this.nekoSpeed;
+                    this.nekoPosY -= (diffY / distance) * this.nekoSpeed;
+
+                    this.nekoPosX = Math.min(Math.max(16, this.nekoPosX), window.innerWidth - 16);
+                    this.nekoPosY = Math.min(Math.max(16, this.nekoPosY), window.innerHeight - 16);
+
+                    this.nekoEl.style.left = `${this.nekoPosX - 16}px`;
+                    this.nekoEl.style.top = `${this.nekoPosY - 16}px`;
+                }
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                try {
+                    Cat.init();
+                } catch (e) {
+                    console.error("Erro ao inicializar o gato:", e);
+                }
+            });
+        })();
 
         window.onload = initPistonAnimation;
     </script>
