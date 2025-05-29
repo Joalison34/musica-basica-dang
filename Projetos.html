@@ -76,6 +76,10 @@
     .media-item:hover { 
       filter: grayscale(50%) sepia(20%); 
     }
+    .media-container {
+      display: inline-block;
+      position: relative;
+    }
     .edit-panel { 
       background: #f9fbe7; 
       border-radius: 10px; 
@@ -246,6 +250,20 @@ async function uploadToImageKit(file) {
   return data.url;
 }
 
+// Função para remover mídia
+async function removerMidia(projNum, mediaUrl) {
+  const ref = db.collection('projetos').doc('projeto' + projNum);
+  const doc = await ref.get();
+  if (!doc.exists) return;
+
+  const medias = doc.data().medias || [];
+  const updatedMedias = medias.filter(media => media.url !== mediaUrl);
+
+  await ref.update({ medias: updatedMedias });
+  alert('Mídia removida com sucesso!');
+  carregarProjetos();
+}
+
 // Função para criar o formulário de edição
 function criarFormularioEdicao(projNum, data) {
   const form = document.createElement('div');
@@ -338,12 +356,24 @@ function carregarProjetos() {
       const mediaDiv = projDiv.querySelector(`#media-${i}`);
       mediaDiv.innerHTML = '';
       if (data.medias) {
-        data.medias.forEach((m) => {
+        data.medias.forEach((m, index) => {
+          const mediaContainer = document.createElement('div');
+          mediaContainer.className = 'media-container';
           const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
           el.src = m.url;
           if (m.tipo === 'video') el.controls = true;
           el.className = 'media-item';
-          mediaDiv.appendChild(el);
+          mediaContainer.appendChild(el);
+
+          if (isEditing && Number(currentProject) === i) {
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-media-btn';
+            removeBtn.innerText = 'Remover';
+            removeBtn.onclick = () => removerMidia(i, m.url);
+            mediaContainer.appendChild(removeBtn);
+          }
+
+          mediaDiv.appendChild(mediaContainer);
         });
       }
 
