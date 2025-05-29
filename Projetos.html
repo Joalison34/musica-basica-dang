@@ -72,6 +72,7 @@
       border-radius: 10px; 
       box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
       transition: filter 0.3s ease; 
+      cursor: pointer; 
     }
     .media-item:hover { 
       filter: grayscale(50%) sepia(20%); 
@@ -138,6 +139,34 @@
       image-rendering: pixelated;
       z-index: 9999;
     }
+    #media-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    #media-overlay img, #media-overlay video {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+    }
+    #media-overlay .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #e53935;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -160,6 +189,7 @@
 </div>
 
 <div id="oneko" style="display: none;"></div>
+<div id="media-overlay"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -248,6 +278,20 @@ async function uploadToImageKit(file) {
   const response = await fetch(IMAGEKIT_UPLOAD_URL, { method: 'POST', headers: { Authorization: 'Basic ' + btoa(IMAGEKIT_PRIVATE_KEY + ':') }, body: formData });
   const data = await response.json();
   return data.url;
+}
+
+// Função para abrir mídia em tela cheia
+function abrirMediaTelaCheia(url, tipo) {
+  const overlay = document.getElementById('media-overlay');
+  overlay.innerHTML = `
+    <${tipo === 'video' ? 'video' : 'img'} src="${url}" ${tipo === 'video' ? 'controls autoplay' : ''}>
+    <button class="close-btn">Fechar</button>
+  `;
+  overlay.style.display = 'flex';
+  overlay.querySelector('.close-btn').onclick = () => {
+    overlay.style.display = 'none';
+    overlay.innerHTML = '';
+  };
 }
 
 // Função para remover mídia
@@ -363,6 +407,11 @@ function carregarProjetos() {
           el.src = m.url;
           if (m.tipo === 'video') el.controls = true;
           el.className = 'media-item';
+          el.onclick = (e) => {
+            if (!isEditing || Number(currentProject) !== i) {
+              abrirMediaTelaCheia(m.url, m.tipo);
+            }
+          };
           mediaContainer.appendChild(el);
 
           if (isEditing && Number(currentProject) === i) {
@@ -379,7 +428,19 @@ function carregarProjetos() {
 
       if (isEditing && Number(currentProject) === i) {
         projDiv.appendChild(criarFormularioEdicao(i, data));
-        new Sortable(mediaDiv, { animation: 150 });
+        new Sortable(mediaDiv, { 
+          animation: 150,
+          onStart: (evt) => {
+            // Desativar clique em tela cheia durante arrastar
+            mediaDiv.querySelectorAll('.media-item').forEach(el => el.onclick = null);
+          },
+          onEnd: (evt) => {
+            // Restaurar clique em tela cheia após arrastar
+            mediaDiv.querySelectorAll('.media-item').forEach((el, idx) => {
+              el.onclick = () => abrirMediaTelaCheia(data.medias[idx].url, data.medias[idx].tipo);
+            });
+          }
+        });
       }
     });
 
