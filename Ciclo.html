@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missão Carnot: Mestre da Eficiência</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link href="/css/styles.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(to bottom, #1e40af, #60a5fa); color: white; font-family: Arial, sans-serif; }
+        #game-container { max-width: 800px; margin: 20px auto; border: 4px solid #facc15; border-radius: 10px; }
+        .ui-container { max-width: 800px; margin: 20px auto; padding: 20px; background: rgba(0, 0, 0, 0.8); border-radius: 10px; }
+        .feedback { transition: opacity 0.5s; }
+        canvas { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    <h1 class="text-4xl font-bold text-center my-4 text-yellow-400">Missão Carnot: Mestre da Eficiência</h1>
+    <div class="ui-container">
+        <p id="mission" class="text-lg mb-4">Missão: Ajuste T₁ para maximizar o trabalho na expansão isotérmica!</p>
+        <div class="flex flex-col gap-4 mb-4">
+            <label class="flex items-center gap-2 text-green-300">T₁ (K): <input id="t1" type="range" min="300" max="1000" value="600" class="w-full accent-yellow-400"></label>
+            <label class="flex items-center gap-2 text-green-300">T₂ (K): <input id="t2" type="range" min="200" max="500" value="300" class="w-full accent-yellow-400"></label>
+        </div>
+        <p id="efficiency" class="text-lg mb-2 text-yellow-200">Eficiência: 0% | Pontuação: 0</p>
+        <p id="feedback" class="text-lg feedback text-red-300"></p>
+        <div class="flex justify-center gap-4">
+            <button onclick="checkAnswer()" class="bg-yellow-400 text-blue-900 px-4 py-2 rounded hover:bg-yellow-500">Verificar</button>
+            <button onclick="nextLevel()" class="bg-green-400 text-blue-900 px-4 py-2 rounded hover:bg-green-500">Próximo Nível</button>
+            <button onclick="resetGame()" class="bg-red-400 text-blue-900 px-4 py-2 rounded hover:bg-red-500">Reiniciar</button>
+        </div>
+    </div>
+    <div class="ui-container">
+        <canvas id="pvDiagram" class="w-full"></canvas>
+    </div>
+    <div id="game-container"></div>
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg text-black max-w-md">
+            <h2 id="modal-title" class="text-xl font-bold mb-4"></h2>
+            <p id="modal-content"></p>
+            <button onclick="closeModal()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Fechar</button>
+        </div>
+    </div>
+    <script>
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 500,
+            scene: { preload, create, update },
+            parent: 'game-container',
+            scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
+        };
+        let game, t1 = 600, t2 = 300, efficiencyText, feedbackText, piston, particles, level = 1, score = 0;
+        const missions = [
+            { text: "Ajuste T₁ para maximizar o trabalho na expansão isotérmica!", target: 600, param: 't1', goal: 'work', explanation: "Na expansão isotérmica, o trabalho é dado por W = nRT₁ln(V₂/V₁). Aumente T₁ para mais trabalho!" },
+            { text: "Ajuste T₂ para otimizar a compressão isotérmica!", target: 300, param: 't2', goal: 'compression', explanation: "Na compressão isotérmica, o calor Q₂ é liberado a T₂. Ajuste T₂ para eficiência." },
+            { text: "Balanceie a entropia (Q₁/T₁ = Q₂/T₂)!", target: 0, param: 'entropy', goal: 'entropy', explanation: "A entropia total é nula em um ciclo reversível: Q₁/T₁ = Q₂/T₂." },
+            { text: "Alcance uma eficiência de 60%!", target: 60, param: 'efficiency', goal: 'efficiency', explanation: "A eficiência é η = 1 - T₂/T₁. Ajuste T₁ e T₂ para atingir 60%." },
+            { text: "Aplique o ciclo em uma turbina real!", target: 50, param: 'efficiency', goal: 'application', explanation: "Turbinas reais aproximam o ciclo de Carnot, mas têm perdas." }
+        ];
+        const successSound = new Howl({ src: ['https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3'] });
+        const errorSound = new Howl({ src: ['https://assets.mixkit.co/sfx/preview/mixkit-error.wav'] });
+        function preload() {
+            this.load.image('piston', 'https://via.placeholder.com/100x100?text=Pistão');
+            this.load.image('particle', 'https://via.placeholder.com/10x10?text=Particle');
+        }
+        function create() {
+            game = this;
+            this.add.rectangle(400, 250, 800, 500, 0x1e40af).setAlpha(0.8);
+            this.add.text(400, 50, `Nível ${level}: ${missions[level-1].text}`, { fontSize: '20px', color: '#facc15' }).setOrigin(0.5);
+            piston = this.add.image(200, 300, 'piston').setScale(1.5);
+            particles = this.add.particles('particle').createEmitter({
+                x: 400, y: 300, speed: { min: 100, max: 200 }, angle: { min: 0, max: 360 },
+                scale: { start: 0.5, end: 0 }, lifespan: 1000, frequency: -1
+            });
+            efficiencyText = document.getElementById('efficiency');
+            feedbackText = document.getElementById('feedback');
+            if (!efficiencyText || !feedbackText) {
+                console.error('Elementos DOM não encontrados!');
+                return;
+            }
+            updatePVDiagram();
+            loadProgress();
+            showTutorial();
+        }
+        function update() {
+            t1 = parseFloat(document.getElementById('t1').value) || 600;
+            t2 = parseFloat(document.getElementById('t2').value) || 300;
+            piston.y = 300 + Math.sin(game.loop.time / 200) * 20;
+            updateEfficiency();
+            updatePVDiagram();
+        }
+        function updateEfficiency() {
+            if (!efficiencyText) return;
+            let efficiency = (1 - t2 / t1) * 100;
+            efficiencyText.innerText = `Eficiência: ${efficiency.toFixed(2)}% | Pontuação: ${score}`;
+        }
+        function updatePVDiagram() {
+            const ctx = document.getElementById('pvDiagram')?.getContext('2d');
+            if (!ctx) return;
+            if (window.pvChart) window.pvChart.destroy();
+            window.pvChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['V₁', 'V₂', 'V₃', 'V₄', 'V₁'],
+                    datasets: [{
+                        label: 'Diagrama P-V',
+                        data: [300, 300, 100, 100, 300].map(p => p * (600 / t1)),
+                        borderColor: '#facc15',
+                        backgroundColor: 'rgba(96, 165, 250, 0.3)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { scales: { y: { beginAtZero: true, title: { display: true, text: 'Pressão (kPa)' } }, x: { title: { display: true, text: 'Volume' } } } }
+            });
+        }
+        function checkAnswer() {
+            if (!feedbackText) return;
+            let mission = missions[level-1];
+            let efficiency = (1 - t2 / t1) * 100;
+            let entropy = (1000 / t1) - (500 / t2);
+            let success = false;
+            if (mission.goal === 'work' && Math.abs(t1 - mission.target) < 50) success = true;
+            else if (mission.goal === 'compression' && Math.abs(t2 - mission.target) < 50) success = true;
+            else if (mission.goal === 'entropy' && Math.abs(entropy) < 0.01) success = true;
+            else if (mission.goal === 'efficiency' && Math.abs(efficiency - mission.target) < 5) success = true;
+            else if (mission.goal === 'application' && Math.abs(efficiency - mission.target) < 10) success = true;
+            if (success) {
+                feedbackText.innerText = `Parabéns! Missão concluída! +100 pontos`;
+                score += 100;
+                particles.explode(50);
+                successSound.play();
+                showModal(`Nível ${level} Concluído!`, `${mission.explanation} <a href="#etapas" class="text-blue-500">Saiba mais</a>`);
+            } else {
+                feedbackText.innerText = `Tente novamente! Dica: ${getHint(mission.goal)}`;
+                errorSound.play();
+            }
+            saveProgress();
+        }
+        function getHint(goal) {
+            const hints = {
+                work: 'Aumente T₁ para mais trabalho!', compression: 'Ajuste T₂ para compressão eficiente!',
+                entropy: 'Garanta Q₁/T₁ = Q₂/T₂!', efficiency: 'Use η = 1 - T₂/T₁!', application: 'Pense em uma turbina real!'
+            };
+            return hints[goal];
+        }
+        function nextLevel() {
+            level++;
+            if (level > 5) {
+                feedbackText.innerText = `Jogo concluído! Pontuação final: ${score}`;
+                showModal('Jogo Concluído!', `Parabéns! Você salvou a estação espacial com ${score} pontos. <a href="#inicio" class="text-blue-500">Voltar ao site</a>`);
+                level = 1;
+                score = 0;
+            } else {
+                document.getElementById('mission').innerText = `Nível ${level}: ${missions[level-1].text}`;
+                feedbackText.innerText = '';
+                particles.explode(20);
+            }
+            saveProgress();
+        }
+        function resetGame() {
+            level = 1;
+            score = 0;
+            document.getElementById('mission').innerText = `Nível ${level}: ${missions[0].text}`;
+            feedbackText.innerText = '';
+            saveProgress();
+            updatePVDiagram();
+        }
+        function saveProgress() {
+            try {
+                localStorage.setItem('carnotProgress', JSON.stringify({ level, score }));
+            } catch (e) {
+                console.error('Erro ao salvar progresso:', e);
+            }
+        }
+        function loadProgress() {
+            try {
+                let progress = localStorage.getItem('carnotProgress');
+                if (progress) {
+                    let data = JSON.parse(progress);
+                    level = data.level || 1;
+                    score = data.score || 0;
+                    document.getElementById('mission').innerText = `Nível ${level}: ${missions[level-1].text}`;
+                }
+            } catch (e) {
+                console.error('Erro ao carregar progresso:', e);
+            }
+        }
+        function showTutorial() {
+            if (!localStorage.getItem('carnotTutorial')) {
+                showModal('Bem-vindo à Missão Carnot!', 'Ajuste T₁ e T₂ para completar missões e salvar a estação espacial. Use os sliders e clique em "Verificar". Boa sorte!');
+                localStorage.setItem('carnotTutorial', 'shown');
+            }
+        }
+        function showModal(title, content) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-content').innerHTML = content;
+            modal.classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
