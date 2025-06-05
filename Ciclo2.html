@@ -15,7 +15,26 @@
             overflow: auto;
             transition: all 0.5s ease;
         }
+
+      <button id="music-toggle" style="
+        position: fixed; 
+        top: 10px; 
+        left: 10px; 
+        background-color: red; 
+        color: white; 
+        border: none; 
+        padding: 5px 10px; 
+        cursor: pointer; 
+        border-radius: 5px;
+        z-index: 1000;
+      ">Música</button>
+
+        <audio id="background-music" loop>
+  <source src="https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPOSITORIO/main/sua-musica.mp3" type="audio/mpeg">
+  Seu navegador não suporta áudio.
+</audio>
         
+          
         header {
             background: var(--header-bg);
             color: var(--text-color);
@@ -833,6 +852,30 @@
         })();
 
         window.onload = initPistonAnimation;
+
+
+     <script>
+  const musicToggle = document.getElementById('music-toggle');
+  const backgroundMusic = document.getElementById('background-music');
+
+  let isPlaying = false;
+
+  musicToggle.addEventListener('click', () => {
+    if (!isPlaying) {
+      backgroundMusic.play();
+      musicToggle.style.backgroundColor = 'green';
+      isPlaying = true;
+    } else {
+      backgroundMusic.pause();
+      backgroundMusic.currentTime = 0;
+      musicToggle.style.backgroundColor = 'red';
+      isPlaying = false;
+    }
+  });
+</script>
+    
+
+            
     </script>
 </body>
 </html>
