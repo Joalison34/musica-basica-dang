@@ -28,33 +28,6 @@
             z-index: 1;
         }
 
-        <!-- Adicionar no início do <body>, logo após o <header> -->
-<audio id="backgroundMusic" loop>
-    <source src="URL_DO_SEU_ARQUIVO_MP3_NO_GITHUB" type="audio/mpeg">
-    Seu navegador não suporta o elemento de áudio.
-</audio>
-<button id="musicToggle" style="position: fixed; top: 10px; left: 10px; background-color: red; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer;">Tocar Música</button>
-
-<!-- Adicionar no final do <body>, antes do </body> -->
-<script>
-    const musicToggle = document.getElementById('musicToggle');
-    const backgroundMusic = document.getElementById('backgroundMusic');
-    let isPlaying = false;
-
-    musicToggle.addEventListener('click', () => {
-        if (isPlaying) {
-            backgroundMusic.pause();
-            musicToggle.style.backgroundColor = 'red';
-            musicToggle.textContent = 'Tocar Música';
-        } else {
-            backgroundMusic.play();
-            musicToggle.style.backgroundColor = 'green';
-            musicToggle.textContent = 'Parar Música';
-        }
-        isPlaying = !isPlaying;
-    });
-</script>
-
         canvas#pistonCanvas {
             position: absolute;
             top: 0;
