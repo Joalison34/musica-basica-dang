@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iFunny BR</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+        }
+        h1 {
+            text-align: center;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+        }
+        #postForm {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+        }
+        input, textarea, button {
+            padding: 8px;
+            border: 1px solid #00ff00;
+            border-radius: 3px;
+            background: #333;
+            color: #fff;
+        }
+        button { cursor: pointer; }
+        button:hover { background: #00ff00; color: #000; }
+        .post {
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 500px;
+            background: #222;
+            border-radius: 5px;
+        }
+        .meme-img, .meme-video {
+            max-width: 100%;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .meme-img.expanded, .meme-video.expanded {
+            max-width: 80vw;
+            max-height: 80vh;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        .comment { margin-left: 20px; padding: 5px; }
+        .comment-input { display: flex; gap: 5px; }
+        .error { color: #ff4444; text-align: center; }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+</head>
+<body>
+    <h1>iFunny BR</h1>
+    <div id="auth">
+        <button id="loginBtn">Entrar (Anônimo)</button>
+        <button id="logoutBtn" style="display: none;">Sair</button>
+        <p id="userInfo"></p>
+    </div>
+    <form id="postForm" enctype="multipart/form-data" style="display: none;">
+        <input type="text" id="username" placeholder="Nome de usuário" required>
+        <input type="file" id="meme" accept="image/*,video/*" required>
+        <textarea id="caption" placeholder="Legenda do meme"></textarea>
+        <button type="submit">Postar Meme</button>
+    </form>
+    <div id="error" class="error"></div>
+    <div id="posts"></div>
+
+    <script>
+        // Configuração do Firebase (substitua pelos seus dados do projeto)
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            projectId: "SEU_PROJETO",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SUA_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Elementos do DOM
+        const postForm = document.getElementById('postForm');
+        const postsDiv = document.getElementById('posts');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userInfo = document.getElementById('userInfo');
+        const errorDiv = document.getElementById('error');
+
+        // Autenticação anônima
+        let currentUser = null;
+        loginBtn.addEventListener('click', () => {
+            auth.signInAnonymously()
+                .then(async (userCredential) => {
+                    currentUser = userCredential.user;
+                    loginBtn.style.display = 'none';
+                    logoutBtn.style.display = 'inline';
+                    postForm.style.display = 'block';
+                    userInfo.textContent = `Bem-vindo, ${currentUser.uid.slice(0, 8)}!`;
+                    await checkUsername();
+                })
+                .catch((error) => {
+                    errorDiv.textContent = `Erro no login: ${error.message}`;
+                });
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut();
+            currentUser = null;
+            loginBtn.style.display = 'inline';
+            logoutBtn.style.display = 'none';
+            postForm.style.display = 'none';
+            userInfo.textContent = '';
+        });
+
+        // Verificar nome de usuário único
+        async function checkUsername() {
+            const usernameInput = document.getElementById('username');
+            usernameInput.addEventListener('change', async () => {
+                const username = usernameInput.value.toLowerCase();
+                const userDoc = await db.collection('users').where('username', '==', username).get();
+                if (!userDoc.empty) {
+                    errorDiv.textContent = 'Nome de usuário já existe!';
+                    usernameInput.value = '';
+                } else {
+                    errorDiv.textContent = '';
+                    await db.collection('users').doc(currentUser.uid).set({ username });
+                }
+            });
+        }
+
+        // Postar meme com ImageKit
+        postForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.toLowerCase();
+            const meme = document.getElementById('meme').files[0];
+            const caption = document.getElementById('caption').value;
+
+            if (!currentUser || !username) {
+                errorDiv.textContent = 'Faça login e escolha um nome de usuário!';
+                return;
+            }
+
+            try {
+                // Upload para Firebase Storage
+                const storageRef = storage.ref(`memes/${Date.now()}_${meme.name}`);
+                const snapshot = await storageRef.put(meme);
+                const downloadURL = await snapshot.ref.getDownloadURL();
+
+                // Otimizar com ImageKit (substitua pela sua URL base do ImageKit)
+                const imageKitURL = `https://ik.imagekit.io/SUA_IMAGEKIT_ID/${downloadURL}?tr=w-500,h-500`;
+
+                // Salvar no Firestore
+                await db.collection('posts').add({
+                    username,
+                    caption,
+                    mediaURL: imageKitURL,
+                    mediaType: meme.type.startsWith('video') ? 'video' : 'image',
+                    likes: 0,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                postForm.reset();
+                errorDiv.textContent = 'Meme postado com sucesso!';
+            } catch (error) {
+                errorDiv.textContent = `Erro ao postar: ${error.message}`;
+            }
+        });
+
+        // Renderizar posts
+        db.collection('posts').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+            postsDiv.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const post = doc.data();
+                const postDiv = document.createElement('div');
+                postDiv.className = 'post';
+                postDiv.innerHTML = `
+                    <p><strong>${post.username}</strong>: ${post.caption}</p>
+                    ${post.mediaType === 'image' 
+                        ? `<img src="${post.mediaURL}" class="meme-img">`
+                        : `<video src="${post.mediaURL}" class="meme-video" controls></video>`}
+                    <button onclick="likePost('${doc.id}', ${post.likes})">Curtir (${post.likes})</button>
+                    <div class="comment-input">
+                        <input type="text" placeholder="Comentar..." data-post-id="${doc.id}">
+                        <button onclick="addComment('${doc.id}')">Enviar</button>
+                    </div>
+                    <div class="comments" id="comments-${doc.id}"></div>
+                `;
+                postsDiv.appendChild(postDiv);
+                loadComments(doc.id);
+            });
+
+            // Expandir imagens/vídeos
+            document.querySelectorAll('.meme-img, .meme-video').forEach(media => {
+                media.addEventListener('click', () => media.classList.toggle('expanded'));
+            });
+        });
+
+        // Curtir post
+        async function likePost(postId, currentLikes) {
+            if (!currentUser) {
+                errorDiv.textContent = 'Faça login para curtir!';
+                return;
+            }
+            await db.collection('posts').doc(postId).update({ likes: currentLikes + 1 });
+        }
+
+        // Adicionar comentário
+        async function addComment(postId) {
+            const commentInput = document.querySelector(`input[data-post-id="${postId}"]`);
+            const commentText = commentInput.value.trim();
+            if (!currentUser || !commentText) return;
+
+            await db.collection('posts').doc(postId).collection('comments').add({
+                username: (await db.collection('users').doc(currentUser.uid).get()).data().username,
+                text: commentText,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            commentInput.value = '';
+        }
+
+        // Carregar comentários
+        async function loadComments(postId) {
+            const commentsDiv = document.getElementById(`comments-${postId}`);
+            db.collection('posts').doc(postId).collection('comments')
+                .orderBy('timestamp', 'desc')
+                .onSnapshot((snapshot) => {
+                    commentsDiv.innerHTML = '';
+                    snapshot.forEach((doc) => {
+                        const comment = doc.data();
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = 'comment';
+                        commentDiv.innerHTML = `<p><strong>${comment.username}</strong>: ${comment.text}</p>`;
+                        commentsDiv.appendChild(commentDiv);
+                    });
+                });
+        }
+    </script>
+</body>
+</html>
