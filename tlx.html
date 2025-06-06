@@ -1,0 +1,1145 @@
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" class="no-js" ng-app="sedApp" ng-controller="sedController as sed">
+<head>
+	<!-- Meta -->
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="author" content="Secretaria da Educação do Estado de São Paulo" />
+	<meta name="description" content="A Secretaria Escolar Digital &#233; uma plataforma on-line com v&#225;rios m&#243;dulos. Criada para centralizar, agilizar e facilitar todas as opera&#231;&#245;es que envolvem a gest&#227;o di&#225;ria da administra&#231;&#227;o escolar, professores, alunos e seus respons&#225;veis, de forma r&#225;pida, segura e eficiente promovendo a inclus&#227;o digital." />
+	<meta name="keywords" content="secretaria, escolar, digital, sp, são paulo, educação, educa, secretaria escolar digital, sed, see, governo de são paulo, secretaria da educação do estado de são paulo" />
+	<meta property="og:url" content="https://sed.educacao.sp.gov.br/" />
+	<meta property="og:title" content="Secretaria Escolar Digital | Secretaria da Educa&#231;&#227;o do Estado de S&#227;o Paulo" />
+	<meta property="og:description" content="A Secretaria Escolar Digital &#233; uma plataforma on-line com v&#225;rios m&#243;dulos. Criada para centralizar, agilizar e facilitar todas as opera&#231;&#245;es que envolvem a gest&#227;o di&#225;ria da administra&#231;&#227;o escolar, professores, alunos e seus respons&#225;veis, de forma r&#225;pida, segura e eficiente promovendo a inclus&#227;o digital." />
+	<meta property="og:image" content="https://sedseecdn.azureedge.net/images/favicon/favicon-512x512.png" />
+	<link rel="shortcut icon" href="//sedseecdn.azureedge.net/images/favicon/favicon.ico" />
+	<link rel="shortcut icon" href="//sedseecdn.azureedge.net/images/favicon/favicon.png" />
+	<!--<link rel="apple-touch-icon" sizes="57x57" href="//sedseecdn.azureedge.net/images/favicon/apple-icon-57x57.png" />
+	<link rel="apple-touch-icon" sizes="60x60" href="//sedseecdn.azureedge.net/images/favicon/apple-icon-60x60.png" />
+	<link rel="apple-touch-icon" sizes="72x72" href="//sedseecdn.azureedge.net/images/favicon/apple-icon-72x72.png" />
+	<link rel="apple-touch-icon" sizes="76x76" href="//sedseecdn.azureedge.net/images/favicon/apple-icon-76x76.png" />
+	<link rel="apple-touch-icon" sizes="114x114" href="//sedseecdn.azureedge.net/images/favicon/apple-icon-114x114.png" />
+	<link rel="apple-touch-icon" sizes="120x120" href="//sedseecdn.azureedge.net/images/favicon/apple-icon-120x120.png" />
+	<link rel="apple-touch-icon" sizes="144x144" href="//sedseecdn.azureedge.net/images/favicon/apple-icon-144x144.png" />
+	<link rel="apple-touch-icon" sizes="152x152" href="//sedseecdn.azureedge.net/images/favicon/apple-icon-152x152.png" />
+	<link rel="apple-touch-icon" sizes="180x180" href="//sedseecdn.azureedge.net/images/favicon/apple-icon-180x180.png" /> -->
+	<link rel="icon" type="image/png" sizes="16x16" href="//sedseecdn.azureedge.net/images/favicon/favicon-16x16.png" />
+	<link rel="icon" type="image/png" sizes="32x32" href="//sedseecdn.azureedge.net/images/favicon/favicon-32x32.png" />
+	<!--<link rel="icon" type="image/png" sizes="36x36" href="//sedseecdn.azureedge.net/images/favicon/android-icon-36x36.png" />
+	<link rel="icon" type="image/png" sizes="48x48" href="//sedseecdn.azureedge.net/images/favicon/android-icon-48x48.png" />
+	<link rel="icon" type="image/png" sizes="72x72" href="//sedseecdn.azureedge.net/images/favicon/android-icon-72x72.png" /> -->
+	<!--<link rel="icon" type="image/png" sizes="96x96" href="//sedseecdn.azureedge.net/images/favicon/favicon-96x96.png" />
+	<link rel="icon" type="image/png" sizes="144x144" href="//sedseecdn.azureedge.net/images/favicon/android-icon-144x144.png" />
+	<link rel="icon" type="image/png" sizes="192x192" href="//sedseecdn.azureedge.net/images/favicon/android-icon-192x192.png" /> -->
+	<link rel="manifest" href="/SEDLayoutGovManifest/Index?title=Secretaria Escolar Digital | Secretaria da Educa&#231;&#227;o do Estado de S&#227;o Paulo&amp;url=https%3A%2F%2Fsed.educacao.sp.gov.br" />
+	<meta name="msapplication-TileColor" content="#ffffff" />
+	<meta name="msapplication-TileImage" content="//sedseecdn.azureedge.net/images/favicon/ms-icon-144x144.png" />
+	<meta name="theme-color" content="#ffcc00" />
+	<title>Secretaria Escolar Digital | Secretaria da Educa&#231;&#227;o do Estado de S&#227;o Paulo</title>
+	<!-- Styles -->
+	<link rel="stylesheet" type="text/css" href="//sedseecdn.azureedge.net/styles/third-party-1.0.3.min.css" />
+
+	<link rel="stylesheet" type="text/css" href="//sedseecdn.azureedge.net/styles/font-awesome-4.7.0.min.css" />
+	<link rel="stylesheet" type="text/css" href="//sedseecdn.azureedge.net/styles/Acessibilidade-1.1.2.css" />
+	<link rel="stylesheet" type="text/css" href="//sedseecdn.azureedge.net/styles/jquery.multiselect-1.16.2.custom.css" />
+    <base href="/">
+
+    <!-- Facebook -->
+    <meta property="fb:app_id" content="1731471423806018" />
+    <meta property="fb:admins" content="100003036613503" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="__educacaosp">
+    <meta name="twitter:title" content="Secretaria Escolar Digital | Secretaria da Educação do Estado de São Paulo">
+    <meta name="twitter:description" content="A Secretaria Escolar Digital é uma plataforma on-line com vários módulos. Criada para centralizar, agilizar e facilitar todas as operações que envolvem a gestão diária da administração escolar, professores, alunos e seus responsáveis, de forma rápida, segura e eficiente promovendo a inclusão digital.">
+
+    <style type="text/css">
+        @font-face {
+            font-family: 'AllerBold';
+            src: url('https://sedseecdn.azureedge.net/fonts/aller_bd-webfont.eot?#iefix') format('embedded-opentype'), url('https://sedseecdn.azureedge.net/fonts/aller_bd-webfont.woff') format('woff'), url('https://sedseecdn.azureedge.net/fonts/aller_bd-webfont.ttf') format('truetype'), url('https://sedseecdn.azureedge.net/fonts/aller_bd-webfont.svg#webfonti8hol64m') format('svg');
+        }
+
+        @font-face {
+            font-family: 'AllerRegular';
+            src: url('https://sedseecdn.azureedge.net/fonts/aller_rg-webfont.eot?#iefix') format('embedded-opentype'), url('https://sedseecdn.azureedge.net/fonts/aller_rg-webfont.woff') format('woff'), url('https://sedseecdn.azureedge.net/fonts/aller_rg-webfont.ttf') format('truetype'), url('https://sedseecdn.azureedge.net/fonts/aller_rg-webfont.svg#webfontGBXJYuuM') format('svg');
+        }
+
+        .decor-body h1, .decor-body h2, .decor-body h3, .decor-body h4, .decor-body h5, .decor-body h6 {
+            font-family: 'AllerBold';
+            margin: 0 0 30px;
+            font-weight: normal;
+            color: #333;
+        }
+
+        .decor-body h1 {
+            font-size: 36px;
+            line-height: 40px;
+        }
+
+        .decor-body h2 {
+            font-size: 30px;
+            line-height: 34px;
+        }
+
+        .decor-body h3 {
+            font-size: 24px;
+            line-height: 28px;
+        }
+
+        .decor-body h4 {
+            font-size: 18px;
+            line-height: 22px;
+        }
+
+        .decor-body h5 {
+            font-size: 14px;
+            line-height: 18px;
+        }
+
+        .decor-body h6 {
+            font-size: 12px;
+            line-height: 16px;
+        }
+
+        p {
+            color: #333;
+            font-size: 18px;
+            line-height: 30px;
+            margin: 0 0 30px;
+            text-align: left;
+        }
+
+        .decor-body {
+            font-family: 'AllerRegular';
+        }
+
+        .row {
+            margin: 0;
+        }
+
+    .ico-ball { background-image: url("https://sedseecdn.azureedge.net/sed/imagens/sprite/sprite.png"); background-repeat: no-repeat; display: inline-block; line-height: 20px; margin-top: 1px; vertical-align: middle; }
+
+        .ico-aluno {
+            width: 63px;
+            height: 61px;
+            background-position: -63px 0px;
+        }
+
+        .ico-boletim-escolar {
+            width: 58px;
+            height: 63px;
+            background-position: -126px 0px;
+        }
+
+        .ico-email {
+            width: 54px;
+            height: 48px;
+            background-position: -121px -76px;
+        }
+
+        .ico-faq {
+            width: 58px;
+            height: 54px;
+            background-position: 0px -76px;
+        }
+
+        .ico-pais-e-responsaveis {
+            width: 63px;
+            height: 48px;
+            background-position: -58px -76px;
+        }
+
+        .ico-professores-e-servidores {
+            width: 63px;
+            height: 76px;
+            background-position: 0px 0px;
+        }
+
+        .content-text-only {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .decor-body .btn {
+            display: inline-block;
+            margin-bottom: 0;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+            background-image: none;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            font-size: 14px;
+            color: #333;
+            padding: 6px 12px;
+            letter-spacing: -1px;
+            font-family: 'AllerBold';
+            text-transform: uppercase;
+            -webkit-border-radius: 4px;
+            -moz-border-radius: 4px;
+            border-radius: 4px;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+        }
+
+            .decor-body .btn.disabled, .decor-body .btn[disabled], fieldset[disabled] .btn {
+                filter: initial;
+                opacity: 1.0;
+            }
+
+        .decor-body .btn-red {
+            background-color: #f74949;
+            color: #fff;
+        }
+
+            .decor-body .btn-red:hover,
+            .decor-body .btn-red:focus {
+                background-color: #f63131;
+                color: #fff;
+            }
+
+            .decor-body .btn-red:active {
+                background-color: #cf2a2a;
+                color: #fff;
+                -webkit-box-shadow: none;
+                box-shadow: none;
+            }
+
+        .decor-body .btn-large {
+            padding: 12px 30px;
+            font-size: 16px;
+            line-height: 16px;
+        }
+
+        .logo, .logo-navbar {
+            padding: 0 0 15px;
+            margin: 0;
+            text-align: center;
+        }
+
+            .logo-navbar .menu-item {
+                color: #333;
+                padding: 10px;
+                display: inline-block;
+                vertical-align: bottom;
+                font-family: 'AllerBold';
+                font-size: 14px;
+                line-height: 14px;
+                text-transform: uppercase;
+            }
+
+                .logo-navbar .menu-item.current {
+                    color: #459ad6;
+                    outline: none;
+                }
+
+        .login-session .row {
+            background-color: #459ad6;
+            padding: 15px;
+        }
+
+        .login-session a,
+        .login-session p {
+            color: #fff;
+        }
+
+        .login-session a {
+            text-decoration: underline;
+        }
+
+            .login-session a:hover,
+            .login-session a:focus {
+                text-decoration: none;
+            }
+
+        .login-session p {
+            font-size: 14px;
+            line-height: 22px;
+            margin-bottom: 25px;
+        }
+
+        .login-session .title {
+        }
+
+            .login-session .title h2 {
+                font-family: 'AllerBold';
+                letter-spacing: -1px;
+                color: #fff;
+            }
+
+            .login-session .title p {
+                font-size: 16px;
+                line-height: 24px;
+            }
+
+        .login-session .form-login {
+            margin: 0;
+        }
+
+            .login-session .form-login .form-label {
+                color: #fff;
+            }
+
+            .login-session .form-login .forgot {
+                font-size: 12px;
+                line-height: 12px;
+                text-decoration: none;
+                float: right;
+                padding: 20px 0 0 0;
+            }
+
+                .login-session .form-login .forgot:hover,
+                .login-session .form-login .forgot:focus {
+                    text-decoration: underline;
+                }
+
+            .login-session .form-login p + p {
+                margin-bottom: 0;
+            }
+
+        .services {
+            text-align: center;
+        }
+
+            .services .row {
+                font-size: 0;
+            }
+
+                .services .row > * {
+                    display: inline-block;
+                    vertical-align: top;
+                }
+
+            .services a {
+                color: #333;
+            }
+
+        .service-item .ball {
+            margin-bottom: 10px;
+        }
+
+            .service-item .ball a {
+                display: inline-block;
+                width: 108px;
+                height: 108px;
+                line-height: 100px;
+                background-color: #459ad6;
+                -webkit-border-radius: 50%;
+                -moz-border-radius: 50%;
+                border-radius: 50%;
+                -webkit-transition: transform 0.8s ease, background-color 0.3s ease;
+                -moz-transition: transform 0.8s ease, background-color 0.3s ease;
+                -o-transition: transform 0.8s ease, background-color 0.3s ease;
+                -ms-transition: transform 0.8s ease, background-color 0.3s ease;
+                transition: transform 0.8s ease, background-color 0.3s ease;
+            }
+
+            .service-item .ball [class*="ico-"] {
+                vertical-align: middle;
+            }
+
+        .service-item .title {
+            font-family: 'AllerBold';
+            margin-bottom: 20px;
+            font-size: 22px;
+            line-height: 26px;
+        }
+
+        .service-item p {
+            font-size: 14px;
+            line-height: 20px;
+            margin-bottom: 0;
+            text-align: center;
+        }
+
+        .service-item:hover,
+        .service-item:focus {
+            background-color: #F2F1EF;
+            -webkit-border-radius: 10%;
+            -moz-border-radius: 10%;
+            border-radius: 10%;
+            -webkit-box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+
+            .service-item:hover .ball a,
+            .service-item:focus .ball a {
+                -webkit-transition: transform 0.8s ease, background-color 0.3s ease;
+                -moz-transition: transform 0.8s ease, background-color 0.3s ease;
+                -o-transition: transform 0.8s ease, background-color 0.3s ease;
+                -ms-transition: transform 0.8s ease, background-color 0.3s ease;
+                transition: transform 0.8s ease, background-color 0.3s ease;
+                -webkit-transform: translateY(-25px);
+                -moz-transform: translateY(-25px);
+                -o-transform: translateY(-25px);
+                -ms-transform: translateY(-25px);
+                transform: translateY(-25px);
+                -webkit-box-shadow: 0 5px 1px 0 rgba(0, 0, 0, 0.2);
+                box-shadow: 0 5px 1px 0 rgba(0, 0, 0, 0.2);
+                background-color: #ffb600;
+            }
+
+        .title-section {
+            margin: 0 0 15px 0;
+            padding-bottom: 5px;
+            font-size: 18px;
+            line-height: 20px;
+            font-family: 'AllerBold';
+            font-weight: normal;
+            color: #666;
+            border-bottom: solid 1px #999;
+        }
+
+        .title-clean {
+            border: none;
+            padding-bottom: 0;
+        }
+
+        .box-featured > .title-section {
+            font-size: 22px;
+            font-family: Arial;
+            font-weight: bold;
+            letter-spacing: -1px;
+            color: #000;
+            padding-top: 7px;
+            padding-bottom: 15px;
+            border-color: #ccc;
+        }
+
+        .box-featured .list-featured {
+            margin: 0 0 10px;
+            padding: 0;
+            font-size: 14px;
+            line-height: 16px;
+            font-weight: bold;
+            list-style: none;
+        }
+
+            .box-featured .list-featured li {
+                position: relative;
+                margin-bottom: 3px;
+                background-color: #c9eaf8;
+            }
+
+                .box-featured .list-featured li:before {
+                    content: "";
+                    position: absolute;
+                    width: 7px;
+                    height: 7px;
+                    display: block;
+                    left: 10px;
+                    top: 50%;
+                    margin-top: -3.5px;
+                    background-color: #459ad6;
+                }
+
+                .box-featured .list-featured li > a {
+                    display: block;
+                    color: #265475;
+                    font-size: 14px;
+                    padding: 15px 10px 15px 30px;
+                }
+
+        .form-boletim {
+            border: 1px solid #eee;
+            width: 100%;
+            height: 650px;
+            overflow: hidden;
+        }
+
+        .form {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: inline-block;
+            color: #333;
+            font-size: 12px;
+            line-height: 14px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-family: 'AllerBold';
+        }
+
+        .fields-required {
+            color: #333;
+            display: block;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+
+        .required {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-field {
+            color: #333;
+            font-size: 12px;
+        }
+
+        .form p .input,
+        .has-error .input {
+            margin-bottom: 0;
+        }
+
+        .form p .help-block,
+        .has-error .help-block {
+            margin: 0;
+            color: #fff;
+            background-color: #f74949;
+            padding: 2px 5px;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .form-register,
+        .form-aluno,
+        .form-func,
+        .form-CIE {
+            background-color: #459ad6;
+            padding: 20px;
+        }
+
+            .form-register p,
+            .form-register .fields-required,
+            .form-register .form-label,
+            .form-register .required,
+            .form-aluno p,
+            .form-aluno .fields-required,
+            .form-aluno .form-label,
+            .form-aluno .required,
+            .form-func p,
+            .form-func .fields-required,
+            .form-func .form-label,
+            .form-func .required,
+            .form-CIE p,
+            .form-CIE .fields-required,
+            .form-CIE .form-label,
+            .form-CIE .required {
+                color: #fff;
+            }
+
+        .input,
+        .select,
+        .textarea {
+            font-family: 'AllerBold';
+            width: 100%;
+            padding: 14px 10px;
+            border: 0;
+            background-color: #fff;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+        }
+
+            .input:focus,
+            .select:focus,
+            .textarea:focus {
+                background-color: #F2F1EF;
+                outline: 0;
+            }
+
+        .select {
+            color: #BDC3C7;
+            font-style: italic;
+            opacity: 1;
+            font-size: 16px;
+        }
+
+            .select[value=""] {
+                color: #BFBFBF;
+                font-style: italic;
+            }
+
+        .textarea {
+            resize: vertical;
+        }
+
+        .radio,
+        .checkbox {
+            margin-bottom: 6px;
+            display: block;
+            color: #333;
+        }
+
+            .radio .form-label,
+            .radio input[type="radio"],
+            .radio input[type="checkbox"],
+            .checkbox .form-label,
+            .checkbox input[type="radio"],
+            .checkbox input[type="checkbox"] {
+                display: inline-block;
+                vertical-align: middle;
+                margin: 0 2px 0 0;
+            }
+
+            .radio input[type="radio"],
+            .checkbox input[type="checkbox"] {
+                width: auto;
+            }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            line-height: normal;
+            margin: 4px 0 0;
+        }
+
+        input::-webkit-input-placeholder,
+        textarea::-webkit-input-placeholder {
+            color: #BDC3C7;
+            font-style: italic;
+            opacity: 1;
+            font-size: 16px;
+        }
+
+        input:-moz-placeholder,
+        textarea:-moz-placeholder {
+            color: #BDC3C7;
+            font-style: italic;
+            opacity: 1;
+            font-size: 16px;
+        }
+
+        input::-moz-placeholder,
+        textarea::-moz-placeholder {
+            color: #BDC3C7;
+            font-style: italic;
+            opacity: 1;
+            font-size: 16px;
+        }
+
+        input:-ms-input-placeholder,
+        textarea:-ms-input-placeholder {
+            color: #BDC3C7;
+            font-style: italic;
+            opacity: 1;
+            font-size: 16px;
+        }
+
+        @media only screen and (max-width: 767px) {
+            .logo img {
+                max-width: 100%;
+            }
+
+            .login-session {
+                padding: 0;
+                margin-bottom: 40px;
+            }
+
+                .login-session .form-login .btn {
+                    margin-bottom: 10px;
+                }
+
+            .services {
+                padding: 0 10px;
+            }
+
+                .services .service-item {
+                    margin-bottom: 30px;
+                    padding: 0 1% 20px 1%;
+                }
+        }
+
+        @media only screen and (min-width: 768px) {
+            .login-session {
+                padding: 0 0 35px;
+            }
+
+                .login-session .title h2 {
+                    font-size: 46px;
+                    line-height: 46px;
+                    margin-top: 35px;
+                    margin-bottom: 35px;
+                }
+
+                .login-session .form-login .btn {
+                    margin-bottom: 20px;
+                }
+
+            .services .row > * {
+                width: 33.3%;
+                padding: 0 1% 20px 1%;
+                margin-bottom: 20px;
+            }
+
+            .logo, .logo-navbar {
+                display: table-cell;
+                vertical-align: bottom;
+            }
+
+            .logo-navbar {
+                padding-left: 32px;
+            }
+
+            .login-session .title,
+            .login-session .form-login,
+            .address,
+            .content .form-aluno,
+            .content .form-aluno .form-group {
+                float: left;
+                margin-right: 1%;
+            }
+
+            .content .form-func {
+                float: left;
+            }
+
+            .content .form-CIE {
+                float: left;
+                margin-right: 1%;
+            }
+
+            .last,
+            .login-session .form-login,
+            .content .form-aluno .form-group + .form-group + .form-group {
+                margin-right: 1%;
+                float: right;
+            }
+
+
+            .centered {
+                display: block;
+                float: none;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .login-session .title {
+                width: 55%;
+            }
+
+            .login-session .form-login {
+                width: 38%;
+            }
+
+            .address {
+                width: 82.97872%;
+            }
+
+            .esqueci-a-senha .content {
+                width: 100%;
+            }
+
+            .content .form-aluno {
+                width: 31.624113%;
+                height: 490px;
+            }
+
+                .content .form-aluno .form-group {
+                    width: 48.93617%;
+                }
+
+                    .content .form-aluno .form-group + .form-group,
+                    .content .form-aluno .form-group + .form-group + .form-group {
+                        width: 23.40426%;
+                    }
+
+                        .content .form-aluno .form-group + .form-group + .form-group + .form-group {
+                            width: 100%;
+                        }
+
+            .content .form-func {
+                width: 31.624113%;
+                margin-right: 1%;
+                height: 490px;
+            }
+
+            .content .form-CIE {
+                width: 31.624113%;
+                height: 490px;
+            }
+        }
+
+        .decor_password_required {
+            display: none;
+            font-size: 12px;
+        }
+
+            .decor_password_required ul {
+                padding: 0;
+                margin: 0;
+                List-style: none;
+            }
+
+                .decor_password_required ul li {
+                    margin-bottom: 8px;
+                    color: red;
+                    font-weight: 700
+                }
+
+                    .decor_password_required ul li.active {
+                        color: green;
+                    }
+    </style>
+
+	<link rel="stylesheet" type="text/css" href="//sedseecdn.azureedge.net/styles/gov-bundle-1.0.49.css" /><link rel="stylesheet" type="text/css" href="//sedseecdn.azureedge.net/styles/bootstrap-select-1.11.custom.css" />
+	            <style type="text/css">
+		            .decor-nav-top, .decor-nav-row, .decor-nav-row-footer, .decor-header-see, .decor-container, .decor-body, .decor-footer-description {
+			            max-width: none;
+		            }
+	            </style>
+	            <style type="text/css">
+                    .decor_password_required {
+                        display: none;
+                        font-size: 12px;
+                    }
+                    .decor_password_required ul {
+                        padding: 0;
+                        margin: 0;
+                        List-style: none;
+                    }
+                    .decor_password_required ul li {
+                        margin-bottom: 8px;
+                        color: red;
+                        font-weight: 700
+                    }
+                    .decor_password_required ul li.active {
+                        color: green;
+                    }
+	            </style>
+	<!-- Scripts -->
+	<script type="text/javascript" crossorigin="anonymous" charset="utf-8" src="//sedseecdn.azureedge.net/scripts/third-party-1.0.7.min.js"></script>
+	<script type="text/javascript" crossorigin="anonymous" charset="utf-8" src="//sedseecdn.azureedge.net/scripts/jquery.multiselect-1.16.4.custom.min.js"></script><script type="text/javascript" crossorigin="anonymous" charset="utf-8" src="//sedseecdn.azureedge.net/scripts/bootstrap-select-1.11.custom.js"></script><script type="text/javascript" crossorigin="anonymous" charset="utf-8" src="//sedseecdn.azureedge.net/scripts/defaults-pt_BR.min.js"></script>
+    <script type="text/javascript" crossorigin="anonymous" charset="utf-8" src="//sedseecdn.azureedge.net/scripts/gov-bundle-1.0.104.js"></script>
+	<!-- Html5shiv / Respond -->
+	<!--[if lt IE 9]>
+	<script crossorigin="anonymous" src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+	<script crossorigin="anonymous" src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+	<![endif]-->
+
+    <!-- <script type="text/javascript" src="//sedseecdn.azureedge.net/scripts/jquery.cookie-1.4.1.js"></script> -->
+    <script>
+        (function (b, o, i, l, e, r) {
+            b.GoogleAnalyticsObject = l; b[l] || (b[l] =
+                function () { (b[l].q = b[l].q || []).push(arguments) }); b[l].l = +new Date;
+            e = o.createElement(i); r = o.getElementsByTagName(i)[0];
+            e.src = 'https://www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e, r)
+        }(window, document, 'script', 'ga'));
+        ga('create', 'UA-XXXXX-X', 'auto'); ga('send', 'pageview');
+    </script>
+
+	        <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];
+                y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "kbygswx8j6");</script>
+</head>
+<body ng-class="sed.classPage() ? sed.classPage() : 'home'">
+	<!-- Acessibilidade -->
+
+         <div vw class="enabled">
+           <div vw-access-button class="active"></div>
+           <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+            </div>
+          </div>
+          <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+          <script>
+            new window.VLibras.Widget('https://vlibras.gov.br/app');
+          </script>
+
+    <div class="govsp-container" style="max-width:100%" id="acessibilidade">
+        <div id = "govsp-topbarGlobal" class="blu-e" style="z-index: 0">
+            <div id = "topbarGlobal" >
+<a target = "_blank" href="http://www.saopaulo.sp.gov.br/">
+                <div id="topbarLink" class="govsp-black">
+                </div>
+   </a>
+                <nav class="govsp-navbar govsp-navbar-expand-lg">
+                    <a class="govsp-link" href="http://www.cidadao.sp.gov.br" title="Cidadão SP" target="_blank">Cidadão SP</a>
+
+                    <a class="govsp-social" href="https://www.facebook.com/governosp/" target="_blank">
+                        <img class="govsp-icon-social" src="//sedseecdn.azureedge.net/images/acessibilidade/facebook.svg" alt="Facebook Governo de São Paulo" title="Facebook Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social" href="https://www.twitter.com/governosp/" target="_blank">
+                        <img class="govsp-icon-social" src="//sedseecdn.azureedge.net/images/acessibilidade/twitter.svg" alt="Twitter Governo de São Paulo" title="Twitter Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social" href="https://www.instagram.com/governosp/" target="_blank">
+                        <img class="govsp-icon-social" src="//sedseecdn.azureedge.net/images/acessibilidade/insta.svg" alt="Instagram Governo de São Paulo" title="Instagram Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social" href="https://www.flickr.com/governosp/" target="_blank">
+                        <img class="govsp-icon-social" src="//sedseecdn.azureedge.net/images/acessibilidade/flickr.svg" alt="Flickr Governo de São Paulo" title="Flickr Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social" href="https://www.youtube.com/governosp/" target="_blank">
+                        <img class="govsp-icon-social" src="//sedseecdn.azureedge.net/images/acessibilidade/youtube.svg" alt="Youtube Governo de São Paulo" title="Youtube Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social" href="https://www.issuu.com/governosp/" target="_blank">
+                        <img class="govsp-icon-social" src="//sedseecdn.azureedge.net/images/acessibilidade/issuu.svg" alt="Issuu Governo de São Paulo" title="Issuu Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social" href="https://www.linkedin.com/company/governosp/" target="_blank">
+                        <img class="govsp-icon-social" src="//sedseecdn.azureedge.net/images/acessibilidade/linkedin.svg" alt="Linkedin Governo de São Paulo" title="Linkedin Governo de São Paulo" />
+                    </a>
+                    <p class="govsp-social-p">/governosp</p>
+
+                    <a class="govsp-acessibilidade" id="reset">
+                        <img src = "//sedseecdn.azureedge.net/images/acessibilidade/icon-font-reset.svg" alt="Voltar Fonte" title="Voltar Fonte" />
+                    </a>
+
+                    <a class="govsp-acessibilidade" id="zoom-in">
+                        <img src = "//sedseecdn.azureedge.net/images/acessibilidade/icon-font-big.svg" alt="Aumentar Fonte" title="Aumentar Fonte" />
+                    </a>
+                    <a class="govsp-acessibilidade" id="zoom-out">
+                        <img src = "//sedseecdn.azureedge.net/images/acessibilidade/icon-font-small.svg" alt="Diminuir Fonte" title="Diminuir Fonte" />
+                    </a>
+
+                    <a class="govsp-acessibilidade" id="altocontraste">
+                        <img src = "//sedseecdn.azureedge.net/images/acessibilidade/icon-contrast.svg" alt="Contraste" title="Contraste" />
+                    </a>
+                </nav>
+            </div>
+            <div class="govsp-kebab">
+                <figure>
+                    <div class="dn">Acesso às redes Sociais do Governo</div>
+                </figure>
+                <figure class="govsp-middle">
+                    <div class="dn">Ícones para acesso às redes Sociais do Governo</div>
+                </figure>
+                <p class="govsp-cross">
+                    <span class="dn">Barra oficial do Governo do Estado de São Paulo</span>
+                </p>
+                <figure>
+                    <div class="dn">
+                        Clique para acessar as redes Sociais do Governo
+                    </div>
+                </figure>
+                <nav class="govsp-dropdown" id="govsp-kebab">
+                    <a class="govsp-link"
+                       href="http://www.cidadao.sp.gov.br"
+                       target="_blank">Cidadão SP</a>
+                    <a class="govsp-social"
+                       href="https://www.facebook.com/governosp/"
+                       target="_blank">
+                        <img class="govsp-icon-social"
+                             src="//sedseecdn.azureedge.net/images/acessibilidade/facebook.png"
+                             alt="Facebook Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social"
+                       href="https://www.twitter.com/governosp/"
+                       target="_blank">
+                        <img class="govsp-icon-social"
+                             src="//sedseecdn.azureedge.net/images/acessibilidade/twitter.png"
+                             alt="Twitter Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social"
+                       href="https://www.instagram.com/governosp/"
+                       target="_blank">
+                        <img class="govsp-icon-social"
+                             src="//sedseecdn.azureedge.net/images/acessibilidade/insta.png"
+                             alt="Instagram Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social"
+                       href="https://www.flickr.com/governosp/"
+                       target="_blank">
+                        <img class="govsp-icon-social"
+                             src="//sedseecdn.azureedge.net/images/acessibilidade/flickr.png"
+                             alt="Flickr Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social"
+                       href="https://www.youtube.com/governosp/"
+                       target="_blank">
+                        <img class="govsp-icon-social"
+                             src="//sedseecdn.azureedge.net/images/acessibilidade/youtube.png"
+                             alt="Youtube Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social"
+                       href="https://www.issuu.com/governosp/"
+                       target="_blank">
+                        <img class="govsp-icon-social"
+                             src="//sedseecdn.azureedge.net/images/acessibilidade/issuu.png"
+                             alt="Issuu Governo de São Paulo" />
+                    </a>
+                    <a class="govsp-social"
+                       href="https://www.linkedin.com/company/governosp/"
+                       target="_blank">
+                        <img class="govsp-icon-social"
+                             src="//sedseecdn.azureedge.net/images/acessibilidade/linkedin.png"
+                             alt="Linkedin Governo de São Paulo" />
+                    </a>
+
+                    <p class="govsp-social-p">/governosp</p>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <div id="divMoz">
+        <div id = "conteudo">
+           
+	<script type="text/javascript" crossorigin="anonymous" charset="utf-8" src="//sedseecdn.azureedge.net/scripts/Acessibilidade-1.1.0.js"></script>
+	<a class="sr-only" href="#content_paginasinternas">Ir para o conteúdo</a>
+            <header class="decor-nav-header" role="banner" id="decorNavHeader">
+            <section class="hidden-print decor-container decor-header-button-large-container"><a class="decor-header-button-large decor-header-button-yellow" href="http://www.educacao.sp.gov.br/">Portal da Educação</a><a class="decor-header-button-large decor-header-button-blue" href="//sed.educacao.sp.gov.br/">Secretaria Escolar Digital</a><a class="decor-header-button-large decor-header-button-orange" href="https://intranet.educacao.sp.gov.br/">Intranet Espaço do Servidor</a></section>
+		<section class="decor-header-see">
+			<nav class="decor-breadcrumb">
+    <ul ng-show="sed.classPage()">
+        <li><a href="/">Início</a></li>
+        <li>{{title}}</li>
+    </ul>
+
+			</nav>
+		</section>
+	</header>
+
+	<!-- Habilitar JavaScript -->
+	<noscript>
+		<div class="noscript">
+			O javascript de seu navegador está desabilitado. Favor habilitá-lo para acessar as funcionalidades deste site.
+		</div>
+		<div class="noscript_block"></div>
+	</noscript>
+
+	<main id="content_paginasinternas" class="decor-body">
+
+
+
+
+
+
+
+<div class="row">
+    <input name="__RequestVerificationToken" type="hidden" value="8EaUzQk4RqiZUScV7JnI2JnUKbjvnmIYUrEuBorbRpFzU7VjSHXd-tEaj5Q7rbQf9JBUCD86MfzxAI1rFG3g5yCRct4VesozvHNovz3w_541" />
+    <!-- Logo -->
+    <div class="logo"><a href="/"><img src="//sedseecdn.azureedge.net/images/logo-header-see.png"></a></div>
+    
+    
+    <!-- Navbar -->
+    <div class="logo-navbar" role="menubar">
+        <a class="menu-item" ng-class="{current: sed.clickPage() == '/sobre-a-secretaria'}" href="/sobre-a-secretaria">Sobre a Secretaria</a>
+        <a class="menu-item" ng-class="{current: sed.clickPage() == '/boletim-escolar'}" href="/boletim-escolar">Boletim Escolar</a>
+        <a class="menu-item" href="/PreInscricao" target="_blank">Inscrição para rede pública</a>
+        <a class="menu-item" href="/PreInscricao/IndexEjaEad" target="_blank">Inscrição para rede pública - Eja Ead</a>
+        <a class="menu-item" href="/SedDiplomas/ValidarDocDiploma/ConsultaDocumento" target="_blank">Consulta Certificação Exame Supletivo</a>
+        <a class="menu-item link-conc" href="/SedCon/ConsultaPublica/Index" target="_blank">Concluintes - Consulta Pública</a>
+        <a class="menu-item" style="color:#f74949;" href="http://atendimento.educacao.sp.gov.br/">Portal de Atendimento</a>
+        <a class="menu-item" href="/saiba-como-acessar">Saiba Como Acessar</a>
+    </div>
+</div>
+
+<!-- Main -->
+<div ng-view></div>
+
+<div id="perfis"></div>
+
+
+
+<div id="definirSenha" style="display: none">
+    <div id="EsqueciSenha" style="display: none"></div>
+    <div id="ObterAcesso" style="display: none"></div>
+<form action="/Password/DefinirSenha" id="formDefinirSenha" method="post">        <input type="hidden" id="CodigoAluno" name="CodigoAluno" />
+        <input type="hidden" id="ds-token" name="ds-token" />
+        <div class="form-group">
+            <label for="Senha" title="Senha">Senha</label>
+            <input class="form-control" id="Senha" maxlength="14" name="Senha" type="password" value="" />
+        </div>
+        <div class="form-group">
+            <label for="conf_senha">Confirmar Senha</label>
+            <input class="form-control" id="conf_senha" maxlength="14" name="conf_senha" type="password" value="" />
+        </div>
+        <div id="decor_validacaosenha" class="decor_password_required">
+            <ul>
+                <li class="decor_validation_min8max14">Mínimo 8 e Máximo de 14 Caracteres</li>
+                <li class="decor_validation_maiuscula">1 Letra Maiúscula</li>
+                <li class="decor_validation_minuscula">1 Letra Minúscula</li>
+                <li class="decor_validation_numero">1 Número</li>
+                <li class="decor_validation_especial">1 dos Seguintes Caracteres Especiais: !@$&%?#_</li>
+            </ul>
+        </div>
+        <div>
+            <input type="button" value="Definir" class="btn btn-primary btn-block" onclick="submitFormDefinirSenha()" />
+        </div>
+</form></div>
+
+
+
+<script type="text/javascript">
+    $('#Senha').on('focus', function () {
+        $('.decor_password_required').slideDown();
+    })
+    $('#Senha').on('blur', function () {
+        $('.decor_password_required').slideUp();
+    })
+    $('#Senha').on('keyup', function () {
+        var pass = $(this).val();
+        if(pass.length >= 8 && pass.length <= 14) {
+            $('.decor_validation_min8max14').addClass('active');
+        }
+        else{
+            $('.decor_validation_min8max14').removeClass('active');
+        }
+        if(pass.match(/[a-z]/g)) {
+            $('.decor_validation_minuscula').addClass('active');
+        }
+        else{
+            $('.decor_validation_minuscula').removeClass('active');
+        }
+        if(pass.match(/[A-Z]/g)) {
+            $('.decor_validation_maiuscula').addClass('active');
+        }
+        else{
+            $('.decor_validation_maiuscula').removeClass('active');
+        }
+        if(pass.match(/[0-9]/g)) {
+            $('.decor_validation_numero').addClass('active');
+        }
+        else{
+            $('.decor_validation_numero').removeClass('active');
+        }
+        if(pass.match(/[!@$&%?#_]/g)) {
+            $('.decor_validation_especial').addClass('active');
+        }
+        else{
+            $('.decor_validation_especial').removeClass('active');
+        }
+    })
+</script>
+
+<!-- Scripts -->
+<script type="text/javascript" src=/build/js/scripts.js?20250603174610></script>
+<script type="text/javascript" src=/build/js/logon.js?20250603174610></script>
+
+<!--Popup SARESP :: temporário-->
+<script type="text/javascript">
+    //$("<img src='/Content/Imagens/saresp.jpg' style='max-width: 100%; display: block;' />").dialog({ width:694, title: "Tudo sobre o SARESP" });
+
+    
+
+    function submitFormDefinirSenha() {
+        if ($('.decor_validation_min8max14').hasClass('active') &&
+            $('.decor_validation_minuscula').hasClass('active') &&
+            $('.decor_validation_maiuscula').hasClass('active') &&
+            $('.decor_validation_numero').hasClass('active') &&
+            $('.decor_validation_especial').hasClass('active')
+        ) {
+            $("#formDefinirSenha").submit();
+
+            $("form[name=loginForm] #senha").val('');
+        }
+    }
+
+</script>
+
+
+
+	</main>
+                  <!-- Footer -->
+                  <footer class="hidden-print decor-nav-footer" role="contentinfo">
+                <div style="text-align:left; padding: 5px" class="decor-nav-row-footer">
+                         <div style="width: 60px;float: left;"><img src="//sedseecdn.azureedge.net/images/favicon/ms-icon-70x70.png" class="decor-flag-footer" alt="Brasão do Estado de São Paulo" width="50" height="50" />
+                </div> <div style="float: left;font-size: 14px;padding-top: 5px;">
+                         <p style="font-size: 14px;line-height: 20px;"><strong> Governo do Estado de São Paulo </strong><br>
+                         Secretaria da Educação do Estado de São Paulo </p>
+                         </div></div>
+                         </footer>
+	<!-- Versão da Aplicação: 03/06/2025 17:46 Versão da Biblioteca: 03/06/2025 17:45 - 3 -->
+</div>
+</div>
+
+<div id='decor_Tutoriais'></div>
+
+</body>
+</html>
