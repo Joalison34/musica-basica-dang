@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Brincando com AppInsights da SED</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #111;
+      color: #0f0;
+      padding: 20px;
+    }
+    h1 { color: #f33; }
+  </style>
+</head>
+<body>
+  <h1>AppInsights - Monitoramento Fantasma 😎</h1>
+  <p>Acompanhe o console (F12) para ver os eventos sendo enviados para a SED...</p>
+
+  <script>
+    var appInsights = window.appInsights || function(config){
+      function r(method){ t[method] = function(){ var args = arguments; t.queue.push(function(){ t[method].apply(t, args); }) }}
+      var t = { config: config }, u = document, e = window, o = "script", s = u.createElement(o), i, f;
+      s.src = config.url || "//az416426.vo.msecnd.net/scripts/a/ai.0.js";
+      u.getElementsByTagName(o)[0].parentNode.appendChild(s);
+      t.cookie = u.cookie;
+      t.queue = [];
+      i = ["Event", "Exception", "Metric", "PageView", "Trace"];
+      while (i.length) r("track" + i.pop());
+      r("setAuthenticatedUserContext");
+      r("clearAuthenticatedUserContext");
+      if (!config.disableExceptionTracking) {
+        i = "onerror";
+        r("_" + i);
+        f = e[i];
+        e[i] = function(msg, url, lineNo, colNo, error) {
+          var s = f && f(msg, url, lineNo, colNo, error);
+          if (s !== true) t["_" + i](msg, url, lineNo, colNo, error);
+          return s;
+        }
+      }
+      return t;
+    }({
+      instrumentationKey: "77012dbc-e6d4-4272-96dd-c699b09a67f5"
+    });
+
+    window.appInsights = appInsights;
+
+    // Loga os eventos no console
+    function logAndSend(type, data) {
+      console.log(`[ENVIANDO] ${type}:`, data);
+      switch (type) {
+        case 'PageView': appInsights.trackPageView(data); break;
+        case 'Event': appInsights.trackEvent(data); break;
+        case 'Exception': appInsights.trackException(data); break;
+        case 'Metric': appInsights.trackMetric(data); break;
+        case 'Trace': appInsights.trackTrace(data); break;
+      }
+    }
+
+    // Simula uso normal
+    logAndSend('PageView', { name: "Página Fantasma - Boletim SED" });
+    logAndSend('Event', { name: "Clique no botão de notas", properties: { origem: "simulado.html", user: "RA-fake" } });
+    logAndSend('Exception', { exception: new Error("Simulando falha na API do boletim escolar") });
+    logAndSend('Metric', { name: "Tempo na página", average: 2500 });
+    logAndSend('Trace', { message: "Página carregada corretamente às " + new Date().toLocaleTimeString() });
+
+    // Autoencerramento em 5 horas
+    setTimeout(() => {
+      console.clear();
+      console.log("🕒 Sessão encerrada. Nenhum evento adicional será enviado.");
+      window.appInsights = null;
+    }, 1000 * 60 * 60 * 5); // 5 horas
+  </script>
+</body>
+</html>
