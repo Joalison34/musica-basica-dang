@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Gato</title>
+    <title>Aventura do Gatinho na Casa Maluca</title>
     <style>
         body {
             background-color: #121212;
@@ -17,18 +17,25 @@
             position: relative;
             overflow: hidden;
             text-align: center;
+            font-family: Arial, sans-serif;
+            transition: background-image 1s ease;
         }
 
         #oneko {
             width: 32px;
             height: 32px;
             position: fixed;
-            pointer-events: none;
-            background-image: url('https://i.imgur.com/ok5b9Sz.gif'); /* Imagem do gato */
+            background-image: url('https://i.imgur.com/ok5b9Sz.gif');
             filter: invert(1);
             image-rendering: pixelated;
             z-index: 9999;
-            display: none; /* Inicialmente oculto */
+            display: none;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        #oneko.pulinho {
+            transform: scale(1.2) translateY(-10px);
         }
 
         .botao-iniciar {
@@ -52,10 +59,152 @@
             margin-top: 10px;
             color: #cccccc;
         }
+
+        #placar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        #vidas {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        #progresso {
+            position: fixed;
+            top: 60px;
+            left: 20px;
+            font-size: 18px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        #barra-progresso {
+            position: fixed;
+            top: 90px;
+            left: 20px;
+            width: 200px;
+            height: 20px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #barra-progresso div {
+            height: 100%;
+            background-color: #4caf50;
+            transition: width 0.5s ease;
+        }
+
+        #narrativa {
+            position: fixed;
+            bottom: 20px;
+            width: 80%;
+            font-size: 18px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            transition: opacity 0.5s ease;
+        }
+
+        #tutorial {
+            font-size: 18px;
+            margin-bottom: 20px;
+            max-width: 80%;
+        }
+
+        .brinquedo, .obstaculo, .powerup {
+            width: 32px;
+            height: 32px;
+            position: fixed;
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 9998;
+            transition: opacity 0.3s ease;
+            /* Bordas temporárias para depuração */
+            border: 1px solid transparent; /* Mude para 'none' após testar */
+        }
+
+        .brinquedo {
+            background-image: url('https://www.pngwing.com/en/free-png-yarn-ball');
+            border-color: blue; /* Para depuração */
+        }
+
+        .obstaculo {
+            background-image: url('https://www.flaticon.com/free-icon/vase_');
+            border-color: red; /* Para depuração */
+        }
+
+        .powerup {
+            background-image: url('https://www.pngwing.com/en/free-png-fish-bone');
+            border-color: yellow; /* Para depuração */
+            animation: piscar 1s infinite;
+        }
+
+        @keyframes piscar {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .explosao {
+            width: 32px;
+            height: 32px;
+            position: fixed;
+            background: radial-gradient(circle, red, transparent);
+            z-index: 9998;
+            animation: explodir 0.5s forwards;
+        }
+
+        @keyframes explodir {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        #game-over, #vitoria {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+        }
+
+        #game-over h2, #vitoria h2 {
+            margin: 0 0 20px;
+            font-size: 32px;
+        }
+
+        #pontuacao-maxima {
+            font-size: 18px;
+            color: #cccccc;
+        }
     </style>
 </head>
 <body>
     <div id="inicio">
+        <h1>Aventura do Gatinho na Casa Maluca</h1>
+        <div id="tutorial">
+            <p>Mova o cursor para guiar o gatinho e coletar bolas de lã. Evite vasos (obstáculos) que custam vidas. Pegue peixes dourados para vidas extras ou pontos. Complete 3 cômodos para encontrar o Tesouro Supremo!</p>
+        </div>
         <button class="botao-iniciar" onclick="iniciar()">Iniciar</button>
         <div class="creditos">
             <p>Data de criação: 10/12/2024</p>
@@ -63,7 +212,29 @@
         </div>
     </div>
 
+    <div id="placar">Brinquedos: 0</div>
+    <div id="vidas">❤️❤️❤️</div>
+    <div id="progresso">Cômodo: Sala (1/3)</div>
+    <div id="barra-progresso"><div style="width: 0%"></div></div>
+    <div id="narrativa"></div>
     <div id="oneko" style="display: none;"></div>
+    <div id="game-over">
+        <h2>Miau! Fim de Jogo!</h2>
+        <p id="pontuacao-final">Brinquedos Coletados: 0</p>
+        <p id="pontuacao-maxima">Pontuação Máxima: 0</p>
+        <button class="botao-iniciar" onclick="reiniciar()">Jogar Novamente</button>
+    </div>
+    <div id="vitoria">
+        <h2>Miau! Encontramos o Tesouro!</h2>
+        <p id="pontuacao-vitoria">Brinquedos Coletados: 0</p>
+        <p id="pontuacao-maxima">Pontuação Máxima: 0</p>
+        <button class="botao-iniciar" onclick="reiniciar()">Jogar Novamente</button>
+    </div>
+
+    <audio id="som-miau" src="https://www.myinstants.com/media/sounds/cat-meow.mp3"></audio>
+    <audio id="som-crash" src="https://www.myinstants.com/media/sounds/crash.mp3"></audio>
+    <audio id="som-powerup" src="https://www.myinstants.com/media/sounds/powerup.mp3"></audio>
+    <audio id="som-fundo" src="https://www.myinstants.com/media/sounds/ambient-cat-purr.mp3" loop></audio>
 
     <script>
         let nekoEl;
@@ -76,6 +247,34 @@
         let idleAnimation = null;
         let idleAnimationFrame = 0;
         const nekoSpeed = 10;
+        let brinquedosColetados = 0;
+        let vidas = 3;
+        let jogoAtivo = false;
+        let comodoAtual = 0;
+        let pontuacaoMaxima = localStorage.getItem('pontuacaoMaxima') || 0;
+        const comodos = [
+            {
+                nome: "Sala",
+                brinquedos: 3,
+                obstaculos: 2,
+                narrativa: "Miau! A sala está cheia de sofás... onde está minha bola de lã?",
+                fundo: "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&crop=entropy&fit=crop&w=1920&h=1080')"
+            },
+            {
+                nome: "Cozinha",
+                brinquedos: 4,
+                obstaculos: 3,
+                narrativa: "Miau! Algo cheira a peixe aqui... mas cuidado com os pratos!",
+                fundo: "url('https://images.unsplash.com/photo-1556911220-bff31c4c6e90?ixlib=rb-4.0.3&crop=entropy&fit=crop&w=1920&h=1080')"
+            },
+            {
+                nome: "Quarto",
+                brinquedos: 5,
+                obstaculos: 4,
+                narrativa: "Miau! O tesouro está perto... mas essas almofadas são perigosas!",
+                fundo: "url('https://images.unsplash.com/photo-1615529182904-7c6b8d4589d2?ixlib=rb-4.0.3&crop=entropy&fit=crop&w=1920&h=1080')"
+            }
+        ];
 
         const spriteSets = {
             idle: [[-3, -3]],
@@ -93,9 +292,22 @@
         };
 
         function iniciar() {
+            jogoAtivo = true;
+            brinquedosColetados = 0;
+            vidas = 3;
+            comodoAtual = 0;
+            document.getElementById("placar").textContent = `Brinquedos: ${brinquedosColetados}`;
+            document.getElementById("vidas").textContent = "❤️".repeat(vidas);
+            document.getElementById("progresso").textContent = `Cômodo: ${comodos[comodoAtual].nome} (${comodoAtual + 1}/3)`;
+            document.getElementById("barra-progresso").firstChild.style.width = "0%";
+            document.getElementById("inicio").style.display = "none";
+            document.getElementById("game-over").style.display = "none";
+            document.getElementById("vitoria").style.display = "none";
+            document.getElementById("pontuacao-maxima").textContent = `Pontuação Máxima: ${pontuacaoMaxima}`;
+
             nekoEl = document.querySelector("#oneko");
             nekoEl.style.display = "block";
-            nekoPosX = window.innerWidth / 2; // Posiciona o gato no centro
+            nekoPosX = window.innerWidth / 2;
             nekoPosY = window.innerHeight / 2;
             nekoEl.style.left = `${nekoPosX - 16}px`;
             nekoEl.style.top = `${nekoPosY - 16}px`;
@@ -105,6 +317,8 @@
                 mousePosY = event.clientY;
             };
 
+            document.getElementById("som-fundo").play();
+            carregarComodo(comodoAtual);
             window.onekoInterval = setInterval(frame, 100);
         }
 
@@ -136,6 +350,8 @@
         }
 
         function frame() {
+            if (!jogoAtivo) return;
+
             const targetX = Math.min(Math.max(0, mousePosX), window.innerWidth);
             const targetY = Math.min(Math.max(1, mousePosY - 32), window.innerHeight - 1);
             const diffX = nekoPosX - targetX;
@@ -153,7 +369,7 @@
                 (diffX / distance > 0.5 ? "W" : "") + (diffX / distance < -0.5 ? "E" : "");
 
             setSprite(direction, frameCount);
-            frameCount = (frameCount + 1) % 10; // Controla a troca de frames
+            frameCount = (frameCount + 1) % 10;
 
             nekoPosX -= (diffX / distance) * nekoSpeed;
             nekoPosY -= (diffY / distance) * nekoSpeed;
@@ -163,6 +379,219 @@
 
             nekoEl.style.left = `${nekoPosX - 16}px`;
             nekoEl.style.top = `${nekoPosY - 16}px`;
+
+            verificarColisoes();
+        }
+
+        function carregarComodo(comodoIndex) {
+            const comodo = comodos[comodoIndex];
+            document.body.style.backgroundImage = comodo.fundo;
+            document.getElementById("narrativa").textContent = comodo.narrativa;
+            document.getElementById("narrativa").style.display = "block";
+            document.getElementById("progresso").textContent = `Cômodo: ${comodo.nome} (${comodoIndex + 1}/3)`;
+
+            // Limpar objetos anteriores
+            document.querySelectorAll(".brinquedo, .obstaculo, .powerup, .explosao").forEach(el => el.remove());
+
+            // Função para gerar posições sem sobreposição
+            function gerarPosicaoValida() {
+                const margem = 40;
+                const x = margem + Math.random() * (window.innerWidth - 2 * margem);
+                const y = margem + Math.random() * (window.innerHeight - 2 * margem);
+                return { x, y };
+            }
+
+            // Adicionar brinquedos
+            const brinquedos = [];
+            for (let i = 0; i < comodo.brinquedos; i++) {
+                const { x, y } = gerarPosicaoValida();
+                const brinquedo = document.createElement("div");
+                brinquedo.className = "brinquedo";
+                brinquedo.style.left = `${x}px`;
+                brinquedo.style.top = `${y}px`;
+                document.body.appendChild(brinquedo);
+                brinquedos.push(brinquedo);
+                // Verificar carregamento da imagem
+                const img = new Image();
+                img.src = 'https://www.pngwing.com/en/free-png-yarn-ball';
+                img.onerror = () => {
+                    brinquedo.style.backgroundImage = "url('https://via.placeholder.com/32')";
+                    console.warn("Imagem de brinquedo não carregou, usando fallback.");
+                };
+            }
+
+            // Adicionar obstáculos
+            for (let i = 0; i < comodo.obstaculos; i++) {
+                const { x, y } = gerarPosicaoValida();
+                const obstaculo = document.createElement("div");
+                obstaculo.className = "obstaculo";
+                obstaculo.style.left = `${x}px`;
+                obstaculo.style.top = `${y}px`;
+                document.body.appendChild(obstaculo);
+                const img = new Image();
+                img.src = 'https://www.flaticon.com/free-icon/vase_';
+                img.onerror = () => {
+                    obstaculo.style.backgroundImage = "url('https://via.placeholder.com/32')";
+                    console.warn("Imagem de obstáculo não carregou, usando fallback.");
+                };
+            }
+
+            // Adicionar power-up (60% de chance)
+            if (Math.random() > 0.4) {
+                const { x, y } = gerarPosicaoValida();
+                const powerup = document.createElement("div");
+                powerup.className = "powerup";
+                powerup.style.left = `${x}px`;
+                powerup.style.top = `${y}px`;
+                document.body.appendChild(powerup);
+                const img = new Image();
+                img.src = 'https://www.pngwing.com/en/free-png-fish-bone';
+                img.onerror = () => {
+                    powerup.style.backgroundImage = "url('https://via.placeholder.com/32')";
+                    console.warn("Imagem de power-up não carregou, usando fallback.");
+                };
+            }
+
+            // Atualizar barra de progresso
+            const progressoPercent = (comodo.brinquedos - brinquedos.length) / comodo.brinquedos * 100;
+            document.getElementById("barra-progresso").firstChild.style.width = `${progressoPercent}%`;
+        }
+
+        function verificarColisoes() {
+            const nekoRect = nekoEl.getBoundingClientRect();
+
+            // Verificar colisão com brinquedos
+            document.querySelectorAll(".brinquedo").forEach(brinquedo => {
+                const brinquedoRect = brinquedo.getBoundingClientRect();
+                if (nekoRect.left < brinquedoRect.right &&
+                    nekoRect.right > brinquedoRect.left &&
+                    nekoRect.top < brinquedoRect.bottom &&
+                    nekoRect.bottom > brinquedoRect.top) {
+                    brinquedo.remove();
+                    brinquedosColetados += 10;
+                    document.getElementById("placar").textContent = `Brinquedos: ${brinquedosColetados}`;
+                    document.getElementById("som-miau").play();
+                    nekoEl.classList.add("pulinho");
+                    setTimeout(() => nekoEl.classList.remove("pulinho"), 200);
+                    const progressoPercent = (comodos[comodoAtual].brinquedos - document.querySelectorAll(".brinquedo").length) / comodos[comodoAtual].brinquedos * 100;
+                    document.getElementById("barra-progresso").firstChild.style.width = `${progressoPercent}%`;
+                    verificarProgresso();
+                }
+            });
+
+            // Verificar colisão com obstáculos
+            document.querySelectorAll(".obstaculo").forEach(obstaculo => {
+                const obstaculoRect = obstaculo.getBoundingClientRect();
+                if (nekoRect.left < obstaculoRect.right &&
+                    nekoRect.right > obstaculoRect.left &&
+                    nekoRect.top < obstaculoRect.bottom &&
+                    nekoRect.bottom > obstaculoRect.top) {
+                    obstaculo.remove();
+                    vidas--;
+                    document.getElementById("vidas").textContent = "❤️".repeat(vidas);
+                    document.getElementById("som-crash").play();
+                    document.getElementById("narrativa").textContent = "Miau! Ai, isso doeu!";
+                    const explosao = document.createElement("div");
+                    explosao.className = "explosao";
+                    explosao.style.left = `${nekoPosX - 16}px`;
+                    explosao.style.top = `${nekoPosY - 16}px`;
+                    document.body.appendChild(explosao);
+                    setTimeout(() => explosao.remove(), 500);
+                    setTimeout(() => {
+                        document.getElementById("narrativa").textContent = comodos[comodoAtual].narrativa;
+                    }, 2000);
+                    if (vidas <= 0) {
+                        fimDeJogo();
+                    }
+                }
+            });
+
+            // Verificar colisão com power-ups
+            document.querySelectorAll(".powerup").forEach(powerup => {
+                const powerupRect = powerup.getBoundingClientRect();
+                if (nekoRect.left < powerupRect.right &&
+                    nekoRect.right > powerupRect.left &&
+                    nekoRect.top < powerupRect.bottom &&
+                    nekoRect.bottom > powerupRect.top) {
+                    powerup.remove();
+                    if (vidas < 3) {
+                        vidas++;
+                        document.getElementById("vidas").textContent = "❤️".repeat(vidas);
+                        document.getElementById("narrativa").textContent = "Miau! Um peixe dourado! Vida extra!";
+                    } else {
+                        brinquedosColetados += 20;
+                        document.getElementById("placar").textContent = `Brinquedos: ${brinquedosColetados}`;
+                        document.getElementById("narrativa").textContent = "Miau! Peixe dourado! 20 pontos extras!";
+                    }
+                    document.getElementById("som-powerup").play();
+                    setTimeout(() => {
+                        document.getElementById("narrativa").textContent = comodos[comodoAtual].narrativa;
+                    }, 2000);
+                }
+            });
+        }
+
+        function verificarProgresso() {
+            const comodo = comodos[comodoAtual];
+            const brinquedosRestantes = document.querySelectorAll(".brinquedo").length;
+            if (brinquedosRestantes === 0) {
+                comodoAtual++;
+                if (comodoAtual >= comodos.length) {
+                    vitoria();
+                } else {
+                    carregarComodo(comodoAtual);
+                    document.getElementById("narrativa").style.opacity = 0;
+                    setTimeout(() => {
+                        document.getElementById("narrativa").style.opacity = 1;
+                    }, 1000);
+                }
+            }
+        }
+
+        function fimDeJogo() {
+            jogoAtivo = false;
+            clearInterval(window.onekoInterval);
+            document.getElementById("som-fundo").pause();
+            nekoEl.style.display = "none";
+            document.getElementById("pontuacao-final").textContent = `Brinquedos Coletados: ${brinquedosColetados}`;
+            pontuacaoMaxima = Math.max(pontuacaoMaxima, brinquedosColetados);
+            localStorage.setItem('pontuacaoMaxima', pontuacaoMaxima);
+            document.getElementById("pontuacao-maxima").textContent = `Pontuação Máxima: ${pontuacaoMaxima}`;
+            document.getElementById("game-over").style.display = "flex";
+            document.getElementById("narrativa").style.display = "none";
+            document.querySelectorAll(".brinquedo, .obstaculo, .powerup, .explosao").forEach(el => el.remove());
+        }
+
+        function vitoria() {
+            jogoAtivo = false;
+            clearInterval(window.onekoInterval);
+            document.getElementById("som-fundo").pause();
+            nekoEl.style.display = "none";
+            document.getElementById("pontuacao-vitoria").textContent = `Brinquedos Coletados: ${brinquedosColetados}`;
+            pontuacaoMaxima = Math.max(pontuacaoMaxima, brinquedosColetados);
+            localStorage.setItem('pontuacaoMaxima', pontuacaoMaxima);
+            document.getElementById("pontuacao-maxima").textContent = `Pontuação Máxima: ${pontuacaoMaxima}`;
+            document.getElementById("vitoria").style.display = "flex";
+            document.getElementById("narrativa").style.display = "none";
+            document.querySelectorAll(".brinquedo, .obstaculo, .powerup, .explosao").forEach(el => el.remove());
+        }
+
+        function reiniciar() {
+            document.getElementById("inicio").style.display = "flex";
+            document.getElementById("game-over").style.display = "none";
+            document.getElementById("vitoria").style.display = "none";
+            document.getElementById("narrativa").style.display = "none";
+            nekoEl.style.display = "none";
+            document.querySelectorAll(".brinquedo, .obstaculo, .powerup, .explosao").forEach(el => el.remove());
+            brinquedosColetados = 0;
+            vidas = 3;
+            comodoAtual = 0;
+            document.getElementById("placar").textContent = `Brinquedos: ${brinquedosColetados}`;
+            document.getElementById("vidas").textContent = "❤️".repeat(vidas);
+            document.getElementById("progresso").textContent = `Cômodo: ${comodos[comodoAtual].nome} (${comodoAtual + 1}/3)`;
+            document.getElementById("barra-progresso").firstChild.style.width = "0%";
+            document.body.style.backgroundImage = "";
+            document.getElementById("som-fundo").pause();
         }
     </script>
 </body>
