@@ -1,0 +1,392 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In Your Head - Cadmium, Rival, Micah Martin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .summary {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .player {
+            margin-bottom: 20px;
+        }
+        .lyrics {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+            white-space: pre-wrap;
+            font-size: 16px;
+        }
+        .lyrics span {
+            display: block;
+        }
+        .highlight {
+            background-color: #fffacd; /* Amarelo claro pra destaque */
+        }
+        .clickable {
+            cursor: pointer;
+        }
+        .popup {
+            position: absolute;
+            background: #fff;
+            border: 1px solid #000;
+            padding: 5px;
+            font-size: 14px;
+            display: none;
+        }
+        .quiz-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            text-align: left;
+        }
+        .option {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .option:hover {
+            background: #f0f0f0;
+        }
+        .feedback {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .correct { color: green; }
+        .wrong { color: red; }
+        .reset-button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="summary">
+            <h1>In Your Head - Cadmium, Rival, Micah Martin</h1>
+            <p>"In Your Head" é uma faixa de future bass e dubstep lançada em 2019 pelo selo NCS, criada por Cadmium e Rival, com vocais de Micah Martin. A música mergulha em temas de arrependimentos, conflitos internos e escolhas difíceis, com uma letra que reflete sobre vozes internas e decisões que pesam. A produção combina batidas intensas com uma melodia envolvente, destacada pela voz marcante de Micah Martin.</p>
+        </div>
+        <div class="player">
+            <audio id="audio" controls>
+                <source src="https://raw.githubusercontent.com/Joalison34/musica-basica-dang/607cf02f5d21654e7fca3ddf1287b23aa37168ec/Todos/in_your_head_256k.mp3" type="audio/mpeg">
+                Seu navegador não suporta áudio.
+            </audio>
+            <div id="lyrics" class="lyrics">
+<span id="line-0">I don't wanna be</span>
+<span id="line-1">Caught up inside your self-righteous symphony</span>
+<span id="line-2">I would rather let this go</span>
+<span id="line-3">Than to bring it up again</span>
+<span id="line-4">It's all in your head</span>
+<span id="line-5">The voice in the back of my head</span>
+<span id="line-6">The choices that we can't forget</span>
+<span id="line-7">The poison we take with regret</span>
+<span id="line-8">Rejoice cause they haven't found you yet</span>
+            </div>
+        </div>
+        <button class="quiz-button" onclick="openQuiz()">Perguntas</button>
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <h2>Quiz: In Your Head</h2>
+                <p id="score">Você acertou 0/5</p>
+                <div id="question"></div>
+                <div id="options"></div>
+                <div id="feedback" class="feedback"></div>
+                <button class="reset-button" onclick="resetQuiz()">Tentar Novamente</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const lyricsElement = document.getElementById('lyrics');
+        const audio = document.getElementById('audio');
+        const modal = document.getElementById('modal');
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const feedbackElement = document.getElementById('feedback');
+        const scoreElement = document.getElementById('score');
+
+        // Delay inicial (zerado, pois timestamps são absolutos)
+        const initialDelay = 0;
+
+        // Timestamps exatos baseados na música oficial do NCS
+        const lyricsTimestamps = [
+            { id: 'line-0', time: 7.4 },   // "I don't wanna be"
+            { id: 'line-1', time: 12.0 },  // "Caught up inside..."
+            { id: 'line-2', time: 16.2 },  // "I would rather..."
+            { id: 'line-3', time: 21.8 },  // "Than to bring..."
+            { id: 'line-4', time: 26.5 },  // "It's all in..."
+            { id: 'line-5', time: 31.0 },  // "The voice in..."
+            { id: 'line-6', time: 35.6 },  // "The choices..."
+            { id: 'line-7', time: 40.2 },  // "The poison..."
+            { id: 'line-8', time: 44.8 }   // "Rejoice cause..."
+        ];
+
+        // Traduções estilo Duolingo
+        const translations = {
+            'symphony': 'Sinfonia',
+            'regret': 'Arrependimento',
+            'rejoice': 'Regozijar',
+            'choices': 'Escolhas',
+            'poison': 'Veneno'
+        };
+
+        // Adiciona evento de clique nas palavras traduzíveis
+        function addTranslationEvents() {
+            const words = lyricsElement.innerHTML.split(/(<span.*?>.*?<\/span>)/);
+            const newHtml = words.map(word => {
+                if (word.startsWith('<span')) {
+                    const cleanWord = word.replace(/[^a-zA-Z]/g, '');
+                    if (translations[cleanWord]) {
+                        return word.replace('>', ` onclick="showTranslation('${cleanWord}', this)">`);
+                    }
+                }
+                return word;
+            }).join('');
+            lyricsElement.innerHTML = newHtml;
+        }
+
+        // Mostra pop-up de tradução
+        function showTranslation(word, element) {
+            let popup = document.getElementById('popup');
+            if (popup) popup.remove();
+            popup = document.createElement('div');
+            popup.id = 'popup';
+            popup.className = 'popup';
+            popup.innerText = translations[word];
+            const rect = element.getBoundingClientRect();
+            popup.style.left = `${rect.left}px`;
+            popup.style.top = `${rect.bottom + window.scrollY}px`;
+            document.body.appendChild(popup);
+            popup.style.display = 'block';
+            setTimeout(() => popup.style.display = 'none', 2000);
+        }
+
+        // Sincronia da letra com destaque
+        audio.addEventListener('timeupdate', () => {
+            const currentTime = audio.currentTime;
+            let activeLine = null;
+            for (let i = 0; i < lyricsTimestamps.length; i++) {
+                const current = lyricsTimestamps[i];
+                const next = lyricsTimestamps[i + 1];
+                if (currentTime >= current.time && (!next || currentTime < next.time)) {
+                    activeLine = current.id;
+                    break;
+                }
+            }
+            // Remove destaque de todas as linhas
+            document.querySelectorAll('.lyrics span').forEach(span => {
+                span.classList.remove('highlight');
+            });
+            // Adiciona destaque na linha atual
+            if (activeLine) {
+                const activeElement = document.getElementById(activeLine);
+                if (activeElement) {
+                    activeElement.classList.add('highlight');
+                    // Centraliza a linha no contêiner
+                    const container = lyricsElement;
+                    const offset = activeElement.offsetTop - container.offsetTop - (container.clientHeight / 2) + (activeElement.clientHeight / 2);
+                    container.scrollTop = offset;
+                }
+            }
+        });
+
+        // Reseta destaque quando a música termina
+        audio.addEventListener('ended', () => {
+            document.querySelectorAll('.lyrics span').forEach(span => {
+                span.classList.remove('highlight');
+            });
+            lyricsElement.scrollTop = 0;
+        });
+
+        // Perguntas do quiz
+        const questions = [
+            {
+                text: "Caught up inside your self-righteous symphony",
+                question: "Qual é a tradução de 'self-righteous symphony'?",
+                options: [
+                    "Sinfonia autoproclamada",
+                    "Melodia arrogante",
+                    "Música virtuosa",
+                    "Harmonia orgulhosa"
+                ],
+                correct: 0
+            },
+            {
+                text: "The choices that we can't forget",
+                question: "O que significa 'choices' nesse trecho?",
+                options: [
+                    "Decisões",
+                    "Chances",
+                    "Caminhos",
+                    "Mudanças"
+                ],
+                correct: 0
+            },
+            {
+                text: "The poison we take with regret",
+                question: "Qual é a tradução de 'poison' aqui?",
+                options: [
+                    "Veneno",
+                    "Remédio",
+                    "Peso",
+                    "Erro"
+                ],
+                correct: 0
+            },
+            {
+                text: "Rejoice cause they haven't found you yet",
+                question: "O que significa 'rejoice' nesse contexto?",
+                options: [
+                    "Comemorar",
+                    "Esconder",
+                    "Lamentar",
+                    "Resistir"
+                ],
+                correct: 0
+            },
+            {
+                text: "The voice in the back of my head",
+                question: "Qual é o sentido de 'voice' nesse trecho?",
+                options: [
+                    "Voz interior",
+                    "Som alto",
+                    "Eco distante",
+                    "Grito interno"
+                ],
+                correct: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        // Abre o quiz
+        function openQuiz() {
+            modal.style.display = 'flex';
+            showQuestion();
+        }
+
+        // Mostra pergunta atual
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            questionElement.innerHTML = `<p>Trecho: "${q.text}"</p><p>${q.question}</p>`;
+            optionsElement.innerHTML = q.options.map((opt, i) => 
+                `<div class="option" onclick="checkAnswer(${i})">${opt}</div>`
+            ).join('');
+            feedbackElement.innerHTML = '';
+        }
+
+        // Verifica resposta
+        function checkAnswer(index) {
+            const q = questions[currentQuestion];
+            feedbackElement.innerHTML = index === q.correct 
+                ? '<span class="correct">✓ Correto!</span>' 
+                : '<span class="wrong">✗ Errado!</span>';
+            if (index === q.correct) score++;
+            scoreElement.innerText = `Você acertou ${score}/5`;
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < questions.length) {
+                    showQuestion();
+                } else {
+                    questionElement.innerHTML = 'Quiz concluído!';
+                    optionsElement.innerHTML = '';
+                    feedbackElement.innerHTML = '';
+                }
+            }, 1000);
+        }
+
+        // Reseta o quiz
+        function resetQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            scoreElement.innerText = `Você acertou 0/5`;
+            showQuestion();
+        }
+
+        // Inicializa traduções
+        addTranslationEvents();
+    </script>
+</body>
+</html>
