@@ -21,12 +21,15 @@ const CONFIG = {
     '._awve9b'
   ],
   toastStyle: {
-    background: '#8B0000', // Vermelho escuro
-    color: '#FFFFFF' // Texto branco
+    // Anteriormente era vermelho escuro; agora usamos azul escuro
+    background: '#00008B', // Azul escuro
+    color: '#FFFFFF'       // Texto branco permanece
   },
   splashStyle: `
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #2E0000; display: flex; align-items: center;
+    /* Fundo em azul escuro, em vez de vermelho escuro */
+    background-color: #00002E; 
+    display: flex; align-items: center;
     justify-content: center; z-index: 9999; opacity: 0;
     transition: opacity 0.5s ease; user-select: none;
     color: #FFFFFF; font-family: 'Arial', sans-serif;
@@ -38,10 +41,26 @@ const CONFIG = {
 // Classe para gerenciar eventos
 class EventEmitter {
   constructor() { this.events = {}; }
-  on(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { (this.events[t] = this.events[t] || []).push(e); }); }
-  off(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { this.events[t] && (this.events[t] = this.events[t].filter(h => h !== e)); }); }
-  emit(t, ...e) { this.events[t]?.forEach(h => h(...e)); }
-  once(t, e) { const s = (...i) => { e(...i); this.off(t, s); }; this.on(t, s); }
+  on(t, e) { 
+    (Array.isArray(t) ? t : [t]).forEach(evName => { 
+      (this.events[evName] = this.events[evName] || []).push(e); 
+    }); 
+  }
+  off(t, e) { 
+    (Array.isArray(t) ? t : [t]).forEach(evName => { 
+      this.events[evName] && (this.events[evName] = this.events[evName].filter(h => h !== e)); 
+    }); 
+  }
+  emit(t, ...e) { 
+    this.events[t]?.forEach(h => h(...e)); 
+  }
+  once(t, e) { 
+    const s = (...i) => { 
+      e(...i); 
+      this.off(t, s); 
+    }; 
+    this.on(t, s); 
+  }
 }
 const emitter = new EventEmitter();
 
@@ -69,7 +88,8 @@ function sendToast(text, duration = CONFIG.toastDuration, gravity = 'bottom') {
 // Exibe splash screen
 async function showSplashScreen() {
   splashScreen.style.cssText = CONFIG.splashStyle;
-  splashScreen.innerHTML = '<span style="color:#FFFFFF;">JOALISON</span><span style="color:#FFD700;">DESTRUIDOR DE SISTEMAS</span>';
+  // Mantém "JOALISON" em branco e "DESTRUIDOR DE SISTEMAS" em tom de azul-claro agora
+  splashScreen.innerHTML = '<span style="color:#FFFFFF;">JOALISON</span><span style="color:#00BFFF;"> DESTRUIDOR DE SISTEMAS</span>';
   document.body.appendChild(splashScreen);
   await delay(10);
   splashScreen.style.opacity = '1';
@@ -93,7 +113,7 @@ async function loadScript(url, label) {
     document.head.appendChild(scriptEl);
     loadedPlugins.push(label);
   } catch (e) {
-    sendToast(`🔥｜Erro ao carregar ${label}: ${e.message}`, 5000);
+    sendToast(`⚠️ Erro ao carregar ${label}: ${e.message}`, 5000);
   }
 }
 
@@ -109,7 +129,7 @@ async function loadCss(url) {
   });
 }
 
-// Função principal
+// Função principal com override de fetch e automações
 function setupMain() {
   const originalFetch = window.fetch;
   window.fetch = async function(input, init) {
@@ -120,7 +140,7 @@ function setupMain() {
       body = init.body;
     }
 
-    // Manipula progresso de vídeo
+    // Manipula progresso de vídeo (updateUserVideoProgress)
     if (body?.includes('"operationName":"updateUserVideoProgress"')) {
       try {
         let bodyObj = JSON.parse(body);
@@ -128,15 +148,29 @@ function setupMain() {
           const durationSeconds = bodyObj.variables.input.durationSeconds;
           bodyObj.variables.input.secondsWatched = durationSeconds;
           bodyObj.variables.input.lastSecondWatched = durationSeconds;
-          body = JSON.stringify(bodyObj);
+          const newBody = JSON.stringify(bodyObj);
           if (input instanceof Request) {
-            input = new Request(input, { body });
+            input = new Request(input, { 
+              method: input.method,
+              headers: input.headers,
+              body: newBody,
+              mode: input.mode,
+              credentials: input.credentials,
+              cache: input.cache,
+              redirect: input.redirect,
+              referrer: input.referrer,
+              integrity: input.integrity,
+              keepalive: input.keepalive,
+              signal: input.signal
+            });
           } else {
-            init.body = body;
+            init.body = newBody;
           }
           sendToast("🔥｜Vídeo dominado!", 1000);
         }
-      } catch (e) {}
+      } catch (e) {
+        // silencioso se falhar
+      }
     }
 
     const originalResponse = await originalFetch.apply(this, arguments);
@@ -149,8 +183,12 @@ function setupMain() {
       
       if (responseObj?.data?.assessmentItem?.item?.itemData) {
         let itemData = JSON.parse(responseObj.data.assessmentItem.item.itemData);
-        
-        if (itemData.question.content[0] === itemData.question.content[0].toUpperCase()) {
+        // Se a primeira parte do conteúdo for maiúscula (condição original)
+        if (
+          Array.isArray(itemData.question.content) &&
+          typeof itemData.question.content[0] === 'string' &&
+          itemData.question.content[0] === itemData.question.content[0].toUpperCase()
+        ) {
           itemData.answerArea = {
             calculator: false,
             chi2Table: false,
@@ -175,12 +213,14 @@ function setupMain() {
           });
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      // silencioso se falhar
+    }
 
     return originalResponse;
   };
 
-  // Loop de automação
+  // Loop de automação: clica nos seletores configurados
   (async () => {
     window.joalisonDominates = true;
     while (window.joalisonDominates) {
@@ -196,28 +236,32 @@ function setupMain() {
   })();
 }
 
-// Inicialização
+// Inicialização imediata
 (async function init() {
+  // Se não estiver em khanacademy, redireciona
   if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
     window.location.href = "https://pt.khanacademy.org/";
     return;
   }
 
   await showSplashScreen();
-  await Promise.all([
-    loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin')
-      .then(() => {
-        if (window.DarkReader) {
-          DarkReader.setFetchMethod(window.fetch);
-          DarkReader.enable();
-        }
-      }),
-    loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css'),
-    loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
-  ]);
+  // Carrega DarkReader e ativa, mas sem alterar lógica
+  await loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin')
+    .then(() => {
+      if (window.DarkReader) {
+        DarkReader.setFetchMethod(window.fetch);
+        DarkReader.enable();
+      }
+    });
+  // Carrega CSS e script do Toastify
+  await loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
+  await loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin');
+  // Aguarda duração do splash e esconde
   await delay(CONFIG.splashDuration);
   await hideSplashScreen();
+  // Inicia lógica principal
   setupMain();
   sendToast("🔥｜Joalison Destruidor de Sistemas iniciado!");
   console.clear();
 })();
+    
