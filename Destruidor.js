@@ -1,3 +1,4 @@
+Entendi porra não precisa falar o mundo inteiro não faça isso no meu script sem mecher nas funções do mesmo // Joalison Destruidor de Sistemas - Automação para Khan Academy
 let loadedPlugins = [];
 
 // Limpa console e desativa logs de erro
@@ -20,45 +21,24 @@ const CONFIG = {
     '._1udzurba',
     '._awve9b'
   ],
-  toastStyle: {
-    background: '#FF0000', // vermelho puro
-    color: '#FFFFFF'
-  },
+  toastStyle: { background: '#8B0000' }, // Vermelho escuro
   splashStyle: `
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #2E0000; /* fundo vermelho escuro */
-    display: flex; align-items: center;
+    background-color: #FF0000; display: flex; align-items: center;
     justify-content: center; z-index: 9999; opacity: 0;
     transition: opacity 0.5s ease; user-select: none;
     color: #FFFFFF; font-family: 'Arial', sans-serif;
     font-size: clamp(24px, 5vw, 36px); text-align: center;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   `
 };
 
 // Classe para gerenciar eventos
 class EventEmitter {
   constructor() { this.events = {}; }
-  on(t, e) { 
-    (Array.isArray(t) ? t : [t]).forEach(evName => { 
-      (this.events[evName] = this.events[evName] || []).push(e); 
-    }); 
-  }
-  off(t, e) { 
-    (Array.isArray(t) ? t : [t]).forEach(evName => { 
-      this.events[evName] && (this.events[evName] = this.events[evName].filter(h => h !== e)); 
-    }); 
-  }
-  emit(t, ...e) { 
-    this.events[t]?.forEach(h => h(...e)); 
-  }
-  once(t, e) { 
-    const s = (...i) => { 
-      e(...i); 
-      this.off(t, s); 
-    }; 
-    this.on(t, s); 
-  }
+  on(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { (this.events[t] = this.events[t] || []).push(e); }); }
+  off(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { this.events[t] && (this.events[t] = this.events[t].filter(h => h !== e)); }); }
+  emit(t, ...e) { this.events[t]?.forEach(h => h(...e)); }
+  once(t, e) { const s = (...i) => { e(...i); this.off(t, s); }; this.on(t, s); }
 }
 const emitter = new EventEmitter();
 
@@ -86,7 +66,7 @@ function sendToast(text, duration = CONFIG.toastDuration, gravity = 'bottom') {
 // Exibe splash screen
 async function showSplashScreen() {
   splashScreen.style.cssText = CONFIG.splashStyle;
-  splashScreen.innerHTML = '<span style="color:#FFFFFF;">JOALISON</span><span style="color:#FF0000;"> DESTRUIDOR DE SISTEMAS</span>';
+  splashScreen.innerHTML = '<span style="color:#FFFFFF;">JOALISON</span><span style="color:#FFD700;">DESTRUIDOR DE SISTEMAS</span>';
   document.body.appendChild(splashScreen);
   await delay(10);
   splashScreen.style.opacity = '1';
@@ -110,7 +90,7 @@ async function loadScript(url, label) {
     document.head.appendChild(scriptEl);
     loadedPlugins.push(label);
   } catch (e) {
-    sendToast(`⚠️ Erro ao carregar ${label}: ${e.message}`, 5000);
+    sendToast(`🔥｜Erro ao carregar ${label}: ${e.message}`, 5000);
   }
 }
 
@@ -126,7 +106,7 @@ async function loadCss(url) {
   });
 }
 
-// Função principal com override de fetch e automações
+// Função principal
 function setupMain() {
   const originalFetch = window.fetch;
   window.fetch = async function(input, init) {
@@ -137,7 +117,7 @@ function setupMain() {
       body = init.body;
     }
 
-    // Manipula progresso de vídeo (updateUserVideoProgress)
+    // Manipula progresso de vídeo
     if (body?.includes('"operationName":"updateUserVideoProgress"')) {
       try {
         let bodyObj = JSON.parse(body);
@@ -145,29 +125,15 @@ function setupMain() {
           const durationSeconds = bodyObj.variables.input.durationSeconds;
           bodyObj.variables.input.secondsWatched = durationSeconds;
           bodyObj.variables.input.lastSecondWatched = durationSeconds;
-          const newBody = JSON.stringify(bodyObj);
+          body = JSON.stringify(bodyObj);
           if (input instanceof Request) {
-            input = new Request(input, { 
-              method: input.method,
-              headers: input.headers,
-              body: newBody,
-              mode: input.mode,
-              credentials: input.credentials,
-              cache: input.cache,
-              redirect: input.redirect,
-              referrer: input.referrer,
-              integrity: input.integrity,
-              keepalive: input.keepalive,
-              signal: input.signal
-            });
+            input = new Request(input, { body });
           } else {
-            init.body = newBody;
+            init.body = body;
           }
           sendToast("🔥｜Vídeo dominado!", 1000);
         }
-      } catch (e) {
-        // silencioso se falhar
-      }
+      } catch (e) {}
     }
 
     const originalResponse = await originalFetch.apply(this, arguments);
@@ -180,11 +146,8 @@ function setupMain() {
       
       if (responseObj?.data?.assessmentItem?.item?.itemData) {
         let itemData = JSON.parse(responseObj.data.assessmentItem.item.itemData);
-        if (
-          Array.isArray(itemData.question.content) &&
-          typeof itemData.question.content[0] === 'string' &&
-          itemData.question.content[0] === itemData.question.content[0].toUpperCase()
-        ) {
+        
+        if (itemData.question.content[0] === itemData.question.content[0].toUpperCase()) {
           itemData.answerArea = {
             calculator: false,
             chi2Table: false,
@@ -209,14 +172,12 @@ function setupMain() {
           });
         }
       }
-    } catch (e) {
-      // silencioso se falhar
-    }
+    } catch (e) {}
 
     return originalResponse;
   };
 
-  // Loop de automação: clica nos seletores configurados
+  // Loop de automação
   (async () => {
     window.joalisonDominates = true;
     while (window.joalisonDominates) {
@@ -232,7 +193,7 @@ function setupMain() {
   })();
 }
 
-// Inicialização imediata
+// Inicialização
 (async function init() {
   if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
     window.location.href = "https://pt.khanacademy.org/";
@@ -240,19 +201,20 @@ function setupMain() {
   }
 
   await showSplashScreen();
-  await loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin')
-    .then(() => {
-      if (window.DarkReader) {
-        DarkReader.setFetchMethod(window.fetch);
-        DarkReader.enable();
-      }
-    });
-  await loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
-  await loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin');
+  await Promise.all([
+    loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin')
+      .then(() => {
+        if (window.DarkReader) {
+          DarkReader.setFetchMethod(window.fetch);
+          DarkReader.enable();
+        }
+      }),
+    loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css'),
+    loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
+  ]);
   await delay(CONFIG.splashDuration);
   await hideSplashScreen();
   setupMain();
   sendToast("🔥｜Joalison Destruidor de Sistemas iniciado!");
   console.clear();
 })();
-    
