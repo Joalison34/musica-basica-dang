@@ -21,14 +21,12 @@ const CONFIG = {
     '._awve9b'
   ],
   toastStyle: {
-    // Anteriormente era vermelho escuro; agora usamos azul escuro
-    background: '#00008B', // Azul escuro
-    color: '#FFFFFF'       // Texto branco permanece
+    background: '#FF0000', // vermelho puro
+    color: '#FFFFFF'
   },
   splashStyle: `
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    /* Fundo em azul escuro, em vez de vermelho escuro */
-    background-color: #00002E; 
+    background-color: #2E0000; /* fundo vermelho escuro */
     display: flex; align-items: center;
     justify-content: center; z-index: 9999; opacity: 0;
     transition: opacity 0.5s ease; user-select: none;
@@ -88,8 +86,7 @@ function sendToast(text, duration = CONFIG.toastDuration, gravity = 'bottom') {
 // Exibe splash screen
 async function showSplashScreen() {
   splashScreen.style.cssText = CONFIG.splashStyle;
-  // Mantém "JOALISON" em branco e "DESTRUIDOR DE SISTEMAS" em tom de azul-claro agora
-  splashScreen.innerHTML = '<span style="color:#FFFFFF;">JOALISON</span><span style="color:#00BFFF;"> DESTRUIDOR DE SISTEMAS</span>';
+  splashScreen.innerHTML = '<span style="color:#FFFFFF;">JOALISON</span><span style="color:#FF0000;"> DESTRUIDOR DE SISTEMAS</span>';
   document.body.appendChild(splashScreen);
   await delay(10);
   splashScreen.style.opacity = '1';
@@ -183,7 +180,6 @@ function setupMain() {
       
       if (responseObj?.data?.assessmentItem?.item?.itemData) {
         let itemData = JSON.parse(responseObj.data.assessmentItem.item.itemData);
-        // Se a primeira parte do conteúdo for maiúscula (condição original)
         if (
           Array.isArray(itemData.question.content) &&
           typeof itemData.question.content[0] === 'string' &&
@@ -238,14 +234,12 @@ function setupMain() {
 
 // Inicialização imediata
 (async function init() {
-  // Se não estiver em khanacademy, redireciona
   if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
     window.location.href = "https://pt.khanacademy.org/";
     return;
   }
 
   await showSplashScreen();
-  // Carrega DarkReader e ativa, mas sem alterar lógica
   await loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin')
     .then(() => {
       if (window.DarkReader) {
@@ -253,13 +247,10 @@ function setupMain() {
         DarkReader.enable();
       }
     });
-  // Carrega CSS e script do Toastify
   await loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
   await loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin');
-  // Aguarda duração do splash e esconde
   await delay(CONFIG.splashDuration);
   await hideSplashScreen();
-  // Inicia lógica principal
   setupMain();
   sendToast("🔥｜Joalison Destruidor de Sistemas iniciado!");
   console.clear();
