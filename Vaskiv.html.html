@@ -1,0 +1,883 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>In Your Head - Cadmium, Rival, Micah Martin</title>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <style>
+    :root {
+      --primary: #1a1a2e;
+      --secondary: #0a0a1c;
+      --accent: #4b6cb7;
+      --accent-dark: #182848;
+      --text: #e0e0e0;
+      --white: #ffffff;
+      --cyan: #00FFFF;
+      --magenta: #FF00FF;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--primary);
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--secondary);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      position: relative;
+      z-index: 1;
+      color: var(--text);
+    }
+
+    .summary {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .summary h1 {
+      position: relative;
+      display: inline-block;
+      color: var(--white);
+      text-transform: uppercase;
+      animation: titleGlitch 1.5s infinite;
+    }
+
+    .summary h1::before,
+    .summary h1::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .summary h1::before {
+      color: var(--cyan);
+      animation: titleGlitchBefore 1.5s infinite;
+    }
+
+    .summary h1::after {
+      color: var(--magenta);
+      animation: titleGlitchAfter 1.5s infinite;
+    }
+
+    @keyframes titleGlitch {
+      0% { transform: translate(0, 0); opacity: 1; }
+      20% { transform: translate(2px, -2px); }
+      40% { transform: translate(-2px, 2px); }
+      60% { transform: translate(1px, -1px); }
+      80% { transform: translate(-1px, 1px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    @keyframes titleGlitchBefore {
+      0% { transform: translate(-2px, -2px); }
+      20% { transform: translate(-1px, 1px); }
+      40% { transform: translate(2px, -2px); }
+      60% { transform: translate(-1px, 1px); }
+      80% { transform: translate(1px, -1px); }
+      100% { transform: translate(-2px, -2px); }
+    }
+
+    @keyframes titleGlitchAfter {
+      0% { transform: translate(2px, 2px); }
+      20% { transform: translate(1px, -1px); }
+      40% { transform: translate(-2px, 2px); }
+      60% { transform: translate(1px, -1px); }
+      80% { transform: translate(-1px, 1px); }
+      100% { transform: translate(2px, 2px); }
+    }
+
+    .player {
+      margin-bottom: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    audio {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      display: block;
+    }
+
+    #waveform {
+      width: 100%;
+      height: 50px;
+      background: var(--accent-dark);
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    .lyrics {
+      height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--accent);
+      padding: 10px;
+      text-align: left;
+      white-space: pre-wrap;
+      font-size: 16px;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      background: #12122a;
+      border-radius: 5px;
+      color: var(--text);
+    }
+
+    .lyrics span {
+      display: block;
+      transition: all 0.3s ease;
+    }
+
+    .highlight {
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      color: var(--white);
+      padding: 2px 5px;
+      border-radius: 3px;
+      animation: glitch 1.2s ease-in-out infinite;
+    }
+
+    @keyframes glitch {
+      0% { 
+        transform: translate(0, 0); 
+        text-shadow: 2px 2px 2px var(--cyan), -2px -2px 2px var(--magenta);
+      }
+      20% { 
+        transform: translate(4px, -4px); 
+        text-shadow: -2px 2px 2px var(--cyan), 2px -2px 2px var(--magenta);
+      }
+      40% { 
+        transform: translate(-4px, 4px); 
+        text-shadow: 2px -2px 2px var(--cyan), -2px 2px 2px var(--magenta);
+      }
+      60% { 
+        transform: translate(2px, -2px); 
+        text-shadow: -2px -2px 2px var(--cyan), 2px 2px 2px var(--magenta);
+      }
+      80% { 
+        transform: translate(-2px, 2px); 
+        text-shadow: 2px 2px 2px var(--cyan), -2px -2px 2px var(--magenta);
+      }
+      100% { 
+        transform: translate(0, 0); 
+        text-shadow: 2px 2px 2px var(--cyan), -2px -2px 2px var(--magenta);
+      }
+    }
+
+    .clickable {
+      cursor: pointer;
+    }
+
+    .popup {
+      position: absolute;
+      background: var(--accent-dark);
+      border: 1px solid var(--accent);
+      padding: 5px;
+      font-size: 14px;
+      display: none;
+      z-index: 10;
+      color: var(--text);
+    }
+
+    .quiz-button {
+      padding: 12px 24px;
+      font-size: 18px;
+      cursor: pointer;
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      -webkit-background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(75, 108, 183, 0.5);
+      animation: pulseButton 2s infinite;
+    }
+
+    @keyframes pulseButton {
+      0% { transform: scale(1); box-shadow: 0 4px 10px rgba(75, 108, 183, 0.5); }
+      50% { transform: scale(1.05); box-shadow: 0 6px 15px rgba(75, 108, 183, 0.8); }
+      100% { transform: scale(1); box-shadow: 0 4px 10px rgba(75, 108, 183, 0.5); }
+    }
+
+    .quiz-button:hover {
+      animation: glitch 0.3s ease-in-out infinite;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, var(--accent-dark), var(--primary));
+      -webkit-background: linear-gradient(135deg, var(--accent-dark), var(--primary));
+      color: var(--white);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      text-align: left;
+      animation: modalEnter 0.5s ease, pulse 2s infinite;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(75, 108, 183, 0.3);
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    @keyframes modalEnter {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px rgba(75, 108, 183, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(75, 108, 183, 0.8); }
+      100% { box-shadow: 0 0 10px rgba(75, 108, 183, 0.5); }
+    }
+
+    .option {
+      display: block;
+      margin: 10px 0;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--white);
+      border: 1px solid rgba(75, 108, 183, 0.5);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .option:hover {
+      background: rgba(75, 108, 183, 0.3);
+      transform: translateX(5px);
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      transition: all 0.5s ease;
+    }
+
+    .correct {
+      color: #00ff88;
+      animation: correctFeedback 0.8s ease;
+    }
+
+    .wrong {
+      color: #ff4d4d;
+      animation: wrongFeedback 0.8s ease;
+    }
+
+    @keyframes correctFeedback {
+      0% { transform: scale(1); opacity: 0; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes wrongFeedback {
+      0% { transform: translateX(0); opacity: 0; }
+      25% { transform: translateX(-10px); opacity: 1; }
+      50% { transform: translateX(10px); }
+      75% { transform: translateX(-10px); }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+
+    .feedback-content {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .next-button, .reset-button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      cursor: pointer;
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      -webkit-background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .next-button:hover, .reset-button:hover {
+      background: linear-gradient(90deg, var(--accent-dark), var(--accent));
+      -webkit-background: linear-gradient(90deg, var(--accent-dark), var(--accent));
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 10px;
+      }
+      .lyrics {
+        font-size: 14px;
+        height: 150px;
+      }
+      .quiz-button {
+        font-size: 16px;
+        padding: 10px 20px;
+      }
+      .modal-content {
+        width: 95%;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+  <div class="container">
+    <div class="summary">
+      <h1 data-text="IN YOUR HEAD - CADMIUM, RIVAL, MICAH MARTIN">IN YOUR HEAD - CADMIUM, RIVAL, MICAH MARTIN</h1>
+      <p>"In Your Head" é uma faixa de future bass e dubstep lançada em 2019 pelo selo NCS, criada por Cadmium e Rival, com vocais de Micah Martin. A música mergulha em temas de arrependimentos, conflitos internos e escolhas difíceis, com uma letra que reflete sobre vozes internas e decisões que pesam. A produção combina batidas intensas com uma melodia envolvente, destacada pela voz marcante de Micah Martin.</p>
+    </div>
+    <div class="player">
+      <audio id="audio" controls aria-label="Reprodutor de áudio da música In Your Head">
+        <source src="https://raw.githubusercontent.com/Joalison34/musica-basica-dang/607cf02f5d21654e7fca3ddf1287b23aa37168ec/Todos/in_your_head_256k.mp3" type="audio/mpeg">
+        Seu navegador não suporta áudio.
+      </audio>
+      <canvas id="waveform" aria-label="Visualização de onda sonora"></canvas>
+      <div id="lyrics" class="lyrics" role="region" aria-label="Letras sincronizadas da música">
+        <span id="line-0">I DON'T WANNA BE</span>
+        <span id="line-1">CAUGHT UP INSIDE YOUR SELF-RIGHTEOUS SYMPHONY</span>
+        <span id="line-2">I WOULD RATHER LET THIS GO</span>
+        <span id="line-3">THEN TO BRING IT UP AGAIN</span>
+        <span id="line-4">BUT EVERYONE I KNOW</span>
+        <span id="line-5">THEY'RE AFRAID</span>
+        <span id="line-6">AFRAID OF THEIR OWN SKIN</span>
+        <span id="line-7">WITH NOTHING LEFT TO SHOW</span>
+        <span id="line-8">WE'RE AFRAID</span>
+        <span id="line-9">AFRAID OF WHERE WE'VE BEEN</span>
+        <span id="line-10">YOU GOTTA LET ME IN</span>
+        <span id="line-11">NO I'M NOT A MARTYR</span>
+        <span id="line-12">I'M BARELY YOUR FRIEND</span>
+        <span id="line-13">YOU'RE DROWNING IN WATER</span>
+        <span id="line-14">I LEND YOU MY HAND</span>
+        <span id="line-15">YOU'RE PULLING THE LEVER</span>
+        <span id="line-16">RELEASE MY REGRET</span>
+        <span id="line-17">IS THIS ALL YOU WANTED?</span>
+        <span id="line-18">IT'S ALL IN YOUR HEAD</span>
+        <span id="line-19">ALL YOUR HEAD</span>
+        <span id="line-20">THE VOICE IN THE BACK OF MY HEAD</span>
+        <span id="line-21">THE CHOICES THAT WE CAN'T FORGET</span>
+        <span id="line-22">THE POISON WE TAKE WITH REGRET</span>
+        <span id="line-23">REJOICE CAUSE THEY HAVEN'T FOUND YOU YET</span>
+        <span id="line-24">CAUSE EVERYONE I KNOW</span>
+        <span id="line-25">THEY'RE AFRAID</span>
+        <span id="line-26">AFRAID OF THEIR OWN SKIN</span>
+        <span id="line-27">WITH NOTHING LEFT TO SHOW</span>
+        <span id="line-28">WE'RE AFRAID</span>
+        <span id="line-29">AFRAID OF WHERE WE'VE BEEN</span>
+        <span id="line-30">YOU GOTTA LET ME IN</span>
+        <span id="line-31">NO I'M NOT A MARTYR</span>
+        <span id="line-32">I'M BARELY YOUR FRIEND</span>
+        <span id="line-33">YOU'RE DROWNING IN WATER</span>
+        <span id="line-34">I LEND YOU MY HAND</span>
+        <span id="line-35">YOU'RE PULLING THE LEVER</span>
+        <span id="line-36">RELEASE MY REGRET</span>
+        <span id="line-37">IS THIS ALL YOU WANTED?</span>
+        <span id="line-38">IT'S ALL IN YOUR HEAD</span>
+        <span id="line-39">IN YOUR HEAD</span>
+        <span id="line-40">YOU GOTTA LET ME IN</span>
+        <span id="line-41">YOU GOTTA LET ME IN</span>
+        <span id="line-42">IN YOUR HEAD</span>
+      </div>
+    </div>
+    <button class="quiz-button" onclick="openQuiz()" aria-label="Abrir quiz sobre a música">PERGUNTAS</button>
+    <div id="modal" class="modal" role="dialog" aria-labelledby="quiz-title">
+      <div class="modal-content">
+        <h2 id="quiz-title">QUIZ: IN YOUR HEAD</h2>
+        <p id="score" aria-live="polite">VOCÊ ACERTOU 0/5</p>
+        <div id="question"></div>
+        <div id="options"></div>
+        <div id="feedback" class="feedback" aria-live="assertive"></div>
+        <button class="reset-button" onclick="resetQuiz()" aria-label="Reiniciar quiz">TENTAR NOVAMENTE</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    function filledCell(cell) {
+      return cell !== '' && cell != null;
+    }
+
+    function loadFileData(filename) {
+      try {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+          const workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+          const filteredData = jsonData.filter(row => row.some(filledCell));
+          const headerRowIndex = filteredData.findIndex((row, index) =>
+            row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+          );
+          const csv = XLSX.utils.sheet_to_csv(XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex > -1 ? headerRowIndex : 0)), { header: 1 });
+          return csv;
+        }
+        return gk_fileData[filename] || '';
+      } catch (e) {
+        console.error('Erro ao carregar arquivo:', e);
+        return '';
+      }
+    }
+
+    const lyricsElement = document.getElementById('lyrics');
+    const audio = document.getElementById('audio');
+    const modal = document.getElementById('modal');
+    const questionElement = document.getElementById('question');
+    const optionsElement = document.getElementById('options');
+    const feedbackElement = document.getElementById('feedback');
+    const scoreElement = document.getElementById('score');
+
+    // Partículas de fundo
+    particlesJS('particles-js', {
+      particles: {
+        number: { value: 80, density: { enable: true, value_area: 800 } },
+        color: { value: ['#4b6cb7', '#182848'] },
+        shape: { type: 'circle' },
+        opacity: { value: 0.5, random: true },
+        size: { value: 3, random: true },
+        line_linked: { enable: false },
+        move: { enable: true, speed: 1, direction: 'none', random: true }
+      },
+      interactivity: {
+        detect_on: 'canvas',
+        events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
+        modes: { repulse: { distance: 100, duration: 0.4 }, push: { particles_nb: 4 } }
+      }
+    });
+
+    // Debounce pra animação de waveform
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Animação de ondas sonoras
+    const canvas = document.getElementById('waveform');
+    const canvasCtx = canvas.getContext('2d');
+    let animationFrame;
+
+    function drawWaveform() {
+      animationFrame = requestAnimationFrame(drawWaveform);
+      const time = audio.currentTime;
+      canvasCtx.fillStyle = '#16213e';
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / 128) * 2.5;
+      let x = 0;
+      for (let i = 0; i < 128; i++) {
+        const barHeight = (Math.sin(time * 2 + i * 0.1) * 25 + 25) * (audio.paused ? 0 : 1);
+        canvasCtx.fillStyle = `rgb(${barHeight + 100}, 100, 150)`;
+        canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+        x += barWidth + 1;
+      }
+    }
+
+    const debouncedWaveform = debounce(drawWaveform, 1000 / 60);
+
+    audio.addEventListener('play', () => {
+      if (!animationFrame) debouncedWaveform();
+    });
+
+    audio.addEventListener('pause', () => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+      canvasCtx.fillStyle = '#16213e';
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+    });
+
+    audio.addEventListener('ended', () => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+      canvasCtx.fillStyle = '#16213e';
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // Timestamps fornecidos
+    const lyricsTimestamps = [
+      { id: 'line-0', time: 7.0 },
+      { id: 'line-1', time: 12.0 },
+      { id: 'line-2', time: 19.0 },
+      { id: 'line-3', time: 26.5 },
+      { id: 'line-4', time: 32.8 },
+      { id: 'line-5', time: 38.0 },
+      { id: 'line-6', time: 40.0 },
+      { id: 'line-7', time: 46.0 },
+      { id: 'line-8', time: 51.0 },
+      { id: 'line-9', time: 53.0 },
+      { id: 'line-10', time: 56.5 },
+      { id: 'line-11', time: 60.0 },
+      { id: 'line-12', time: 63.0 },
+      { id: 'line-13', time: 66.0 },
+      { id: 'line-14', time: 70.0 },
+      { id: 'line-15', time: 73.0 },
+      { id: 'line-16', time: 77.0 },
+      { id: 'line-17', time: 79.0 },
+      { id: 'line-18', time: 82.5 },
+      { id: 'line-19', time: 97.0 },
+      { id: 'line-20', time: 112.0 },
+      { id: 'line-21', time: 119.0 },
+      { id: 'line-22', time: 126.0 },
+      { id: 'line-23', time: 132.5 },
+      { id: 'line-24', time: 139.0 },
+      { id: 'line-25', time: 124.0 },
+      { id: 'line-26', time: 146.0 },
+      { id: 'line-27', time: 152.0 },
+      { id: 'line-28', time: 157.0 },
+      { id: 'line-29', time: 159.0 },
+      { id: 'line-30', time: 163.0 },
+      { id: 'line-31', time: 165.8 },
+      { id: 'line-32', time: 169.0 },
+      { id: 'line-33', time: 172.7 },
+      { id: 'line-34', time: 176.0 },
+      { id: 'line-35', time: 179.8 },
+      { id: 'line-36', time: 182.8 },
+      { id: 'line-37', time: 185.0 },
+      { id: 'line-38', time: 188.8 },
+      { id: 'line-39', time: 202.0 },
+      { id: 'line-40', time: 215.8 },
+      { id: 'line-41', time: 222.1 },
+      { id: 'line-42', time: 229.8 }
+    ];
+
+    // Traduções estilo Duolingo
+    const translations = {
+      'SYMPHONY': 'SINFONIA',
+      'REGRET': 'ARREPENDIMENTO',
+      'REJOICE': 'REGOZIJAR',
+      'CHOICES': 'ESCOLHAS',
+      'POISON': 'VENENO',
+      'MARTYR': 'MÁRTIR',
+      'LEVER': 'ALAVANCA'
+    };
+
+    // Adiciona evento de clique nas palavras traduzíveis
+    function addTranslationEvents() {
+      try {
+        document.querySelectorAll('.lyrics span').forEach(span => {
+          const text = span.textContent.trim().toUpperCase();
+          if (translations[text]) {
+            span.classList.add('clickable');
+            span.addEventListener('click', () => showTranslation(text, span));
+          }
+        });
+      } catch (e) {
+        console.error('Erro ao adicionar eventos de tradução:', e);
+      }
+    }
+
+    // Mostra pop-up de tradução
+    function showTranslation(word, element) {
+      try {
+        let popup = document.getElementById('popup');
+        if (popup) popup.remove();
+        popup = document.createElement('div');
+        popup.id = 'popup';
+        popup.className = 'popup';
+        popup.innerText = translations[word] || 'Tradução não encontrada';
+        const rect = element.getBoundingClientRect();
+        popup.style.left = `${rect.left}px`;
+        popup.style.top = `${rect.bottom + window.scrollY}px`;
+        document.body.appendChild(popup);
+        popup.style.display = 'block';
+        setTimeout(() => {
+          if (popup) popup.style.display = 'none';
+        }, 2000);
+      } catch (e) {
+        console.error('Erro ao mostrar tradução:', e);
+      }
+    }
+
+    // Sincronia da letra com destaque
+    audio.addEventListener('timeupdate', () => {
+      try {
+        const currentTime = audio.currentTime;
+        let activeLine = null;
+        for (let i = 0; i < lyricsTimestamps.length; i++) {
+          const current = lyricsTimestamps[i];
+          const next = lyricsTimestamps[i + 1];
+          if (currentTime >= current.time && (!next || currentTime < next.time)) {
+            activeLine = current.id;
+            break;
+          }
+        }
+        document.querySelectorAll('.lyrics span').forEach(span => {
+          span.classList.remove('highlight');
+        });
+        if (activeLine) {
+          const activeElement = document.getElementById(activeLine);
+          if (activeElement) {
+            activeElement.classList.add('highlight');
+            const container = lyricsElement;
+            const offset = activeElement.offsetTop - container.offsetTop - (container.clientHeight / 2) + (activeElement.clientHeight / 2);
+            container.scrollTop = offset;
+          }
+        }
+      } catch (e) {
+        console.error('Erro na sincronia da letra:', e);
+      }
+    });
+
+    // Reseta destaque quando a música termina
+    audio.addEventListener('ended', () => {
+      try {
+        document.querySelectorAll('.lyrics span').forEach(span => {
+          span.classList.remove('highlight');
+        });
+        lyricsElement.scrollTop = 0;
+      } catch (e) {
+        console.error('Erro ao resetar destaque:', e);
+      }
+    });
+
+    // Perguntas do quiz com significados reescritos
+    const questions = [
+      {
+        text: "CAUGHT UP INSIDE YOUR SELF-RIGHTEOUS SYMPHONY",
+        question: "QUAL É A TRADUÇÃO DE 'CAUGHT UP INSIDE YOUR SELF-RIGHTEOUS SYMPHONY'?",
+        options: [
+          "PRESO DENTRO DA SUA SINFONIA AUTOPROCLAMADA",
+          "ENVOLVIDO NA SUA MELODIA ARROGANTE",
+          "CAPTURADO PELA SUA HARMONIA VIRTUOSA",
+          "PERDIDO NA SUA MÚSICA ORGULHOSA"
+        ],
+        correct: 0,
+        translations: {
+          "CAUGHT UP": "PRESO/ENVOLVIDO",
+          "SELF-RIGHTEOUS": "AUTOPROCLAMADO/JUSTO",
+          "SYMPHONY": "SINFONIA"
+        },
+        meaning: "Esse trecho é um grito de quem tá preso na teia de alguém que se acha dono da verdade. A 'sinfonia' é como um barulho ensurdecedor de julgamentos e hipocrisia, que sufoca o narrador. Ele quer se livrar dessa pressão, como se estivesse lutando pra respirar fora dessa cage mental que outra pessoa criou."
+      },
+      {
+        text: "THE CHOICES THAT WE CAN'T FORGET",
+        question: "QUAL É A TRADUÇÃO DE 'THE CHOICES THAT WE CAN'T FORGET'?",
+        options: [
+          "AS ESCOLHAS QUE NÃO PODEMOS ESQUECER",
+          "AS DECISÕES QUE NOS PERSEGUEM",
+          "OS CAMINHOS QUE NÃO DEIXAMOS",
+          "AS OPÇÕES QUE NOS MARCAM"
+        ],
+        correct: 0,
+        translations: {
+          "CHOICES": "ESCOLHAS",
+          "FORGET": "ESQUECER"
+        },
+        meaning: "Aqui a música corta fundo, falando das escolhas que ficam martelando na cabeça, como fantasmas. São aquelas decisões que a gente fez – ou não fez – e que carregam um peso danado, tipo uma cicatriz que não explica, mas tá sempre ali, lembrando do que poderia ter sido."
+      },
+      {
+        text: "THE POISON WE TAKE WITH REGRET",
+        question: "QUAL É A TRADUÇÃO DE 'THE POISON WE TAKE WITH REGRET'?",
+        options: [
+          "O VENENO QUE TOMAMOS COM ARREPENDIMENTO",
+          "A DOR QUE CARREGAMOS COM REMORSO",
+          "O PESO QUE ACEITAMOS COM CULPA",
+          "O MAL QUE SOFREMOS COM TRISTEZA"
+        ],
+        correct: 0,
+        translations: {
+          "POISON": "VENENO",
+          "REGRET": "ARREPENDIMENTO"
+        },
+        meaning: "Esse verso é pesado pra caralho. Fala de como a gente engole um veneno – tipo raiva, culpa, ou decisões erradas – sabendo que vai nos destruir por dentro. O arrependimento é o que torna esse veneno ainda mais amargo, porque a gente escolheu tomar ele, e agora tá preso nesse ciclo de se culpar."
+      },
+      {
+        text: "YOU'RE PULLING THE LEVER",
+        question: "QUAL É A TRADUÇÃO DE 'YOU'RE PULLING THE LEVER'?",
+        options: [
+          "VOCÊ ESTÁ PUXANDO A ALAVANCA",
+          "VOCÊ ESTÁ GIRANDO A CHAVE",
+          "VOCÊ ESTÁ ACIONANDO O GATILHO",
+          "VOCÊ ESTÁ MUDANDO O CAMINHO"
+        ],
+        correct: 0,
+        translations: {
+          "PULLING": "PUXANDO",
+          "LEVER": "ALAVANCA"
+        },
+        meaning: "Puxar a alavanca é como apertar um botão que muda tudo. Nesse trecho, parece que o outro tá tomando uma atitude que liberta ou destrói – talvez soltando o peso do passado do narrador, ou talvez o jogando num abismo. É um momento de tensão, onde uma escolha pequena pode foder ou salvar tudo."
+      },
+      {
+        text: "NO I'M NOT A MARTYR",
+        question: "QUAL É A TRADUÇÃO DE 'NO I'M NOT A MARTYR'?",
+        options: [
+          "NÃO, EU NÃO SOU UM MÁRTIR",
+          "NÃO, EU NÃO SOU UM HERÓI",
+          "NÃO, EU NÃO SOU UM SACRIFÍCIO",
+          "NÃO, EU NÃO SOU UM SALVADOR"
+        ],
+        correct: 0,
+        translations: {
+          "MARTYR": "MÁRTIR"
+        },
+        meaning: "O narrador tá puto e deixa claro: 'Não sou seu mártir!' Ele não quer ser a vítima que se sacrifica por ninguém, nem carregar a culpa dos outros. É um grito de independência, de quem tá cansado de ser usado como bode expiatório e quer ser visto como é – imperfeito, mas real."
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    // Abre o quiz
+    function openQuiz() {
+      try {
+        modal.style.display = 'flex';
+        showQuestion();
+      } catch (e) {
+        console.error('Erro ao abrir quiz:', e);
+      }
+    }
+
+    // Mostra pergunta atual
+    function showQuestion() {
+      try {
+        const q = questions[currentQuestion];
+        questionElement.innerHTML = `<p>Trecho: "${q.text}"</p><p>${q.question}</p>`;
+        optionsElement.innerHTML = q.options.map((opt, i) => 
+          `<div class="option" onclick="checkAnswer(${i})" role="button" aria-label="Opção ${String.fromCharCode(65 + i)}">${String.fromCharCode(65 + i)}. ${opt}</div>`
+        ).join('');
+        feedbackElement.innerHTML = '';
+      } catch (e) {
+        console.error('Erro ao mostrar questão:', e);
+      }
+    }
+
+    // Verifica a resposta
+    function checkAnswer(index) {
+      try {
+        const q = questions[currentQuestion];
+        if (index === q.correct) {
+          feedbackElement.innerHTML = `
+            <span class="correct">✓ ACERTOU!</span>
+            <div class="feedback-content">
+              <p><strong>Traduções:</strong></p>
+              <ul>${Object.entries(q.translations).map(([word, trans]) => `<li>${word}: ${trans}</li>`).join('')}</ul>
+              <p><strong>Significado do trecho:</strong> ${q.meaning}</p>
+            </div>
+            <button class="next-button" onclick="nextQuestion()" aria-label="Próxima questão">PRÓXIMA QUESTÃO</button>
+          `;
+          score++;
+        } else {
+          feedbackElement.innerHTML = `
+            <span class="wrong">✗ ERROU!</span>
+            <button class="next-button" onclick="nextQuestion()" aria-label="Próxima questão">PRÓXIMA QUESTÃO</button>
+          `;
+        }
+        scoreElement.innerText = `VOCÊ ACERTOU ${score}/5`;
+      } catch (e) {
+        console.error('Erro ao verificar resposta:', e);
+      }
+    }
+
+    // Avança para a próxima questão
+    function nextQuestion() {
+      try {
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+          showQuestion();
+        } else {
+          questionElement.innerHTML = 'QUIZ CONCLUÍDO!';
+          optionsElement.innerHTML = '';
+          feedbackElement.innerHTML = `<p>Parabéns! Você acertou ${score}/5 perguntas.</p>`;
+        }
+      } catch (e) {
+        console.error('Erro ao avançar questão:', e);
+      }
+    }
+
+    // Reseta o quiz
+    function resetQuiz() {
+      try {
+        currentQuestion = 0;
+        score = 0;
+        scoreElement.innerText = `VOCÊ ACERTOU 0/5`;
+        showQuestion();
+      } catch (e) {
+        console.error('Erro ao resetar quiz:', e);
+      }
+    }
+
+    // Inicializa traduções
+    addTranslationEvents();
+  </script>
+</body>
+</html>
