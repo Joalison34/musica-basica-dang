@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Projetos Escolares</title>
+  <link rel="icon" href="https://ik.imagekit.io/seu_usuario/seu_icone.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+  <style>
+    body { 
+      font-family: 'Montserrat', sans-serif; 
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2); 
+      color: #333; 
+      margin: 0;
+      position: relative;
+      overflow-x: hidden;
+    }
+    header { 
+      background: linear-gradient(135deg, #4CAF50, #66BB6A); 
+      padding: 20px; 
+      text-align: center; 
+      color: white; 
+      border-radius: 0 0 20px 20px; 
+      position: relative;
+      z-index: 1000;
+    }
+    .container { 
+      width: 90%; 
+      margin: auto; 
+      padding: 20px; 
+      display: grid; 
+      gap: 20px; 
+    }
+    .filtro {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .filtro input, .filtro select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    .project { 
+      background: white; 
+      padding: 20px; 
+      border-radius: 15px; 
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+      transition: all 0.3s ease; 
+      position: relative; 
+      z-index: 500;
+    }
+    .project:hover { 
+      transform: scale(1.02); 
+    }
+    .project.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2000;
+      transform: none;
+      margin: 0;
+      border-radius: 0;
+      overflow-y: auto;
+      padding: 30px;
+      box-sizing: border-box;
+    }
+    .info-top div, .info-block div { 
+      font-weight: bold; 
+      color: #388e3c; 
+      margin-bottom: 5px; 
+      position: relative; 
+    }
+    .info-item { 
+      background: #f1f8e9; 
+      padding: 10px; 
+      border-radius: 10px; 
+      margin-bottom: 10px; 
+      position: relative; 
+    }
+    .media-item { 
+      margin: 10px; 
+      max-width: 200px; 
+      max-height: 160px; 
+      border-radius: 10px; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+      transition: filter 0.3s ease; 
+      cursor: pointer; 
+    }
+    .project.fullscreen .media-item {
+      max-width: 300px;
+      max-height: 240px;
+    }
+    .media-item:hover { 
+      filter: grayscale(50%) sepia(20%); 
+    }
+    .media-container {
+      display: inline-block;
+      position: relative;
+    }
+    .edit-panel { 
+      background: #f9fbe7; 
+      border-radius: 10px; 
+      padding: 15px; 
+      margin-top: 15px; 
+    }
+    .edit-panel label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    .edit-panel input, .edit-panel textarea { 
+      width: 100%; 
+      padding: 10px; 
+      border-radius: 8px; 
+      border: 1px solid #ccc;
+      margin-top: 5px; 
+      box-sizing: border-box;
+    }
+    .edit-panel button { 
+      background: #aed581; 
+      color: #2e7d32; 
+      font-weight: bold; 
+      padding: 10px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      margin-right: 10px;
+    }
+    .edit-panel .cancel-btn {
+      background: #e0e0e0;
+      color: #333;
+    }
+    .edit-panel .error {
+      color: red;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    .remove-media-btn { 
+      background: #e53935; 
+      color: white; 
+      border-radius: 5px; 
+      padding: 5px 10px; 
+      margin-left: 5px; 
+      cursor: pointer; 
+    }
+    .fullscreen-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+    .fullscreen-btn:hover {
+      background: #388e3c;
+    }
+    .editing-lock { 
+      color: red; 
+      font-weight: bold; 
+      margin-top: 10px; 
+    }
+    #oneko {
+      width: 32px;
+      height: 32px;
+      position: fixed;
+      pointer-events: none;
+      background-image: url('https://i.imgur.com/ok5b9Sz.gif');
+      image-rendering: pixelated;
+      z-index: 9999;
+    }
+    #media-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    #media-overlay img, #media-overlay video {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+    }
+    #media-overlay .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #e53935;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Projetos Escolares</h1>
+  <button id="passwordsKeyBtn">PasswordsKey</button>
+  <button id="logoutEditBtn" style="display:none;">Sair da Edição</button>
+</header>
+<div class="container" id="projectsContainer">
+  <div class="filtro">
+    <input type="text" id="filtro-projetos" placeholder="Filtrar Projeto (1 - 7) ">
+    <select id="ordenar-projetos">
+      <option value="numero">Ordenar por Número</option>
+      <option value="grupo">Ordenar por Grupo</option>
+      <option value="ultima-edicao">Ordenar por Última Edição</option>
+    </select>
+  </div>
+</div>
+<div id="oneko" style="display: none;"></div>
+<div id="media-overlay"></div>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+  authDomain: "funzer.firebaseapp.com",
+  projectId: "funzer"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+const IMAGEKIT_PRIVATE_KEY = "private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=";
+
+let isEditing = false, currentProject = null;
+
+async function checkEditingLock(projectNum) {
+  const doc = await db.collection('locks').doc('projeto' + projectNum).get();
+  return doc.exists ? doc.data().locked : false;
+}
+
+async function setEditingLock(projectNum, status) {
+  await db.collection('locks').doc('projeto' + projectNum).set({ locked: status });
+}
+
+window.onload = function() {
+  const savedEditingState = localStorage.getItem('isEditing');
+  const savedProject = localStorage.getItem('currentProject');
+
+  if (savedEditingState === 'true' && savedProject) {
+    currentProject = savedProject;
+    isEditing = true;
+    document.getElementById('logoutEditBtn').style.display = 'inline-block';
+    carregarProjetos();
+  } else {
+    carregarProjetos();
+  }
+};
+
+document.getElementById('passwordsKeyBtn').onclick = () => {
+  const senha = prompt('Digite a senha:');
+  if (senha === '774488') {
+    const novaSenha = prompt('Digite nova senha para um grupo:');
+    const projeto = prompt('Escolha o projeto (1 a 7):');
+    if (novaSenha && projeto >= 1 && projeto <= 7) {
+      db.collection('senhas').add({ senha: novaSenha, projeto }).then(() => alert('Senha cadastrada!'));
+    }
+  } else {
+    db.collection('senhas').where('senha', '==', senha).get().then(snapshot => {
+      if (!snapshot.empty) {
+        currentProject = snapshot.docs[0].data().projeto;
+        checkEditingLock(currentProject).then(isLocked => {
+          if (isLocked) {
+            alert('Alguém já está editando este projeto. Por favor, tente mais tarde.');
+          } else {
+            setEditingLock(currentProject, true);
+            isEditing = true;
+            localStorage.setItem('isEditing', 'true');
+            localStorage.setItem('currentProject', currentProject);
+            localStorage.setItem('senhaUsada', senha);
+            document.getElementById('logoutEditBtn').style.display = 'inline-block';
+            carregarProjetos();
+          }
+        });
+      } else alert('Senha inválida');
+    });
+  }
+};
+
+document.getElementById('logoutEditBtn').onclick = function() {
+  if (currentProject) setEditingLock(currentProject, false);
+  isEditing = false;
+  currentProject = null;
+  localStorage.removeItem('isEditing');
+  localStorage.removeItem('currentProject');
+  localStorage.removeItem('senhaUsada');
+  this.style.display = 'none';
+  carregarProjetos();
+};
+
+async function uploadToImageKit(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('fileName', file.name);
+  const response = await fetch(IMAGEKIT_UPLOAD_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Basic ' + btoa(IMAGEKIT_PRIVATE_KEY + ':')
+    },
+    body: formData
+  });
+  const data = await response.json();
+  return data.url;
+}
+
+function abrirMediaTelaCheia(url, tipo) {
+  const overlay = document.getElementById('media-overlay');
+  overlay.innerHTML = `
+    <${tipo === 'video' ? 'video' : 'img'} src="${url}" ${tipo === 'video' ? 'controls autoplay' : ''}>
+    <button class="close-btn">Fechar</button>
+  `;
+  overlay.style.display = 'flex';
+  overlay.querySelector('.close-btn').onclick = () => {
+    overlay.style.display = 'none';
+    overlay.innerHTML = '';
+  };
+}
+
+async function removerMidia(projNum, mediaUrl) {
+  const ref = db.collection('projetos').doc('projeto' + projNum);
+  const doc = await ref.get();
+  if (!doc.exists) return;
+
+  const medias = doc.data().medias || [];
+  const updatedMedias = medias.filter(media => media.url !== mediaUrl);
+
+  await ref.update({ medias: updatedMedias });
+  alert('Mídia removida com sucesso!');
+  carregarProjetos();
+}
+
+function criarFormularioEdicao(projNum, data) {
+  const form = document.createElement('div');
+  form.className = 'edit-panel';
+  form.innerHTML = `
+    <label>Grupo: <input type="text" id="grupo-${projNum}" value="${data.grupo || ''}" maxlength="50"></label>
+    <span id="erro-grupo-${projNum}" class="error"></span>
+    <label>Classe: <input type="text" id="classe-${projNum}" value="${data.classe || ''}" maxlength="50"></label>
+    <span id="erro-classe-${projNum}" class="error"></span>
+    <label>Resumo: <textarea id="resumo-${projNum}" maxlength="500">${data.resumo || ''}</textarea></label>
+    <span id="erro-resumo-${projNum}" class="error"></span>
+    <label>Intenção: <textarea id="intencao-${projNum}" maxlength="500">${data.intencao || ''}</textarea></label>
+    <span id="erro-intencao-${projNum}" class="error"></span>
+    <label>Finalidade: <textarea id="finalidade-${projNum}" maxlength="500">${data.finalidade || ''}</textarea></label>
+    <span id="erro-finalidade-${projNum}" class="error"></span>
+    <input type="file" id="file-${projNum}" multiple>
+    <span id="erro-file-${projNum}" class="error"></span>
+    <div id="quiz-container-${projNum}"></div>
+    <button onclick="adicionarPerguntaQuiz(${projNum})">Adicionar Quiz</button>
+    <button onclick="salvarTudo(${projNum})">Salvar Tudo</button>
+    <button onclick="cancelarEdicao(${projNum})" class="cancel-btn">Cancelar</button>
+  `;
+
+  form.querySelector(`#grupo-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'grupo', 50));
+  form.querySelector(`#classe-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'classe', 50));
+  form.querySelector(`#resumo-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'resumo', 500));
+  form.querySelector(`#intencao-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'intencao', 500));
+  form.querySelector(`#finalidade-${projNum}`).addEventListener('input', () => validarCampo(projNum, 'finalidade', 500));
+
+  if (data.quiz) {
+    data.quiz.forEach((q, idx) => adicionarPerguntaQuiz(projNum, q, idx));
+  }
+
+  return form;
+}
+
+function validarCampo(projNum, campo, maxLength) {
+  const input = document.getElementById(`${campo}-${projNum}`);
+  const erroSpan = document.getElementById(`erro-${campo}-${projNum}`);
+  const valor = input.value.trim();
+  
+  if (valor.length > maxLength) {
+    erroSpan.innerText = `Máximo de ${maxLength} caracteres.`;
+    return false;
+  } else {
+    erroSpan.innerText = '';
+    return true;
+  }
+}
+
+function cancelarEdicao(projNum) {
+  carregarProjetos();
+}
+
+function toggleFullscreen(projNum) {
+  const project = document.getElementById('projeto' + projNum);
+  if (project.classList.contains('fullscreen')) {
+    project.classList.remove('fullscreen');
+    project.querySelector('.fullscreen-btn').innerText = 'Expandir';
+    document.body.style.overflow = 'auto';
+  } else {
+    document.querySelectorAll('.project').forEach(p => p.classList.remove('fullscreen'));
+    project.classList.add('fullscreen');
+    project.querySelector('.fullscreen-btn').innerText = 'Minimizar';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function adicionarPerguntaQuiz(projNum, perguntaData = null, index = null) {
+  const container = document.getElementById(`quiz-container-${projNum}`);
+  if (!container) return;
+
+  const total = container.querySelectorAll('.quiz-box').length;
+  if (total >= 5 && perguntaData === null) {
+    alert('Máximo de 5 perguntas por quiz.');
+    return;
+  }
+
+  const idx = index !== null ? index : Date.now();
+  const div = document.createElement('div');
+  div.className = 'quiz-box';
+  div.id = `quiz-${projNum}-${idx}`;
+  div.style.marginTop = '20px';
+  div.style.padding = '10px';
+  div.style.border = '1px dashed #888';
+  div.style.borderRadius = '8px';
+  div.innerHTML = `
+    <label>Pergunta: <input type="text" id="pergunta-${projNum}-${idx}" value="${perguntaData ? perguntaData.pergunta : ''}" maxlength="300" /></label>
+    <label>A: <input type="text" id="a-${projNum}-${idx}" value="${perguntaData ? perguntaData.a : ''}" maxlength="200" /></label>
+    <label>B: <input type="text" id="b-${projNum}-${idx}" value="${perguntaData ? perguntaData.b : ''}" maxlength="200" /></label>
+    <label>C: <input type="text" id="c-${projNum}-${idx}" value="${perguntaData ? perguntaData.c : ''}" maxlength="200" /></label>
+    <label>Resposta Correta:
+      <select id="correta-${projNum}-${idx}">
+        <option value="A" ${perguntaData?.correta === 'A' ? 'selected' : ''}>A</option>
+        <option value="B" ${perguntaData?.correta === 'B' ? 'selected' : ''}>B</option>
+        <option value="C" ${perguntaData?.correta === 'C' ? 'selected' : ''}>C</option>
+      </select>
+    </label>
+    <button onclick="removerPerguntaQuiz(${projNum}, 'quiz-${projNum}-${idx}')">Remover</button>
+  `;
+  container.appendChild(div);
+}
+
+function removerPerguntaQuiz(projNum, id) {
+  const div = document.getElementById(id);
+  if (div) div.remove();
+}
+
+function coletarQuiz(projNum) {
+  const perguntas = [];
+  const container = document.getElementById(`quiz-container-${projNum}`);
+  if (!container) return perguntas;
+
+  container.querySelectorAll('.quiz-box').forEach(div => {
+    const id = div.id.split('-').pop();
+    const pergunta = document.getElementById(`pergunta-${projNum}-${id}`).value.trim();
+    const a = document.getElementById(`a-${projNum}-${id}`).value.trim();
+    const b = document.getElementById(`b-${projNum}-${id}`).value.trim();
+    const c = document.getElementById(`c-${projNum}-${id}`).value.trim();
+    const correta = document.getElementById(`correta-${projNum}-${id}`).value;
+
+    if (pergunta && a && b && c && correta) {
+      perguntas.push({ pergunta, a, b, c, correta });
+    }
+  });
+
+  return perguntas;
+}
+
+async function salvarTudo(projNum) {
+  const grupo = document.getElementById(`grupo-${projNum}`).value.trim();
+  const classe = document.getElementById(`classe-${projNum}`).value.trim();
+  const resumo = document.getElementById(`resumo-${projNum}`).value.trim();
+  const intencao = document.getElementById(`intencao-${projNum}`).value.trim();
+  const finalidade = document.getElementById(`finalidade-${projNum}`).value.trim();
+  const files = document.getElementById(`file-${projNum}`).files;
+
+  if (!validarCampo(projNum, 'grupo', 50) ||
+      !validarCampo(projNum, 'classe', 50) ||
+      !validarCampo(projNum, 'resumo', 500) ||
+      !validarCampo(projNum, 'intencao', 500) ||
+      !validarCampo(projNum, 'finalidade', 500)) {
+    return;
+  }
+
+  const ref = db.collection('projetos').doc('projeto' + projNum);
+  const doc = await ref.get();
+  let medias = doc.exists && doc.data().medias ? doc.data().medias : [];
+
+  if (files.length + medias.length > 5) {
+    document.getElementById(`erro-file-${projNum}`).innerText = 'Limite de 5 mídias por projeto.';
+    return;
+  }
+
+  for (let f of files) {
+    const url = await uploadToImageKit(f);
+    medias.push({ url, tipo: f.type.startsWith('video') ? 'video' : 'image' });
+  }
+
+  const quiz = coletarQuiz(projNum);
+
+  await ref.set({ 
+    grupo, 
+    classe, 
+    resumo, 
+    intencao, 
+    finalidade, 
+    medias,
+    quiz,
+    ultimaEdicao: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  alert('Informações, mídias e quiz atualizados!');
+  carregarProjetos();
+}
+
+function carregarProjetos() {
+  const container = document.getElementById('projectsContainer');
+  container.innerHTML = `
+    <div class="filtro">
+      <input type="text" id="filtro-projetos" placeholder="Filtrar Projeto (1-7)">
+      <select id="ordenar-projetos">
+        <option value="numero">Ordenar por Número</option>
+        <option value="grupo">Ordenar por Grupo</option>
+        <option value="ultima-edicao">Ordenar por Última Edição</option>
+      </select>
+    </div>
+  `;
+
+  for (let i = 1; i <= 7; i++) {
+    let projDiv = document.createElement('div');
+    projDiv.id = 'projeto' + i;
+    projDiv.className = 'project';
+    projDiv.dataset.projetoNum = i;
+    container.appendChild(projDiv);
+
+    db.collection('projetos').doc('projeto' + i).onSnapshot(doc => {
+      const data = doc.exists ? doc.data() : {};
+      projDiv.innerHTML = `
+        <h2>Projeto ${i}</h2>
+        <button class="fullscreen-btn" onclick="toggleFullscreen(${i})">Expandir</button>
+        <div class="info-top">
+          <div>Grupo: <span>${data.grupo || ''}</span></div>
+          <div>Classe: <span>${data.classe || ''}</span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-item">Resumo: <span>${data.resumo || ''}</span></div>
+          <div class="info-item">Intenção: <span>${data.intencao || ''}</span></div>
+          <div class="info-item">Finalidade: <span>${data.finalidade || ''}</span></div>
+        </div>
+        <div id="media-${i}" class="sortable-media"></div>
+        <div id="quiz-view-${i}"></div>
+        <div id="lock-${i}" class="editing-lock"></div>
+      `;
+
+      const mediaDiv = projDiv.querySelector(`#media-${i}`);
+      mediaDiv.innerHTML = '';
+      if (data.medias) {
+        data.medias.forEach((m, index) => {
+          const mediaContainer = document.createElement('div');
+          mediaContainer.className = 'media-container';
+          const el = document.createElement(m.tipo === 'video' ? 'video' : 'img');
+          el.src = m.url;
+          if (m.tipo === 'video') el.controls = true;
+          el.className = 'media-item';
+          el.onclick = (e) => {
+            if (!isEditing || Number(currentProject) !== i) {
+              abrirMediaTelaCheia(m.url, m.tipo);
+            }
+          };
+          mediaContainer.appendChild(el);
+
+          if (isEditing && Number(currentProject) === i) {
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-media-btn';
+            removeBtn.innerText = 'Remover';
+            removeBtn.onclick = () => removerMidia(i, m.url);
+            mediaContainer.appendChild(removeBtn);
+          }
+
+          mediaDiv.appendChild(mediaContainer);
+        });
+      }
+
+      if (isEditing && Number(currentProject) === i) {
+        projDiv.appendChild(criarFormularioEdicao(i, data));
+        new Sortable(mediaDiv, { 
+          animation: 150,
+          onStart: () => {
+            mediaDiv.querySelectorAll('.media-item').forEach(el => el.onclick = null);
+          },
+          onEnd: () => {
+            mediaDiv.querySelectorAll('.media-item').forEach((el, idx) => {
+              el.onclick = () => abrirMediaTelaCheia(data.medias[idx].url, data.medias[idx].tipo);
+            });
+          }
+        });
+      } else {
+        renderizarQuiz(i, data.quiz || []);
+      }
+    });
+
+    db.collection('locks').doc('projeto' + i).onSnapshot(lockDoc => {
+      const lockInfo = document.getElementById('lock-' + i);
+      if (lockDoc.exists && lockDoc.data().locked && !(isEditing && Number(currentProject) === i)) {
+        lockInfo.innerText = 'Outro usuário está editando este projeto.';
+      } else {
+        lockInfo.innerText = '';
+      }
+    });
+  }
+
+  configurarFiltroEOrdenacao();
+}
+
+function renderizarQuiz(projNum, quiz) {
+  const container = document.getElementById(`quiz-view-${projNum}`);
+  container.innerHTML = '';
+
+  if (!quiz || quiz.length === 0) return;
+
+  const title = document.createElement('h3');
+  title.innerText = 'Quiz do Projeto';
+  container.appendChild(title);
+
+  quiz.forEach((q, index) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-visual';
+    div.style.marginTop = '10px';
+    div.style.padding = '10px';
+    div.style.border = '1px solid #aaa';
+    div.style.borderRadius = '10px';
+    div.innerHTML = `
+      <p><strong>${index + 1}.</strong> ${q.pergunta}</p>
+      <button onclick="responderQuiz(this, '${q.correta}', 'A')">A) ${q.a}</button><br>
+      <button onclick="responderQuiz(this, '${q.correta}', 'B')">B) ${q.b}</button><br>
+      <button onclick="responderQuiz(this, '${q.correta}', 'C')">C) ${q.c}</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function responderQuiz(botao, correta, respostaEscolhida) {
+  const botoes = botao.parentElement.querySelectorAll('button');
+  botoes.forEach(b => b.disabled = true);
+  if (respostaEscolhida === correta) {
+    botao.style.backgroundColor = '#c8e6c9';
+    botao.style.border = '2px solid green';
+  } else {
+    botao.style.backgroundColor = '#ffcdd2';
+    botao.style.border = '2px solid red';
+    botoes.forEach(b => {
+      if (b.innerText.startsWith(correta + ')')) {
+        b.style.border = '2px solid green';
+        b.style.backgroundColor = '#c8e6c9';
+      }
+    });
+  }
+}
+
+function configurarFiltroEOrdenacao() {
+  document.getElementById('filtro-projetos').addEventListener('input', function() {
+    const filtro = this.value.toLowerCase();
+    document.querySelectorAll('.project').forEach(proj => {
+      const grupo = proj.querySelector('.info-top div:nth-child(1) span').innerText.toLowerCase();
+      const classe = proj.querySelector('.info-top div:nth-child(2) span').innerText.toLowerCase();
+      const numero = proj.dataset.projetoNum;
+      if (proj.classList.contains('fullscreen')) return;
+      proj.style.display = (grupo.includes(filtro) || classe.includes(filtro) || numero.includes(filtro)) ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('ordenar-projetos').addEventListener('change', function() {
+    const criterio = this.value;
+    const container = document.getElementById('projectsContainer');
+    const projetos = Array.from(container.querySelectorAll('.project'));
+
+    projetos.sort((a, b) => {
+      if (criterio === 'numero') {
+        return Number(a.dataset.projetoNum) - Number(b.dataset.projetoNum);
+      } else if (criterio === 'grupo') {
+        const grupoA = a.querySelector('.info-top div:nth-child(1) span').innerText.toLowerCase();
+        const grupoB = b.querySelector('.info-top div:nth-child(1) span').innerText.toLowerCase();
+        return grupoA.localeCompare(grupoB);
+      } else if (criterio === 'ultima-edicao') {
+        return 0; // Pode ser implementado se a data for exibida
+      }
+      return 0;
+    });
+
+    const filtroDiv = container.querySelector('.filtro');
+    container.innerHTML = '';
+    container.appendChild(filtroDiv);
+    projetos.forEach(proj => container.appendChild(proj));
+  });
+}
+
+// Lógica do gatinho (mantida intacta)
+(function() {
+  const Cat = {
+    nekoEl: null,
+    nekoPosX: -16,
+    nekoPosY: -16,
+    mousePosX: 0,
+    mousePosY: 0,
+    frameCount: 0,
+    idleTime: 0,
+    idleAnimation: null,
+    idleAnimationFrame: 0,
+    nekoSpeed: 12,
+
+    spriteSets: {
+      idle: [[-3, -3]],
+      alert: [[-7, -3]],
+      scratchSelf: [[-5, 0], [-6, 0], [-7, 0]],
+      scratchWallN: [[0, 0], [0, -1]],
+      scratchWallS: [[-7, -1], [-6, -2]],
+      scratchWallE: [[-2, -2], [-2, -3]],
+      scratchWallW: [[-4, 0], [-4, -1]],
+      tired: [[-3, -2]],
+      sleeping: [[-2, 0], [-2, -1]],
+      N: [[-1, -2], [-1, -3]],
+      NE: [[0, -2], [0, -3]],
+      E: [[-3, 0], [-3, -1]],
+      SE: [[-5, -1], [-5, -2]],
+      S: [[-6, -3], [-7, -2]],
+      SW: [[-5, -3], [-6, -1]],
+      W: [[-4, -2], [-4, -3]],
+      NW: [[-1, 0], [-1, -1]],
+    },
+
+    init: function() {
+      this.nekoEl = document.querySelector("#oneko");
+      if (!this.nekoEl) {
+        console.warn("Elemento #oneko não encontrado!");
+        return;
+      }
+      this.nekoEl.style.display = "block";
+      this.nekoEl.style.left = `${this.nekoPosX - 16}px`;
+      this.nekoEl.style.top = `${this.nekoPosY - 16}px`;
+
+      document.addEventListener('mousemove', (event) => {
+        this.mousePosX = event.clientX;
+        this.mousePosY = event.clientY;
+      });
+
+      window.setInterval(() => this.frame(), 100);
+    },
+
+    setSprite: function(name, frame) {
+      const sprite = this.spriteSets[name][frame % this.spriteSets[name].length];
+      this.nekoEl.style.backgroundPosition = `${sprite[0] * 32}px ${sprite[1] * 32}px`;
+    },
+
+    idle: function() {
+      this.idleTime += 1;
+
+      if (this.idleTime > 10 && Math.floor(Math.random() * 200) === 0 && this.idleAnimation === null) {
+        const availableIdleAnimations = ["sleeping", "scratchSelf"];
+        this.idleAnimation = availableIdleAnimations[Math.floor(Math.random() * availableIdleAnimations.length)];
+      }
+
+      switch (this.idleAnimation) {
+        case "sleeping":
+          this.setSprite("tired", 0);
+          if (++this.idleAnimationFrame > 192) this.idleAnimation = null;
+          break;
+        case "scratchSelf":
+          this.setSprite(this.idleAnimation, this.idleAnimationFrame);
+          if (++this.idleAnimationFrame > 9) this.idleAnimation = null;
+          break;
+        default:
+          this.setSprite("idle", 0);
+      }
+    },
+
+    frame: function() {
+      if (!this.nekoEl) return;
+      this.frameCount += 1;
+      const targetX = Math.min(Math.max(0, this.mousePosX), window.innerWidth);
+      const targetY = Math.min(Math.max(1, this.mousePosY - 32), window.innerHeight - 1);
+      const diffX = this.nekoPosX - targetX;
+      const diffY = this.nekoPosY - targetY;
+      const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
+
+      if (distance < this.nekoSpeed || (distance < 48 && Math.abs(diffY) < 16)) {
+        this.idle();
+        return;
+      }
+
+      this.idleAnimation = null;
+      this.idleAnimationFrame = 0;
+      const direction = (diffY / distance > 0.5 ? "N" : "") + (diffY / distance < -0.5 ? "S" : "") +
+        (diffX / distance > 0.5 ? "W" : "") + (diffX / distance < -0.5 ? "E" : "");
+      this.setSprite(direction, this.frameCount);
+
+      this.nekoPosX -= (diffX / distance) * this.nekoSpeed;
+      this.nekoPosY -= (diffY / distance) * this.nekoSpeed;
+
+      this.nekoPosX = Math.min(Math.max(16, this.nekoPosX), window.innerWidth - 16);
+      this.nekoPosY = Math.min(Math.max(16, this.nekoPosY), window.innerHeight - 16);
+
+      this.nekoEl.style.left = `${this.nekoPosX - 16}px`;
+      this.nekoEl.style.top = `${this.nekoPosY - 16}px`;
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      Cat.init();
+    } catch (e) {
+      console.error("Erro ao inicializar o gato:", e);
+    }
+  });
+})();
+
+</script>
+<footer style="text-align:center; margin-top:20px;">
+  © 2025 Projetos Sustentáveis
+</footer>
+</body>
+</html>
+
+
+
