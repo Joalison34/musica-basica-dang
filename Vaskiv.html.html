@@ -75,17 +75,19 @@
       z-index: -1;
     }
 
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: var(--secondary);
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      position: relative;
-      z-index: 1;
-      color: var(--text);
-    }
+     .container {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  background: var(--secondary);
+  padding: 20px;
+  border-radius: 0;
+  box-shadow: none;
+  position: relative;
+  z-index: 1;
+  color: var(--text);
+  box-sizing: border-box;
+}
 
     .summary {
       margin-bottom: 20px;
