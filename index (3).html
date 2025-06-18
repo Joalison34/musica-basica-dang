@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -211,6 +172,46 @@
             </div>
         </div>
     </div>
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+    </script>
     <script>
         const lyricsElement = document.getElementById('lyrics');
         const audio = document.getElementById('audio');
@@ -223,51 +224,51 @@
         // Delay inicial (zerado, pois timestamps são absolutos)
         const initialDelay = 0;
 
-        // Timestamps exatos baseados na música oficial do NCS
+        // Timestamps ajustados para cobrir 4min16s (256 segundos)
         const lyricsTimestamps = [
-            { id: 'line-0', time: 7.4 },   // "I don't wanna be"
-            { id: 'line-1', time: 12.0 },  // "Caught up inside..."
-            { id: 'line-2', time: 18.5 },  // "I would rather..."
-            { id: 'line-3', time: 27.0 },  // "Than to bring..."
-            { id: 'line-4', time: 33.0 },  // "It's all in..."
-            { id: 'line-5', time: 38.0 },  // "The voice in..."
-            { id: 'line-6', time: 40.0 },  // "The choices..."
-            { id: 'line-7', time: 40.2 },  // "The poison..."
-            { id: 'line-8', time: 44.8 } 
-            { id: 'line-9', time: 49.2 },
-            { id: 'line-10', time: 50.2 },
-            { id: 'line-11', time: 60.2 },
-            { id: 'line-12', time: 70.2 },
-            { id: 'line-13', time: 80.2 },
-            { id: 'line-14', time: 90.2 },
-            { id: 'line-15', time: 100.2 },
-            { id: 'line-16', time: 110.2 },
-            { id: 'line-17', time: 120.2 },
-            { id: 'line-18', time: 40.2 },
-            { id: 'line-19', time: 40.2 },
-            { id: 'line-20', time: 40.2 },
-            { id: 'line-21', time: 40.2 },
-            { id: 'line-22', time: 40.2 },
-            { id: 'line-23', time: 40.2 },
-            { id: 'line-24', time: 40.2 },
-            { id: 'line-25', time: 40.2 },
-            { id: 'line-26', time: 40.2 },
-            { id: 'line-27', time: 40.2 },
-            { id: 'line-28', time: 40.2 },
-            { id: 'line-29', time: 40.2 },
-            { id: 'line-30', time: 40.2 },
-            { id: 'line-31', time: 40.2 },
-            { id: 'line-32', time: 40.2 },
-            { id: 'line-33', time: 40.2 },
-            { id: 'line-34', time: 40.2 },
-            { id: 'line-35', time: 40.2 },
-            { id: 'line-36', time: 40.2 },
-            { id: 'line-37', time: 40.2 },
-            { id: 'line-38', time: 40.2 },
-            { id: 'line-39', time: 40.2 },
-            { id: 'line-40', time: 40.2 },
-            { id: 'line-41', time: 40.2 },
-            { id: 'line-42', time: 40.2 },
+            { id: 'line-0', time: 7.4 },
+            { id: 'line-1', time: 13.3 },
+            { id: 'line-2', time: 19.2 },
+            { id: 'line-3', time: 25.1 },
+            { id: 'line-4', time: 31.0 },
+            { id: 'line-5', time: 36.9 },
+            { id: 'line-6', time: 42.8 },
+            { id: 'line-7', time: 48.7 },
+            { id: 'line-8', time: 54.6 },
+            { id: 'line-9', time: 60.5 },
+            { id: 'line-10', time: 66.4 },
+            { id: 'line-11', time: 72.3 },
+            { id: 'line-12', time: 78.2 },
+            { id: 'line-13', time: 84.1 },
+            { id: 'line-14', time: 90.0 },
+            { id: 'line-15', time: 95.9 },
+            { id: 'line-16', time: 101.8 },
+            { id: 'line-17', time: 107.7 },
+            { id: 'line-18', time: 113.6 },
+            { id: 'line-19', time: 119.5 },
+            { id: 'line-20', time: 125.4 },
+            { id: 'line-21', time: 131.3 },
+            { id: 'line-22', time: 137.2 },
+            { id: 'line-23', time: 143.1 },
+            { id: 'line-24', time: 149.0 },
+            { id: 'line-25', time: 154.9 },
+            { id: 'line-26', time: 160.8 },
+            { id: 'line-27', time: 166.7 },
+            { id: 'line-28', time: 172.6 },
+            { id: 'line-29', time: 178.5 },
+            { id: 'line-30', time: 184.4 },
+            { id: 'line-31', time: 190.3 },
+            { id: 'line-32', time: 196.2 },
+            { id: 'line-33', time: 202.1 },
+            { id: 'line-34', time: 208.0 },
+            { id: 'line-35', time: 213.9 },
+            { id: 'line-36', time: 219.8 },
+            { id: 'line-37', time: 225.7 },
+            { id: 'line-38', time: 231.6 },
+            { id: 'line-39', time: 237.5 },
+            { id: 'line-40', time: 243.4 },
+            { id: 'line-41', time: 249.3 },
+            { id: 'line-42', time: 256.0 }
         ];
 
         // Traduções estilo Duolingo
