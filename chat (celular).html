@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat - Projetos Escolares</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #1C2526;
+      color: #E0E0E0;
+      margin: 0;
+      font-size: 14px;
+      overflow-x: hidden;
+    }
+    header {
+      background: linear-gradient(135deg, #00FF00, #1B5E20);
+      padding: 15px;
+      text-align: center;
+      color: #000;
+      box-shadow: 0 0 10px #00FF00;
+      position: relative;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    #config-btn {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: #000;
+      color: #00FF00;
+      border: 1px solid #00FF00;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #config-panel {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #2E2E2E;
+      border: 2px solid #00FF00;
+      border-radius: 10px;
+      padding: 15px;
+      z-index: 100;
+    }
+    #config-panel button {
+      display: block;
+      margin: 10px 0;
+      width: 100%;
+      background: #00FF00;
+      color: #000;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #close-config {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      color: #00FF00;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .container {
+      width: 280px;
+      margin: 20px auto;
+      padding: 10px;
+      background: rgba(46, 46, 46, 0.9);
+      border: 2px solid #00FF00;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    }
+    .chat-box {
+      height: 360px;
+      overflow-y: auto;
+      border: 1px solid #00FF00;
+      padding: 10px;
+      background: #2E2E2E;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-message {
+      max-width: 80%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 10px;
+      background: #00FF00;
+      color: #000;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+      word-wrap: break-word;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .chat-message img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #00FF00;
+    }
+    .chat-message-content {
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+    }
+    .chat-message.outro {
+      background: rgba(0, 255, 0, 0.1);
+      color: #E0E0E0;
+      align-self: flex-start;
+      border-radius: 10px 10px 10px 0;
+      flex-direction: row;
+    }
+    .chat-message.eu {
+      background: #00FF00;
+      color: #000;
+      align-self: flex-end;
+      border-radius: 10px 10px 0 10px;
+      flex-direction: row-reverse;
+    }
+    .msg-nome {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .msg-hora {
+      font-size: 10px;
+      text-align: right;
+      margin-top: 4px;
+      opacity: 0.6;
+    }
+    .chat-input {
+      display: flex;
+      gap: 10px;
+    }
+    .chat-input input {
+      flex-grow: 1;
+      padding: 10px;
+      background: #2E2E2E;
+      border: 1px solid #00FF00;
+      border-radius: 8px;
+      color: #E0E0E0;
+    }
+    .chat-input button {
+      background: #00FF00;
+      color: #000;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Chat Escolar</h1>
+    <button id="config-btn">⚙️</button>
+  </header>
+
+  <div id="config-panel">
+    <span id="close-config">✖</span>
+    <button id="trocar-nome">Trocar Nome</button>
+    <button id="trocar-foto">Trocar Foto de Perfil</button>
+    <input type="file" id="foto-input" accept="image/*" style="display:none;">
+  </div>
+
+  <div class="container">
+    <div class="chat-box" id="chat-output"></div>
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Digite sua mensagem...">
+      <button id="send-btn">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    const IMAGEKIT_ID = 'lksjdf7sd';
+    const IMAGEKIT_PRIVATE_KEY = 'private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=';
+    const IMAGEKIT_UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload';
+
+    async function solicitarNomeFoto() {
+      let nome;
+      while (!nome || nome.trim() === '') {
+        nome = prompt('Como você quer ser chamado?');
+      }
+      localStorage.setItem('nomeUsuario', nome.trim());
+
+      const addFoto = confirm("Deseja adicionar uma foto de perfil?");
+      if (addFoto) document.getElementById("foto-input").click();
+    }
+
+    if (!localStorage.getItem("nomeUsuario")) solicitarNomeFoto();
+  </script>
+
+  <script>
+    const configBtn = document.getElementById("config-btn");
+    const configPanel = document.getElementById("config-panel");
+    const closeConfig = document.getElementById("close-config");
+    const trocarNomeBtn = document.getElementById("trocar-nome");
+    const trocarFotoBtn = document.getElementById("trocar-foto");
+    const fotoInput = document.getElementById("foto-input");
+
+    configBtn.onclick = () => configPanel.style.display = "block";
+    closeConfig.onclick = () => configPanel.style.display = "none";
+
+    trocarNomeBtn.onclick = () => {
+      localStorage.removeItem("nomeUsuario");
+      location.reload();
+    };
+
+    trocarFotoBtn.onclick = () => fotoInput.click();
+
+    fotoInput.addEventListener("change", async () => {
+      const file = fotoInput.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", file.name);
+      formData.append("publicKey", IMAGEKIT_ID);
+
+      const response = await fetch(IMAGEKIT_UPLOAD_URL, {
+        method: "POST",
+        headers: {
+          Authorization: "Basic " + btoa(IMAGEKIT_PRIVATE_KEY + ":")
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      if (data && data.url) {
+        localStorage.setItem("fotoPerfil", data.url);
+        alert("Foto atualizada com sucesso!");
+      } else {
+        alert("Erro ao enviar a imagem");
+      }
+    });
+  </script>
+
+  <script>
+    const nomeUsuario = localStorage.getItem("nomeUsuario") || "Anônimo";
+    const fotoPerfil = localStorage.getItem("fotoPerfil") || "https://via.placeholder.com/28";
+    const chatOutput = document.getElementById("chat-output");
+    const sendBtn = document.getElementById("send-btn");
+    const userInput = document.getElementById("user-input");
+
+    function adicionarMensagem(texto, autor = "eu") {
+      const msg = document.createElement("div");
+      msg.classList.add("chat-message", autor);
+
+      const img = document.createElement("img");
+      img.src = fotoPerfil;
+
+      const content = document.createElement("div");
+      content.classList.add("chat-message-content");
+
+      const nome = document.createElement("div");
+      nome.classList.add("msg-nome");
+      nome.textContent = nomeUsuario;
+
+      const corpo = document.createElement("div");
+      corpo.textContent = texto;
+
+      const hora = document.createElement("div");
+      hora.classList.add("msg-hora");
+      hora.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      content.appendChild(nome);
+      content.appendChild(corpo);
+      content.appendChild(hora);
+
+      msg.appendChild(img);
+      msg.appendChild(content);
+      chatOutput.appendChild(msg);
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+    }
+
+    sendBtn.addEventListener("click", () => {
+      const texto = userInput.value.trim();
+      if (texto !== "") {
+        adicionarMensagem(texto, "eu");
+        userInput.value = "";
+      }
+    });
+
+    userInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
