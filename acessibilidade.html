@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Look for More</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+            transition: background-color 0.3s, color 0.3s; /* Adicionado para transições suaves */
+        }
+        header {
+            background: #4B0082;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        section {
+            padding: 20px;
+            margin: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        section:hover {
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+        footer {
+            text-align: center;
+            padding: 15px;
+            background: #4B0082;
+            color: white;
+            margin-top: 20px;
+        }
+        .accessibility-menu {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            z-index: 100;
+        }
+        .accessibility-button {
+            cursor: pointer;
+            padding: 8px 12px;
+            background: #4B0082;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .accessibility-button:hover {
+            background: #6A0DAD;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+        }
+        .modal-content button {
+            margin: 5px;
+            padding: 10px;
+        }
+        .music-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Look for More</h1>
+</header>
+
+<div class="accessibility-menu">
+    <button class="accessibility-button" onclick="openModal()">Acessibilidade</button>
+</div>
+
+<div class="modal" id="accessibilityModal">
+    <div class="modal-content">
+        <h2>Acessibilidade</h2>
+        <button onclick="changeFontSize('increase')">A+</button>
+        <button onclick="changeFontSize('decrease')">A-</button>
+        <button onclick="toggleHighContrast()">Alto Contraste</button>
+        <button onclick="closeModal()">Fechar</button>
+    </div>
+</div>
+
+<section>
+    <h2>Bem-vindos à Unidade Musical!</h2>
+    <p>Olá, estudantes!</p>
+    <p>Sou Camila Pessôa e acompanharei vocês nessa jornada.</p>
+    <p>Audiodescrição: Camila se declara como uma mulher branca. Ela usa óculos de armação transparente, tem cabelos longos, escuros e de pontas cacheadas, e está vestindo uma camisa preta. Ao fundo, uma parede com iluminação LED azul e roxa.</p>
+    <img src="https://tse2.mm.bing.net/th/id/OIP.9Yyj3XEaY3bfQIFsIWbiQwHaEK?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Imagem Musical 1" class="music-image">
+</section>
+
+<section>
+    <h2>Conhecendo o Projeto</h2>
+    <p>Nessa unidade, aprenderemos sobre a importância da acessibilidade. Ela torna o conteúdo e os recursos disponíveis para todas as pessoas.</p>
+    <p>Nosso projeto será a refatoração de um site implementando recursos de acessibilidade. Além disso, criaremos conteúdo com licenças Creative Commons.</p>
+    <p>Escolhi o tema "Tropicália", mas você pode escolher o que mais gosta, como k-pop, sertanejo, rap ou rock.</p>
+</section>
+
+<section>
+    <h2>Funcionalidades do Site</h2>
+    <p>As seções do site apresentam transições suaves. Ao atualizar a página e rolar até o final, cada seção aparece de forma graciosa, proporcionando uma experiência de navegação agradável.</p>
+    <img src="https://tse2.mm.bing.net/th/id/OIP.3nmcbzlkvIg39KrjhCptcAHaDt?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Imagem Musical 2" class="music-image">
+</section>
+
+<section>
+    <h2>Experiência de Acessibilidade</h2>
+    <p>Com o menu de acessibilidade, você pode aumentar ou diminuir o tamanho das fontes para tornar a leitura mais confortável. O botão de alto contraste altera as cores da página para garantir melhor visibilidade.</p>
+</section>
+
+<footer>
+    <p>&copy; 2025 Look for More. Todos os direitos reservados.</p>
+</footer>
+
+<script>
+    let currentFontSize = 16; // Tamanho padrão da fonte
+
+    function changeFontSize(action) {
+        if (action === 'increase') {
+            currentFontSize += 2;
+        } else if (action === 'decrease') {
+            currentFontSize -= 2;
+        }
+        document.body.style.fontSize = currentFontSize + 'px';
+    }
+
+    let highContrastEnabled = false;
+
+    function toggleHighContrast() {
+        if (!highContrastEnabled) {
+            document.body.style.backgroundColor = '#000'; // Fundo preto
+            document.body.style.color = '#FFF'; // Texto branco
+            // Altera o fundo das seções
+            const sections = document.querySelectorAll('section');
+            sections.forEach(section => {
+                section.style.backgroundColor = '#222'; // Fundo das seções mais escuro
+                section.style.color = '#FFF'; // Texto branco nas seções
+            });
+            highContrastEnabled = true;
+        } else {
+            document.body.style.backgroundColor = '#f0f0f0'; // Fundo original
+            document.body.style.color = '#333'; // Texto original
+            // Restaura o fundo das seções
+            const sections = document.querySelectorAll('section');
+            sections.forEach(section => {
+                section.style.backgroundColor = '#fff'; // Fundo original das seções
+                section.style.color = '#333'; // Texto original nas seções
+            });
+            highContrastEnabled = false;
+        }
+    }
+
+    function openModal() {
+        document.getElementById("accessibilityModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("accessibilityModal").style.display = "none";
+    }
+</script>
+
+</body>
+</html>
