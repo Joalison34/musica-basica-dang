@@ -90,21 +90,58 @@ function createAutomationPanel() {
 
 async function checkTasks() {
   taskData = [];
-  const tasks = Array.from(document.querySelectorAll('[data-testid="assignment-card"]')).map(task => ({
-    link: task.querySelector('a')?.href,
-    title: task.querySelector('h3')?.innerText || 'Tarefa sem título',
-    topic: task.querySelector('[data-testid="assignment-card-topic"]')?.innerText || 'Tópico não identificado'
-  }));
+  document.getElementById('task-progress').innerText = 'Analisando...';
+  await delay(500); // Pequeno delay para garantir DOM estável
 
-  if (tasks.length === 0) {
-    sendToast('⚠️｜Nenhuma tarefa encontrada!', 5000);
+  // Forçar clique em aba "Anterior" se disponível
+  const anteriorTab = document.querySelector('[data-testid="tab-anterior"]');
+  if (anteriorTab) anteriorTab.click();
+
+  // Busca agressiva por tarefas, incluindo elementos ocultos
+  const allTasks = Array.from(document.querySelectorAll('[data-testid="assignment-card"], [data-testid*="task-card"]'))
+    .filter(task => {
+      const style = window.getComputedStyle(task);
+      return style.display !== 'none' || style.visibility !== 'hidden' || task.offsetParent !== null;
+    })
+    .map(task => {
+      const link = task.querySelector('a')?.href;
+      const title = task.querySelector('h3, [data-testid="task-title"]')?.innerText || 'Tarefa sem título';
+      const topic = task.querySelector('[data-testid="assignment-card-topic"], [data-testid="task-topic"]')?.innerText || 'Tópico não identificado';
+      return { link, title, topic };
+    });
+
+  if (allTasks.length === 0) {
+    // Tenta carregar mais tarefas via requisições ou expansões
+    const expandButtons = document.querySelectorAll('[data-testid*="expand"], button');
+    for (const btn of expandButtons) {
+      btn.click();
+      await delay(300);
+    }
+    const retryTasks = Array.from(document.querySelectorAll('[data-testid="assignment-card"], [data-testid*="task-card"]'))
+      .filter(task => {
+        const style = window.getComputedStyle(task);
+        return style.display !== 'none' || style.visibility !== 'hidden' || task.offsetParent !== null;
+      })
+      .map(task => {
+        const link = task.querySelector('a')?.href;
+        const title = task.querySelector('h3, [data-testid="task-title"]')?.innerText || 'Tarefa sem título';
+        const topic = task.querySelector('[data-testid="assignment-card-topic"], [data-testid="task-topic"]')?.innerText || 'Tópico não identificado';
+        return { link, title, topic };
+      });
+
+    if (retryTasks.length > 0) allTasks.push(...retryTasks);
+  }
+
+  if (allTasks.length === 0) {
+    sendToast('⚠️｜Nenhuma tarefa encontrada, mesmo após análise profunda!', 5000);
+    document.getElementById('task-progress').innerText = 'Nenhuma tarefa iniciada';
     return;
   }
 
-  const topics = [...new Set(tasks.map(t => t.topic))];
+  const topics = [...new Set(allTasks.map(t => t.topic))];
   taskData = topics.map(topic => ({
     topic,
-    tasks: tasks.filter(t => t.topic === topic)
+    tasks: allTasks.filter(t => t.topic === topic)
   }));
 
   const taskList = document.getElementById('task-list');
@@ -123,7 +160,8 @@ async function checkTasks() {
     btn.addEventListener('click', () => startAutomation(btn.dataset.topic))
   );
 
-  sendToast('🔥｜Tarefas verificadas! Escolha um tópico ou inicie tudo.', 3000);
+  sendToast(`🔥｜${allTasks.length} tarefas encontradas em ${topics.length} tópicos!`, 3000);
+  document.getElementById('task-progress').innerText = 'Tarefas verificadas!';
 }
 
 async function startAutomation(specificTopic = null) {
@@ -284,4 +322,4 @@ if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
     sendToast("🔥｜Injetando Scripts por Joalison iniciado!", 5000);
     console.clear();
   })();
-                                   }
+        }
