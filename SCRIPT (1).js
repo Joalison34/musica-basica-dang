@@ -37,9 +37,9 @@ new MutationObserver(mutationsList =>
   mutationsList.some(m => m.type === 'childList') && plppdo.emit('domChanged')
 ).observe(document.body, { childList: true, subtree: true });
 
-const delay = ms => new Promise(resolve => setTimeout(resolve, Math.random() * ms + 500));
-const findAndClickBySelector = selector => {
-  const element = document.querySelector(selector);
+const delay = ms => new Promise(resolve => setTimeout(resolve, Math.random() * 100 + ms));
+const findAndClickBySelector = (selector, parent = document) => {
+  const element = parent.querySelector(selector);
   if (element) {
     element.click();
     return true;
@@ -121,18 +121,30 @@ async function startAutomation() {
 
   const tasks = Array.from(document.querySelectorAll('[data-testid="assignment-card"]')).map(task => ({
     link: task.querySelector('a')?.href,
-    title: task.querySelector('h3')?.innerText || 'Tarefa sem título'
+    title: task.querySelector('h3')?.innerText || 'Tarefa sem título',
+    element: task
   }));
+
+  if (tasks.length === 0) {
+    sendToast('⚠️｜Nenhuma tarefa encontrada!', 5000);
+    isAutomating = false;
+    startButton.style.display = 'inline-block';
+    pauseButton.style.display = 'none';
+    return;
+  }
 
   const taskList = document.getElementById('task-list');
   taskList.innerHTML = tasks.map(task => `<li>${task.title}</li>`).join('');
 
   for (let i = 0; i < tasks.length && isAutomating; i++) {
     document.getElementById('task-progress').innerText = `Processando tarefa ${i + 1}/${tasks.length}: ${tasks[i].title}`;
-    window.location.href = tasks[i].link;
-    await delay(3000);
-    await automateTask();
-    sendToast(`🔥｜Tarefa ${i + 1} concluída!`, 2000);
+    try {
+      await processTask(tasks[i]);
+      sendToast(`🔥｜Tarefa ${i + 1} concluída!`, 2000);
+    } catch (e) {
+      sendToast(`⚠️｜Erro na tarefa ${i + 1}: ${e.message}`, 5000);
+    }
+    await delay(300);
   }
 
   if (isAutomating) {
@@ -140,7 +152,6 @@ async function startAutomation() {
     document.getElementById('task-progress').innerText = 'Todas as tarefas concluídas!';
     startButton.style.display = 'inline-block';
     pauseButton.style.display = 'none';
-    window.location.href = 'https://pt.khanacademy.org/';
   }
 }
 
@@ -151,7 +162,12 @@ function togglePause() {
   sendToast(isAutomating ? '🔥｜Automação retomada!' : '⏸️｜Automação pausada.', 2000);
 }
 
-async function automateTask() {
+async function processTask(task) {
+  const response = await fetch(task.link);
+  const html = await response.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
   const selectors = [
     `[data-testid="choice-icon__library-choice-icon"]`,
     `[data-testid="exercise-check-answer"]`,
@@ -160,17 +176,16 @@ async function automateTask() {
     `._awve9b`
   ];
 
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 30; i++) {
     for (const selector of selectors) {
-      if (findAndClickBySelector(selector)) {
-        const element = document.querySelector(`${selector}> div`);
+      if (findAndClickBySelector(selector, doc)) {
+        const element = doc.querySelector(`${selector}> div`);
         if (element?.innerText === "Mostrar resumo") {
-          sendToast("🎉｜Exercício concluído!", 3000);
           return;
         }
       }
     }
-    await delay(1500);
+    await delay(300);
   }
 }
 
@@ -272,4 +287,4 @@ if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
     sendToast("🔥｜Injetando Scripts iniciado!");
     console.clear();
   })();
-}
+             }
