@@ -285,20 +285,16 @@
       carregarMensagens();
     }
 
-    authDb.collection("destruiuter").doc(userName)
+    if (userName) {
+  authDb.collection("destruiuter").doc(userName)
     .onSnapshot(doc => {
       if (!doc.exists) {
-        // Força estado de deslogado
+        // Se a conta sumiu, desloga forçado
         localStorage.removeItem("chatUser");
-        document.getElementById("chatContainer").innerHTML = "";
-        document.getElementById("messageInput").disabled = true;
-        document.getElementById("authModal").style.display = "flex";
+        location.reload();
       }
     });
 }
-
-// Já começa a escutar se a página abriu logada
-startUserWatcher();
 
     function ativarModoDono() {
       modoDono = true;
