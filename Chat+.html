@@ -285,6 +285,21 @@
       carregarMensagens();
     }
 
+    authDb.collection("destruiuter").doc(userName)
+    .onSnapshot(doc => {
+      if (!doc.exists) {
+        // Força estado de deslogado
+        localStorage.removeItem("chatUser");
+        document.getElementById("chatContainer").innerHTML = "";
+        document.getElementById("messageInput").disabled = true;
+        document.getElementById("authModal").style.display = "flex";
+      }
+    });
+}
+
+// Já começa a escutar se a página abriu logada
+startUserWatcher();
+
     function ativarModoDono() {
       modoDono = true;
       alert("🔥 Modo Dono ativado! A próxima conta criada será DONO ABSOLUTO.");
