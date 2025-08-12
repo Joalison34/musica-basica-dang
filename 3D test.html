@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quase Jogo 3D — WebGL + Setas</title>
+  <style>
+    /* === ESTILO EMBUTIDO (leve) === */
+    html, body { height: 100%; margin: 0; background: #87b5ff; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; overflow: hidden; }
+    #hud {
+      position: fixed; inset: 0 0 auto 0; display: flex; justify-content: center; margin-top: 8px; pointer-events: none;
+      font-size: 14px; color: #063; text-shadow: 0 1px 0 #fff8; font-weight: 600;
+    }
+    #hud > div { background: #ffffffcc; border: 1px solid #0001; border-radius: 12px; padding: 6px 10px; backdrop-filter: blur(4px); }
+    #hud kbd { background: #eee; border: 1px solid #ccc; border-bottom-width: 2px; border-radius: 6px; padding: 2px 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    #game { display:block; width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="hud"><div>
+    Use as setas do teclado: <kbd>↑</kbd> / <kbd>↓</kbd> para mover e <kbd>←</kbd> / <kbd>→</kbd> para girar. 
+    FPS <span id="fps">...</span>
+  </div></div>
+
+  <script>
+  // === JAVASCRIPT (≈60% do código) — WebGL minimalista com terreno tipo "mato" procedural ===
+  (function(){
+    const canvas = document.getElementById('game');
+    const gl = canvas.getContext('webgl', { antialias: true, alpha: false, stencil: false, depth: true });
+    if(!gl){ alert('WebGL não suportado.'); return; }
+
+    // --- Resize helper ---
+    function resize(){
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.floor(innerWidth * dpr);
+      const h = Math.floor(innerHeight * dpr);
+      if(canvas.width !== w || canvas.height !== h){
+        canvas.width = w; canvas.height = h; gl.viewport(0,0,w,h);
+      }
+    }
+    window.addEventListener('resize', resize); resize();
+
+    // --- Util: criação de shader/programa ---
+    function compile(type, source){
+      const s = gl.createShader(type); gl.shaderSource(s, source); gl.compileShader(s);
+      if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)){
+        console.error(gl.getShaderInfoLog(s)); throw new Error('Falha ao compilar shader');
+      }
+      return s;
+    }
+    function link(vsSrc, fsSrc){
+      const p = gl.createProgram();
+      gl.attachShader(p, compile(gl.VERTEX_SHADER, vsSrc));
+      gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fsSrc));
+      gl.linkProgram(p);
+      if(!gl.getProgramParameter(p, gl.LINK_STATUS)){
+        console.error(gl.getProgramInfoLog(p)); throw new Error('Falha ao linkar programa');
+      }
+      return p;
+    }
+
+    // --- Mini lib de mat4 (só o necessário) ---
+    const Mat4 = {
+      ident(){ return [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]; },
+      mul(a,b){
+        const o = new Array(16);
+        for(let r=0;r<4;r++){
+          for(let c=0;c<4;c++){
+            o[c*4+r] = a[r]   * b[c*4]   + a[r+4] * b[c*4+1] + a[r+8] * b[c*4+2] + a[r+12]*b[c*4+3];
+          }
+        }
+        return o;
+      },
+      perspective(fovy, aspect, near, far){
+        const f = 1/Math.tan(fovy/2), nf = 1/(near - far);
+        return [
+          f/aspect,0,0,0,
+          0,f,0,0,
+          0,0,(far+near)*nf,-1,
+          0,0,(2*far*near)*nf,0
+        ];
+      },
+      translate(m, v){ const [x,y,z]=v; const t = [...m]; t[12]+= m[0]*x + m[4]*y + m[8]*z; t[13]+= m[1]*x + m[5]*y + m[9]*z; t[14]+= m[2]*x + m[6]*y + m[10]*z; t[15]+= m[3]*x + m[7]*y + m[11]*z; return t; },
+      rotateY(m, rad){
+        const c=Math.cos(rad), s=Math.sin(rad);
+        const r=[ c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1 ];
+        return Mat4.mul(m,r);
+      },
+      lookAt(eye, center, up){
+        const [ex,ey,ez]=eye, [cx,cy,cz]=center, [ux,uy,uz]=up;
+        let zx=ex-cx, zy=ey-cy, zz=ez-cz; const zl=1/Math.hypot(zx,zy,zz); zx*=zl; zy*=zl; zz*=zl;
+        let xx=uy*zz-uz*zy, xy=uz*zx-ux*zz, xz=ux*zy-uy*zx; const xl=1/Math.hypot(xx,xy,xz); xx*=xl; xy*=xl; xz*=xl;
+        const yx=zy*xz-zz*xy, yy=zz*xx-zx*xz, yz=zx*xy-zy*xx;
+        return [
+          xx, yx, zx, 0,
+          xy, yy, zy, 0,
+          xz, yz, zz, 0,
+          -(xx*ex+xy*ey+xz*ez), -(yx*ex+yy*ey+yz*ez), -(zx*ex+zy*ey+zz*ez), 1
+        ];
+      }
+    };
+
+    // --- Shaders: chão (plano) e cubos ---
+    const vs = `
+      attribute vec3 aPos; // posição do vértice no modelo
+      attribute vec3 aNormal;
+      uniform mat4 uProj, uView, uModel;
+      uniform vec3 uWorldOffset; // para o chão infinito mover sob o player
+      varying vec3 vWorldPos;
+      varying float vLambert;
+      void main(){
+        vec3 world = (uModel * vec4(aPos + uWorldOffset, 1.0)).xyz;
+        vWorldPos = world;
+        // luz simples
+        vec3 L = normalize(vec3(0.4, 1.0, 0.3));
+        vec3 N = normalize((uModel * vec4(aNormal,0.0)).xyz);
+        vLambert = max(dot(N,L)*0.7+0.3, 0.1);
+        gl_Position = uProj * uView * vec4(world, 1.0);
+      }
+    `;
+
+    const fs = `
+      precision mediump float;
+      varying vec3 vWorldPos;
+      varying float vLambert;
+      uniform vec3 uFogColor;
+      uniform float uFogNear;
+      uniform float uFogFar;
+      uniform int uIsGround; // 1 = chão (mato), 0 = objeto
+
+      // Padrão de "mato" leve baseado em quadriculado com ruído barato
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+      float noise(vec2 p){
+        vec2 i = floor(p), f = fract(p);
+        float a = hash(i);
+        float b = hash(i+vec2(1.0,0.0));
+        float c = hash(i+vec2(0.0,1.0));
+        float d = hash(i+vec2(1.0,1.0));
+        vec2 u = f*f*(3.0-2.0*f);
+        return mix(a,b,u.x) + (c-a)*u.y*(1.0-u.x) + (d-b)*u.x*u.y;
+      }
+
+      void main(){
+        vec3 baseColor;
+        if(uIsGround==1){
+          // Repetição suave por world XZ
+          float tile = 2.0; // tamanho do tile
+          vec2 uv = vWorldPos.xz / tile;
+          float checker = step(0.5, fract(uv.x*0.5)+fract(uv.y*0.5));
+          float n = noise(uv*6.0);
+          vec3 grassA = vec3(0.15, 0.45, 0.12);
+          vec3 grassB = vec3(0.10, 0.38, 0.10);
+          baseColor = mix(grassA, grassB, checker*0.4 + n*0.25);
+          baseColor *= vLambert;
+        } else {
+          baseColor = vec3(0.6, 0.6, 0.65) * vLambert; // cubos cinzas claros
+        }
+
+        // Fog linear simples baseado na distância Z (aprox pela posição mundial)
+        float dist = length(vWorldPos);
+        float fog = clamp((uFogFar - dist) / (uFogFar - uFogNear), 0.0, 1.0);
+        vec3 color = mix(uFogColor, baseColor, fog);
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `;
+
+    const program = link(vs, fs);
+    gl.useProgram(program);
+
+    const loc = {
+      aPos: gl.getAttribLocation(program, 'aPos'),
+      aNormal: gl.getAttribLocation(program, 'aNormal'),
+      uProj: gl.getUniformLocation(program, 'uProj'),
+      uView: gl.getUniformLocation(program, 'uView'),
+      uModel: gl.getUniformLocation(program, 'uModel'),
+      uWorldOffset: gl.getUniformLocation(program, 'uWorldOffset'),
+      uFogColor: gl.getUniformLocation(program, 'uFogColor'),
+      uFogNear: gl.getUniformLocation(program, 'uFogNear'),
+      uFogFar: gl.getUniformLocation(program, 'uFogFar'),
+      uIsGround: gl.getUniformLocation(program, 'uIsGround'),
+    };
+
+    // --- Geometrias ---
+    // Chão: um quad grande centrado em (0,0) no eixo XZ
+    const ground = (()=>{
+      const size = 200.0; // grande, mas movemos sob o player
+      const y = 0.0;
+      //       X,    Y,  Z
+      const pos = new Float32Array([
+        -size, y, -size,
+         size, y, -size,
+        -size, y,  size,
+        -size, y,  size,
+         size, y, -size,
+         size, y,  size,
+      ]);
+      const normal = new Float32Array(Array(6).fill([0,1,0]).flat());
+      const vao = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vao); gl.bufferData(gl.ARRAY_BUFFER, pos, gl.STATIC_DRAW);
+      const nbo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, nbo); gl.bufferData(gl.ARRAY_BUFFER, normal, gl.STATIC_DRAW);
+      return {pos: vao, nor: nbo, count: 6};
+    })();
+
+    // Cubo unitário (centrado), para obstáculos
+    const cube = (()=>{
+      const p = [
+        // frente
+        -0.5,-0.5, 0.5,  0.5,-0.5, 0.5,  -0.5, 0.5, 0.5,
+        -0.5, 0.5, 0.5,  0.5,-0.5, 0.5,   0.5, 0.5, 0.5,
+        // trás
+        -0.5,-0.5,-0.5, -0.5, 0.5,-0.5,   0.5,-0.5,-0.5,
+        -0.5, 0.5,-0.5,  0.5, 0.5,-0.5,   0.5,-0.5,-0.5,
+        // esquerda
+        -0.5,-0.5,-0.5, -0.5,-0.5, 0.5,  -0.5, 0.5,-0.5,
+        -0.5, 0.5,-0.5, -0.5,-0.5, 0.5,  -0.5, 0.5, 0.5,
+        // direita
+         0.5,-0.5,-0.5,  0.5, 0.5,-0.5,   0.5,-0.5, 0.5,
+         0.5, 0.5,-0.5,  0.5, 0.5, 0.5,   0.5,-0.5, 0.5,
+        // topo
+        -0.5, 0.5,-0.5, -0.5, 0.5, 0.5,   0.5, 0.5,-0.5,
+        -0.5, 0.5, 0.5,  0.5, 0.5, 0.5,    0.5, 0.5,-0.5,
+        // base
+        -0.5,-0.5,-0.5,  0.5,-0.5,-0.5,  -0.5,-0.5, 0.5,
+        -0.5,-0.5, 0.5,   0.5,-0.5,-0.5,   0.5,-0.5, 0.5,
+      ];
+      const n = [
+        // frente
+        0,0,1, 0,0,1, 0,0,1,  0,0,1, 0,0,1, 0,0,1,
+        // trás
+        0,0,-1,0,0,-1,0,0,-1, 0,0,-1,0,0,-1,0,0,-1,
+        // esquerda
+        -1,0,0,-1,0,0,-1,0,0, -1,0,0,-1,0,0,-1,0,0,
+        // direita
+        1,0,0,1,0,0,1,0,0, 1,0,0,1,0,0,1,0,0,
+        // topo
+        0,1,0,0,1,0,0,1,0, 0,1,0,0,1,0,0,1,0,
+        // base
+        0,-1,0,0,-1,0,0,-1,0, 0,-1,0,0,-1,0,0,-1,0,
+      ];
+      const pos = new Float32Array(p);
+      const nor = new Float32Array(n);
+      const pbo = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, pbo); gl.bufferData(gl.ARRAY_BUFFER, pos, gl.STATIC_DRAW);
+      const nbo = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, nbo); gl.bufferData(gl.ARRAY_BUFFER, nor, gl.STATIC_DRAW);
+      return {pos:pbo, nor:nbo, count: p.length/3};
+    })();
+
+    // --- Estado do "jogo" ---
+    const state = {
+      cam: { x: 0, y: 1.4, z: 4, rotY: 0 }, // câmera simples
+      speed: 6.0, // m/s
+      turnSpeed: 2.2, // rad/s
+      keys: { up:false, down:false, left:false, right:false },
+      obstacles: []
+    };
+
+    // cria alguns cubos como "alvos" espalhados (leve)
+    for(let i=0;i<24;i++){
+      const ang = (i/24)*Math.PI*2;
+      const r = 8 + (i%5);
+      state.obstacles.push({ x: Math.cos(ang)*r, y:0.5, z: Math.sin(ang)*r, s: 1 + ((i*13)%3)*0.3 });
+    }
+
+    // --- Input: setas ---
+    window.addEventListener('keydown', e=>{
+      if(e.key==='ArrowUp') state.keys.up=true;
+      if(e.key==='ArrowDown') state.keys.down=true;
+      if(e.key==='ArrowLeft') state.keys.left=true;
+      if(e.key==='ArrowRight') state.keys.right=true;
+    });
+    window.addEventListener('keyup', e=>{
+      if(e.key==='ArrowUp') state.keys.up=false;
+      if(e.key==='ArrowDown') state.keys.down=false;
+      if(e.key==='ArrowLeft') state.keys.left=false;
+      if(e.key==='ArrowRight') state.keys.right=false;
+    });
+
+    // --- Uniforms constantes ---
+    gl.enable(gl.DEPTH_TEST);
+    gl.clearColor(0.53, 0.76, 1.0, 1.0); // céu
+
+    const modelI = Mat4.ident();
+
+    function bindAttrib(buffer, loc, size){
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
+    }
+
+    // --- Loop ---
+    let last = 0; let fpsSpan = document.getElementById('fps'); let fpsTimer=0, fpsCount=0;
+    function frame(t){
+      requestAnimationFrame(frame);
+      resize();
+      const now = t*0.001; const dt = Math.min(0.033, now-last || 0.016); last = now;
+
+      // atualizar fps leve
+      fpsTimer += dt; fpsCount++;
+      if(fpsTimer>0.5){ fpsSpan.textContent = (fpsCount/fpsTimer).toFixed(0); fpsTimer=0; fpsCount=0; }
+
+      // Atualiza entrada
+      if(state.keys.left) state.cam.rotY += state.turnSpeed * dt;
+      if(state.keys.right) state.cam.rotY -= state.turnSpeed * dt;
+      const dirX = Math.sin(state.cam.rotY), dirZ = Math.cos(state.cam.rotY);
+      let v=0; if(state.keys.up) v+=1; if(state.keys.down) v-=1;
+      state.cam.x += dirX * (v*state.speed*dt);
+      state.cam.z += dirZ * (v*state.speed*dt);
+
+      // Configura matrizes
+      const aspect = canvas.width / canvas.height;
+      const proj = Mat4.perspective(60*Math.PI/180, aspect, 0.1, 100.0);
+      const eye = [state.cam.x, state.cam.y, state.cam.z];
+      const center = [state.cam.x + dirX, state.cam.y*0.85, state.cam.z + dirZ];
+      const view = Mat4.lookAt(eye, center, [0,1,0]);
+
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.useProgram(program);
+      gl.uniformMatrix4fv(loc.uProj, false, new Float32Array(proj));
+      gl.uniformMatrix4fv(loc.uView, false, new Float32Array(view));
+      gl.uniform3f(loc.uFogColor, 0.53, 0.76, 1.0);
+      gl.uniform1f(loc.uFogNear, 8.0);
+      gl.uniform1f(loc.uFogFar, 60.0);
+
+      // Desenhar chão (movemos o offset para aparentar infinito)
+      const offsetX = - (state.cam.x % 2.0);
+      const offsetZ = - (state.cam.z % 2.0);
+      gl.uniform3f(loc.uWorldOffset, offsetX, 0.0, offsetZ);
+      gl.uniformMatrix4fv(loc.uModel, false, new Float32Array(modelI));
+      gl.uniform1i(loc.uIsGround, 1);
+      bindAttrib(ground.pos, loc.aPos, 3);
+      bindAttrib(ground.nor, loc.aNormal, 3);
+      gl.drawArrays(gl.TRIANGLES, 0, ground.count);
+
+      // Desenhar alguns cubos
+      gl.uniform1i(loc.uIsGround, 0);
+      bindAttrib(cube.pos, loc.aPos, 3);
+      bindAttrib(cube.nor, loc.aNormal, 3);
+      for(const o of state.obstacles){
+        let m = Mat4.ident();
+        m = Mat4.translate(m, [o.x, o.y, o.z]);
+        m = Mat4.rotateY(m, now*0.2 + (o.x+o.z)*0.05);
+        m[0]*=o.s; m[5]*=o.s; m[10]*=o.s; // escala simples na diagonal
+        gl.uniformMatrix4fv(loc.uModel, false, new Float32Array(m));
+        gl.uniform3f(loc.uWorldOffset, 0.0, 0.0, 0.0);
+        gl.drawArrays(gl.TRIANGLES, 0, cube.count);
+      }
+    }
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
