@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat Escolar</title>
+  <style>.input-container {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      padding: 10px;
+      background-color: #1a3c34;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    body {
+      background-color: #1a3c34;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #00FF00, #1B5E20);
+      height: 41px;
+      padding: 15px; 
+      text-align: center;
+      color: #000;
+      box-shadow: 0 0 10px #00FF00;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: 25px;
+      margin: 0;
+    }
+
+    .settings, .close {
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .chat-container {
+      padding: 10px;
+      width: 100%;
+      max-height: calc(100dvh - 130px); 
+      overflow-y: auto;
+      padding-bottom: 100px; 
+      box-sizing: border-box;
+    }
+
+    .message {
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 10px;
+      max-width: 80%;
+      display: flex;
+      flex-direction: column;
+      word-wrap: break-word;
+      overflow-wrap: break-word;      
+      position: relative;
+    }
+
+    .message-received {
+      background-color: #0F690F;
+      align-self: flex-start;
+    }
+
+    .message-sent {
+      background-color: #3F8434;
+      align-self: flex-end;
+    }
+
+    .message-time {
+      font-size: 12px;
+      color: #ccc;
+      align-self: flex-end;
+      margin-top: 2px;
+    }
+
+    .input-container {
+  position: fixed;
+  bottom: 0;
+  width: 92%;
+  padding: 10px;
+  background-color: #1a3c34;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #0f2b26;
+  border-radius: 5px;
+  padding: 5px 8px;
+}
+
+.input-wrapper textarea {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font-size: 16px;
+  resize: none;
+  height: auto;
+}
+
+.file-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2e5c52;
+  border-radius: 5px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+
+    textarea#messageInput {
+      width: 68%;
+      font-size: 16px;
+      font-family: monospace;
+      line-height: 1.3;
+      padding: 8px;
+      resize: none;
+      height: auto;
+      box-sizing: border-box;
+      border: none;
+      border-radius: 5px;
+      background-color: #0f2b26;
+      color: #ffffff;
+      overflow-y: auto;
+      overflow-x: hidden;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #2e5c52;
+      color: #ffffff;
+      cursor: pointer;
+      width: auto;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #0f2b26;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    .modal-content input {
+      margin: 10px 0;
+      padding: 8px;
+      width: 80%;
+      background-color: #1a3c34;
+      color: #ffffff;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #authModal {
+      display: flex;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #1a3c34;
+      color: white;
+      z-index: 9999;
+    }
+
+    #authModal input {
+      margin: 10px;
+      padding: 10px;
+      width: 70%;
+      border: none;
+      border-radius: 5px;
+      background-color: #0f2b26;
+      color: white;
+    }
+
+    #authModal button {
+      margin: 5px;
+    }
+
+    .action-menu {
+      position: absolute;
+      background-color: #003300;
+      border: 1px solid #00FF00;
+      border-radius: 5px;
+      padding: 5px;
+      z-index: 999;
+      display: none;
+      flex-direction: column;
+    }
+
+    .action-menu button {
+      background: none;
+      border: none;
+      color: #00FF00;
+      padding: 5px 10px;
+      text-align: left;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .action-menu button:hover {
+      background-color: #004d00;
+    }
+
+    #settingsModal {
+      z-index: 9999;
+    }
+
+    /* Botão modo dono */
+    #botaoDono {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: #007bff;
+      color: white;
+      font-size: 18px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      z-index: 9999;
+      box-shadow: 0 0 10px #00f;
+      display: none !important;
+    }
+
+    /* Botão apagar grupo */
+    .delete-group-btn {
+      background-color: #800;
+      color: white;
+      padding: 4px 8px;
+      border: none;
+      border-radius: 5px;
+      margin-left: 5px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .delete-group-btn:hover {
+      background-color: #a00;
+    }
+
+    /* Estilos do chat de grupo flutuante */
+    #groupChatContainer {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 90%;
+      max-width: 400px;
+      height: 60%;
+      background: #1a3c34;
+      border: 2px solid #00FF00;
+      border-radius: 10px 10px 0 0;
+      display: none;
+      flex-direction: column;
+      z-index: 99999;
+    }
+
+    #groupChatMessages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    #closeGroupChat {
+      background: #800;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+	
+	/* Input de arquivo escondido (acessível) */
+#fileInput, #groupFileInput {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  border: 0;
+}
+
+/* Botão pequeno de anexo (📎) */
+.file-btn {
+  width: 44px; /* quadrado do tamanho do botão Enviar */
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Mídia dentro das mensagens */
+.message img, .message video {
+  max-width: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+/* Limitar tamanho de imagens e vídeos no chat */
+.message img, 
+.message video {
+  max-width: 350px;   /* largura máxima */
+  max-height: 250px;  /* altura máxima */
+  border-radius: 8px;
+  display: block;
+}
+  </style>
+</head>
+<body>
+
+  <div class="modal" id="authModal">
+    <h2>Entrar no Chat</h2>
+    <input type="text" id="authName" placeholder="Seu nome">
+    <input type="password" id="authPass" placeholder="Senha">
+    <div>
+      <button onclick="login()">Entrar</button>
+      <button onclick="register()">Criar Conta</button>
+    </div>
+  </div>
+
+  <header>
+    <h1>Chat Escolar</h1>
+    <span class="settings">⚙️</span>
+  </header>
+
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <span class="close">✖</span>
+      <input type="text" id="username" placeholder="Trocar Nome">
+      <button onclick="saveSettings()">Salvar</button>
+      <br><br>
+   
+      <hr>
+      <h3>Grupos</h3>
+      <input type="text" id="groupNameInput" placeholder="Nome do grupo">
+      <button onclick="startGroupCreation()">Criar Grupo</button>
+      <div id="groupMembersList" style="display:none; text-align:left;"></div>
+      <button id="finishGroupBtn" style="display:none;" onclick="finishGroupCreation()">Finalizar Criação</button>
+      <div id="myGroupsList" style="margin-top:10px;"></div>
+
+      <button onclick="logout()">Deslogar</button>
+    </div>
+  </div>
+
+  <div class="chat-container" id="chatContainer"></div>
+
+  <div class="input-container">
+  <div class="input-wrapper">
+    <textarea id="messageInput" placeholder="Mensagem" rows="1"></textarea>
+  </div>
+
+  <label for="fileInput" class="btn file-btn" title="Enviar arquivo">📎</label>
+  <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleFileSelect(event)">
+
+  <button onclick="sendMessage()">Enviar</button>
+</div>
+
+  <div id="actionMenu" class="action-menu">
+    <button onclick="editarMensagem()">✏️ Editar</button>
+    <button onclick="apagarMensagem()">🗑️ Apagar</button>
+  </div>
+
+  <button id="botaoDono" onclick="ativarModoDono()">Criar Conta de Dono</button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script>
+    // --- CONFIG FIREBASE ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+      authDomain: "funzer.firebaseapp.com",
+      projectId: "funzer"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const authDb = firebase.firestore();
+	
+	// --- CONFIG IMAGEKIT ---
+const IMAGEKIT_PRIVATE_KEY = 'private_K0G6BijrJQ5r+PBaDTPnw1x7hLY=';
+const IMAGEKIT_UPLOAD_URL = `https://upload.imagekit.io/api/v1/files/upload`;
+
+// --- Upload para ImageKit ---
+async function uploadToImageKit(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("fileName", file.name);
+
+  const res = await fetch(IMAGEKIT_UPLOAD_URL, {
+    method: "POST",
+    headers: { Authorization: "Basic " + btoa(IMAGEKIT_PRIVATE_KEY + ":") },
+    body: formData
+  });
+
+  if (!res.ok) throw new Error("Falha no upload para ImageKit");
+  const data = await res.json();
+  return data.url; // URL pública
+}
+
+// --- Envio de arquivo como mensagem ---
+async function sendFileMessage(file, isGroup = false) {
+  try {
+    const url = await uploadToImageKit(file);
+    const type = file.type.startsWith("video") ? "video" : "image";
+    const messageData = {
+      name: userName,
+      url: url,
+      type: type,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (isGroup && currentGroup) {
+      await db.collection(`groupMessages_${currentGroup}`).add(messageData);
+    } else {
+      await db.collection("messages").add(messageData);
+    }
+  } catch (err) {
+    console.error("Erro enviando arquivo:", err);
+    alert("Erro ao enviar arquivo.");
+  }
+}
+
+// --- Tratar seleção de arquivo ---
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const isGroup = !!currentGroup;
+  sendFileMessage(file, isGroup);
+}
+
+    // --- VARIÁVEIS DE ESTADO ---
+    let userName = localStorage.getItem("chatUser");
+    let currentActionMessageId = null;
+    let isEditing = false;
+    let modoDono = false;
+    let currentGroup = null;
+
+    // unsubscribe holders
+    let messagesUnsub = null;
+    let groupsUnsub = null;
+    let authUnsub = null;
+    let groupMsgsUnsub = null;
+
+    // referência ao input
+    const messageInput = document.getElementById("messageInput");
+
+    // ---------------- SISTEMA DE GRUPOS ----------------
+
+    function startGroupCreation() {
+      const gName = document.getElementById("groupNameInput").value.trim();
+      if (!gName) return alert("Digite um nome para o grupo!");
+
+      document.getElementById("groupMembersList").style.display = "block";
+      document.getElementById("finishGroupBtn").style.display = "inline-block";
+
+      authDb.collection("destruiuter").get().then(snap => {
+        let html = "<p>Adicionar membros:</p>";
+        snap.forEach(doc => {
+          if (doc.id !== userName) {
+            html += `<label><input type="checkbox" value="${doc.id}"> ${doc.id}</label><br>`;
+          }
+        });
+        document.getElementById("groupMembersList").innerHTML = html;
+      }).catch(err => {
+        console.error("Erro ao carregar usuarios para grupo:", err);
+        alert("Erro ao buscar usuários.");
+      });
+
+      currentGroup = gName;
+    }
+
+    function finishGroupCreation() {
+      const checks = document.querySelectorAll("#groupMembersList input:checked");
+      let members = [];
+      if (userName) members.push(userName);
+      checks.forEach(c => members.push(c.value));
+
+      const groupData = { name: currentGroup, members, creator: userName };
+      db.collection("groups").doc(currentGroup).set(groupData).then(() => {
+        alert("Grupo criado!");
+        loadMyGroups();
+        document.getElementById("groupNameInput").value = "";
+        document.getElementById("groupMembersList").style.display = "none";
+        document.getElementById("finishGroupBtn").style.display = "none";
+      }).catch(err => {
+        console.error("Erro criando grupo:", err);
+        alert("Erro ao criar grupo.");
+      });
+    }
+
+    function loadMyGroups() {
+      if (groupsUnsub) groupsUnsub();
+
+      if (!userName) {
+        document.getElementById("myGroupsList").innerHTML = "<p>Meus grupos:</p>";
+        return;
+      }
+
+      groupsUnsub = db.collection("groups")
+        .where("members", "array-contains", userName)
+        .onSnapshot(snap => {
+          let html = "<p>Meus grupos:</p>";
+          snap.forEach(doc => {
+            const groupData = doc.data();
+            html += `<button onclick="openGroupChat('${doc.id}')">${doc.id}</button>`;
+            if (groupData.creator && groupData.creator === userName) {
+              html += `<button class="delete-group-btn" onclick="deleteGroup('${doc.id}')">Apagar</button>`;
+            }
+            html += `<br>`;
+          });
+          document.getElementById("myGroupsList").innerHTML = html;
+        }, err => {
+          console.error("Erro em loadMyGroups:", err);
+        });
+    }
+
+    function openGroupChat(gName) {
+      currentGroup = gName;
+
+      if (!document.getElementById("groupChatContainer")) {
+        document.body.insertAdjacentHTML("beforeend", `
+          <div id="groupChatContainer">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px;">
+              <strong style="color:#00FF00;">Grupo: ${gName}</strong>
+              <button id="closeGroupChat" onclick="closeGroupChat()">Fechar</button>
+            </div>
+            <div id="groupChatMessages"></div>
+            <div style="display:flex; padding:8px; background-color:#1a3c34;">
+              <textarea id="groupMsgInput" rows="1" style="flex:1; font-size:16px; font-family:monospace; line-height:1.3; padding:8px; resize:none; height:40px; min-height:40px; box-sizing:border-box; border:none; border-radius:5px; background-color:#0f2b26; color:#ffffff; overflow-y:auto; overflow-x:hidden; white-space:pre-wrap; word-wrap:break-word;"></textarea>
+              <button onclick="sendGroupMessage()">Enviar</button>
+            </div>
+          </div>
+        `);
+      } else {
+        const header = document.querySelector("#groupChatContainer strong");
+        if (header) header.textContent = `Grupo: ${gName}`;
+        document.getElementById("groupChatContainer").style.display = "flex";
+      }
+
+      if (groupMsgsUnsub) {
+        try { groupMsgsUnsub(); } catch(e){ console.warn(e); }
+        groupMsgsUnsub = null;
+      }
+
+      groupMsgsUnsub = db.collection(`groupMessages_${gName}`).orderBy("timestamp")
+        .onSnapshot(snap => {
+          const msgBox = document.getElementById("groupChatMessages");
+          if (!msgBox) return;
+          msgBox.innerHTML = "";
+          snap.forEach(doc => {
+            const d = doc.data();
+            const isMine = d.name === userName;
+            const msgClass = isMine ? 'message-sent' : 'message-received';
+            msgBox.innerHTML += `
+              <div class="message ${msgClass}">
+                <strong>${d.name}</strong><br>
+                ${(d.text||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+              </div>`;
+          });
+          msgBox.scrollTop = msgBox.scrollHeight;
+        }, err => {
+          console.error("Erro no listener do grupo:", err);
+        });
+
+      loadMyGroups();
+    }
+    function closeGroupChat() {
+      if (groupMsgsUnsub) {
+        try { groupMsgsUnsub(); } catch(e){ console.warn(e); }
+        groupMsgsUnsub = null;
+      }
+      const el = document.getElementById("groupChatContainer");
+      if (el) el.remove();
+      currentGroup = null;
+    }
+
+    function sendGroupMessage() {
+      const el = document.getElementById("groupMsgInput");
+      if (!el) return;
+      const val = el.value.trim();
+      if (!val) return;
+      if (!currentGroup || !userName) return alert("Você precisa estar logado e em um grupo.");
+      db.collection(`groupMessages_${currentGroup}`).add({
+        name: userName,
+        text: val,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(err => {
+        console.error("Erro enviando msg de grupo:", err);
+        alert("Erro ao enviar mensagem de grupo.");
+      });
+      el.value = "";
+    }
+
+    function deleteGroup(groupName) {
+      if (!confirm("Tem certeza que deseja apagar este grupo?")) return;
+
+      db.collection("groups").doc(groupName).delete()
+        .then(() => {
+          db.collection(`groupMessages_${groupName}`).get().then(snap => {
+            const batch = db.batch();
+            snap.forEach(doc => batch.delete(doc.ref));
+            batch.commit();
+          });
+          alert("Grupo apagado com sucesso!");
+          loadMyGroups();
+        })
+        .catch(err => {
+          console.error("Erro apagando grupo:", err);
+          alert("Erro ao apagar grupo.");
+        });
+    }
+
+    // ---------------- FIM SISTEMA DE GRUPOS ----------------
+
+    function initAfterLogin() {
+      if (messagesUnsub) { try { messagesUnsub(); } catch(e){} messagesUnsub = null; }
+      if (groupsUnsub) { try { groupsUnsub(); } catch(e){} groupsUnsub = null; }
+
+      if (authUnsub) { try { authUnsub(); } catch(e){} authUnsub = null; }
+      if (userName) {
+        authUnsub = authDb.collection("destruiuter").doc(userName)
+          .onSnapshot(doc => {
+            if (!doc.exists) {
+              localStorage.removeItem("chatUser");
+              alert("Sua conta foi removida. Você será deslogado.");
+              location.reload();
+            }
+          }, err => {
+            console.error("Erro no auth onSnapshot:", err);
+          });
+      }
+
+      carregarMensagens();
+      loadMyGroups();
+    }
+
+    if (!userName) {
+      const am = document.getElementById("authModal");
+      if (am) am.style.display = "flex";
+    } else {
+      const am = document.getElementById("authModal");
+      if (am) am.style.display = "none";
+      initAfterLogin();
+    }
+
+    authDb.collection("destruiuter").where("dono", "==", true)
+      .onSnapshot(snapshot => {
+        const btn = document.getElementById("botaoDono");
+        if (!btn) return;
+        if (!snapshot.empty) {
+          btn.style.display = "none";
+        } else {
+          btn.style.display = "block";
+        }
+      }, err => {
+        console.error("Erro checando dono:", err);
+      });
+
+    function ativarModoDono() {
+      modoDono = true;
+      alert("🔥 Modo Dono ativado! A próxima conta criada será DONO ABSOLUTO.");
+    }
+
+    function login() {
+      const name = document.getElementById("authName").value.trim();
+      const pass = document.getElementById("authPass").value.trim();
+      if (!name || !pass) return alert("Preencha todos os campos!");
+      authDb.collection("destruiuter").doc(name).get().then(doc => {
+        if (!doc.exists) {
+          alert("Conta não encontrada.");
+        } else {
+          const data = doc.data();
+          if (data.senha === pass) {
+            localStorage.setItem("chatUser", name);
+            userName = name;
+            const am = document.getElementById("authModal");
+            if (am) am.style.display = "none";
+            initAfterLogin();
+            loadMyGroups();
+          } else {
+            alert("Senha incorreta.");
+          }
+        }
+      }).catch(err => {
+        console.error("Erro no login:", err);
+        alert("Erro ao tentar logar.");
+      });
+    }
+
+    function register() {
+      const name = document.getElementById("authName").value.trim();
+      const pass = document.getElementById("authPass").value.trim();
+      if (!name || !pass) return alert("Preencha todos os campos!");
+
+      authDb.collection("destruiuter").doc(name).get().then(doc => {
+        if (doc.exists) {
+          alert("Este nome já está em uso.");
+        } else {
+          authDb.collection("destruiuter").doc(name).set({
+            senha: pass,
+            dono: modoDono || false
+          }).then(() => {
+            modoDono = false;
+            localStorage.setItem("chatUser", name);
+            userName = name;
+            const am = document.getElementById("authModal");
+            if (am) am.style.display = "none";
+            initAfterLogin();
+            loadMyGroups();
+          }).catch(err => {
+            console.error("Erro criando conta:", err);
+            alert("Erro ao criar conta.");
+          });
+        }
+      }).catch(err => {
+        console.error("Erro register:", err);
+        alert("Erro ao criar conta.");
+      });
+    }
+
+    function logout() {
+      if (messagesUnsub) { try { messagesUnsub(); } catch(e){} messagesUnsub = null; }
+      if (groupsUnsub) { try { groupsUnsub(); } catch(e){} groupsUnsub = null; }
+      if (authUnsub) { try { authUnsub(); } catch(e){} authUnsub = null; }
+      if (groupMsgsUnsub) { try { groupMsgsUnsub(); } catch(e){} groupMsgsUnsub = null; }
+
+      localStorage.removeItem("chatUser");
+      location.reload();
+    }
+    function carregarMensagens() {
+      if (messagesUnsub) {
+        try { messagesUnsub(); } catch(e){} 
+        messagesUnsub = null;
+      }
+
+      messagesUnsub = db.collection("messages").orderBy("timestamp")
+        .onSnapshot(snapshot => {
+          const chatContainer = document.getElementById("chatContainer");
+          if (!chatContainer) return;
+          chatContainer.innerHTML = "";
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${data.name === userName ? 'message-sent' : 'message-received'}`;
+            messageDiv.setAttribute("data-id", doc.id);
+
+            const time = data.timestamp
+              ? data.timestamp.toDate().toLocaleString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                }).replace(/(\d+)\/(\d+)\/(\d+),/, '$1/$2 - ')
+              : 'N/A';
+
+            let contentHTML = "";
+if (data.type === "image") {
+  contentHTML = `<img src="${data.url}">`;
+} else if (data.type === "video") {
+  contentHTML = `<video controls><source src="${data.url}" type="video/mp4"></video>`;
+} else {
+  contentHTML = (data.text||'').replace(/\n/g, '<br>');
+}
+messageDiv.innerHTML = `<strong>${data.name}</strong><br>${contentHTML}<span class="message-time">${time}</span>`;
+
+            authDb.collection("destruiuter").doc(userName).get().then(userDoc => {
+              if (userDoc.exists && userDoc.data().dono) {
+                addActionEvents(messageDiv, doc.id, data.text);
+              } else if (data.name === userName) {
+                addActionEvents(messageDiv, doc.id, data.text);
+              }
+            }).catch(err => {
+              console.error("Erro verificando permissões:", err);
+            });
+
+            chatContainer.appendChild(messageDiv);
+          });
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }, err => {
+          console.error("Erro do onSnapshot messages:", err);
+        });
+    }
+
+    function addActionEvents(elem, id, text) {
+      let pressTimer;
+      const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        elem.addEventListener("touchstart", e => {
+          pressTimer = setTimeout(() => showActionMenu(e.touches[0].clientX, e.touches[0].clientY, id, text), 500);
+        });
+        elem.addEventListener("touchend", () => clearTimeout(pressTimer));
+      } else {
+        elem.addEventListener("contextmenu", e => {
+          e.preventDefault();
+          showActionMenu(e.clientX, e.clientY, id, text);
+        });
+      }
+    }
+
+    function showActionMenu(x, y, id, text) {
+      const menu = document.getElementById("actionMenu");
+      if (!menu) return;
+      currentActionMessageId = id;
+      menu.style.left = `${x}px`;
+      menu.style.top = `${y}px`;
+      menu.style.display = "flex";
+      menu.dataset.text = text || '';
+    }
+
+    document.addEventListener("click", e => {
+      const menu = document.getElementById("actionMenu");
+      if (menu && !menu.contains(e.target)) {
+        menu.style.display = "none";
+      }
+    });
+
+    function sendMessage() {
+      const text = (document.getElementById("messageInput")?.value || '').trim();
+      if (!text || !userName) return;
+      if (!isEditing) {
+        db.collection("messages").add({
+          name: userName,
+          text: text,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(err => {
+          console.error("Erro ao enviar mensagem:", err);
+          alert("Erro ao enviar mensagem.");
+        });
+        document.getElementById("messageInput").value = "";
+        localStorage.removeItem("messageDraft");
+      } else if (isEditing && currentActionMessageId) {
+        db.collection("messages").doc(currentActionMessageId).update({
+          text: text
+        }).then(() => {
+          isEditing = false;
+          currentActionMessageId = null;
+          document.getElementById("messageInput").value = "";
+          localStorage.removeItem("messageDraft");
+        }).catch(err => {
+          console.error("Erro editando mensagem:", err);
+          alert("Erro ao editar mensagem.");
+        });
+      }
+    }
+
+    function editarMensagem() {
+      const text = document.getElementById("actionMenu").dataset.text || '';
+      const mi = document.getElementById("messageInput");
+      if (mi) mi.value = text;
+      isEditing = true;
+      const menu = document.getElementById("actionMenu");
+      if (menu) menu.style.display = "none";
+    }
+
+    function apagarMensagem() {
+      if (currentActionMessageId) {
+        db.collection("messages").doc(currentActionMessageId).delete().then(() => {
+          currentActionMessageId = null;
+        }).catch(err => {
+          console.error("Erro apagando mensagem:", err);
+          alert("Erro ao apagar mensagem.");
+        });
+      }
+      const menu = document.getElementById("actionMenu");
+      if (menu) menu.style.display = "none";
+    }
+
+    document.querySelector(".settings").onclick = () => {
+      const sm = document.getElementById("settingsModal");
+      if (sm) sm.style.display = "flex";
+    };
+
+    document.querySelector(".close").onclick = () => {
+      const sm = document.getElementById("settingsModal");
+      if (sm) sm.style.display = "none";
+    };
+
+    function saveSettings() {
+      const usernameInput = document.getElementById("username");
+      if (usernameInput && usernameInput.value) {
+        userName = usernameInput.value;
+        localStorage.setItem("chatUser", userName);
+        initAfterLogin();
+      }
+      const sm = document.getElementById("settingsModal");
+      if (sm) sm.style.display = "none";
+    }
+
+    const draft = localStorage.getItem("messageDraft");
+    if (draft && messageInput) messageInput.value = draft;
+
+    if (messageInput) {
+      messageInput.addEventListener("input", () => {
+        localStorage.setItem("messageDraft", messageInput.value);
+      });
+    }
+  </script>
+</body>
+</html>
