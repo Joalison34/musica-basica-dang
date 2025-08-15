@@ -85,15 +85,6 @@
       cursor: pointer;
       font-size: 12px;
     }
-    .toggleLiderBtn {
-      background: #1976d2;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-    }
     #logsSeguranca {
       background: #222;
       padding: 10px;
@@ -179,13 +170,13 @@
     const lista = document.getElementById("listaMembros");
     db.collection("senhas")
       .where("projeto", "==", projetoNum)
+      .where("lider", "==", false) // pega apenas membros comuns
       .onSnapshot(snapshot => {
         let membros = [];
         snapshot.forEach(doc => {
           membros.push({ id: doc.id, ...doc.data() });
         });
 
-        // Ordena online primeiro
         membros.sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1));
 
         lista.innerHTML = "";
@@ -195,27 +186,25 @@
             : "Nunca editou";
 
           db.collection("locks").doc("projeto" + projetoNum).get().then(lockDoc => {
-            const editandoAgora = lockDoc.exists && lockDoc.data().locked && data.lider === false ? "🟢 Editando agora" : "⚪ Offline";
+            const editandoAgora = lockDoc.exists && lockDoc.data().locked ? "🟢 Editando agora" : "⚪ Offline";
             const alertaClasse = editandoAgora.includes("🟢") ? "alerta" : "";
 
             const div = document.createElement("div");
             div.className = `membro ${alertaClasse}`;
             div.innerHTML = `
               <div class="membro-info">
-                <span>${data.senha} ${data.lider ? "👑" : "👤"}</span>
+                <span>${data.senha} 👤</span>
                 <small>Status: ${editandoAgora}</small>
                 <small>Última edição: ${ultimaEdicao}</small>
               </div>
               <div class="membro-acoes">
-                ${!data.lider ? `<button class="removeBtn" onclick="removerMembro('${data.id}')">Remover</button>` : ""}
-                ${!data.lider ? `<button class="toggleLiderBtn" onclick="tornarLider('${data.id}', true)">Promover a Líder</button>` : `<button class="toggleLiderBtn" onclick="tornarLider('${data.id}', false)">Rebaixar para Membro</button>`}
+                <button class="removeBtn" onclick="removerMembro('${data.id}')">Remover</button>
               </div>
             `;
             lista.appendChild(div);
           });
         });
 
-        // Busca/Filtro
         document.getElementById("searchInput").oninput = function() {
           const filtro = this.value.toLowerCase();
           document.querySelectorAll(".membro").forEach(div => {
@@ -233,13 +222,6 @@
     }
   }
 
-  function tornarLider(id, liderStatus) {
-    db.collection("senhas").doc(id).update({ lider: liderStatus }).then(() => {
-      alert(liderStatus ? "Membro promovido a líder!" : "Líder rebaixado para membro!");
-    });
-  }
-
-  // Logs de segurança simulados (você pode integrar a lógica real do login)
   const logsDiv = document.getElementById("listaLogs");
   db.collection("logsSeguranca").orderBy("data", "desc").limit(10).onSnapshot(snapshot => {
     logsDiv.innerHTML = "";
