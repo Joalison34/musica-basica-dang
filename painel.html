@@ -170,7 +170,7 @@
     const lista = document.getElementById("listaMembros");
     db.collection("senhas")
       .where("projeto", "==", projetoNum)
-      .where("lider", "==", false) // pega apenas membros comuns
+      .where("lider", "==", false) // Apenas membros comuns
       .onSnapshot(snapshot => {
         let membros = [];
         snapshot.forEach(doc => {
@@ -180,13 +180,22 @@
         membros.sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1));
 
         lista.innerHTML = "";
-        membros.forEach(data => {
-          const ultimaEdicao = data.ultimaEdicao 
-            ? new Date(data.ultimaEdicao.toDate()).toLocaleString("pt-BR") 
-            : "Nunca editou";
+        db.collection("locks").doc("projeto" + projetoNum).get().then(lockDoc => {
+          let editorId = null;
+          if (lockDoc.exists && lockDoc.data().locked) {
+            editorId = lockDoc.data().userId; // Quem está editando
+          }
 
-          db.collection("locks").doc("projeto" + projetoNum).get().then(lockDoc => {
-            const editandoAgora = lockDoc.exists && lockDoc.data().locked ? "🟢 Editando agora" : "⚪ Offline";
+          membros.forEach(data => {
+            const ultimaEdicao = data.ultimaEdicao 
+              ? new Date(data.ultimaEdicao.toDate()).toLocaleString("pt-BR") 
+              : "Nunca editou";
+
+            let editandoAgora = "⚪ Offline";
+            if (editorId && editorId === data.id) {
+              editandoAgora = "🟢 Editando agora";
+            }
+
             const alertaClasse = editandoAgora.includes("🟢") ? "alerta" : "";
 
             const div = document.createElement("div");
