@@ -18,9 +18,20 @@
       padding: 15px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
     }
     #voltarBtn {
       background: #004d26;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    #addMembroBtn {
+      background: #007733;
       color: white;
       border: none;
       padding: 8px 14px;
@@ -55,6 +66,7 @@
 <header>
   <button id="voltarBtn">⬅ Voltar</button>
   <h1>Painel de Membros</h1>
+  <button id="addMembroBtn">➕ Adicionar Membro</button>
 </header>
 
 <div class="container" id="listaMembros">
@@ -73,19 +85,19 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // 🔹 Botão voltar
+  // 🔹 Botão voltar para Projetos (Mobile).html
   document.getElementById("voltarBtn").onclick = () => {
-    window.location.href = "index.html";
+    window.location.href = "Projetos (Mobile).html";
   };
 
-  // 🔹 Verifica se está logado como líder
+  // 🔹 Dados de sessão
   const lider = localStorage.getItem("lider");
   const senhaUsada = localStorage.getItem("senhaUsada");
   const currentProject = localStorage.getItem("currentProject");
 
   if (lider !== "true" || !senhaUsada || !currentProject) {
     alert("Acesso negado! Apenas líderes podem acessar.");
-    window.location.href = "index.html";
+    window.location.href = "Projetos (Mobile).html";
   }
 
   // 🔹 Confirma no Firestore se a senha ainda é válida e é líder
@@ -95,19 +107,32 @@
     .onSnapshot(snapshot => {
       if (snapshot.empty) {
         alert("Sua sessão foi encerrada.");
-        window.location.href = "index.html";
+        window.location.href = "Projetos (Mobile).html";
         return;
       }
 
       const dados = snapshot.docs[0].data();
       if (!dados.lider || String(dados.projeto) !== String(currentProject)) {
         alert("Acesso negado ao painel.");
-        window.location.href = "index.html";
+        window.location.href = "Projetos (Mobile).html";
         return;
       }
 
       // 🔹 Carrega apenas membros do mesmo projeto
       carregarMembrosDoProjeto(dados.projeto);
+
+      // 🔹 Evento para adicionar membro
+      document.getElementById("addMembroBtn").onclick = () => {
+        const novaSenha = prompt("Digite a nova senha do membro:");
+        if (!novaSenha) return;
+        db.collection("senhas").add({
+          senha: novaSenha,
+          projeto: dados.projeto,
+          lider: false
+        }).then(() => {
+          alert("Membro adicionado com sucesso!");
+        });
+      };
     });
 
   function carregarMembrosDoProjeto(projetoNum) {
