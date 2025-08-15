@@ -64,17 +64,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script>
-  // 🔹 Verificação se é líder
-  if (localStorage.getItem("lider") !== "true") {
-    alert("Acesso negado! Apenas líderes podem acessar.");
-    window.location.href = "index.html"; // redireciona
-  }
-
-  // 🔹 Botão voltar
-  document.getElementById("voltarBtn").onclick = () => {
-    window.location.href = "index.html";
-  };
-
   // 🔹 Configuração Firebase
   const firebaseConfig = { 
     apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
@@ -84,21 +73,65 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // 🔹 Carregar lista de membros
-  const lista = document.getElementById("listaMembros");
-  db.collection("senhas").get().then(snapshot => {
-    lista.innerHTML = "";
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const div = document.createElement("div");
-      div.className = "membro";
-      div.innerHTML = `
-        <span>Projeto ${data.projeto} - ${data.senha}</span>
-        <span>${data.lider ? "👑 Líder" : "👤 Membro"}</span>
-      `;
-      lista.appendChild(div);
+  // 🔹 Botão voltar
+  document.getElementById("voltarBtn").onclick = () => {
+    window.location.href = "index.html";
+  };
+
+  // 🔹 Verifica se está logado como líder
+  const lider = localStorage.getItem("lider");
+  const senhaUsada = localStorage.getItem("senhaUsada");
+  const currentProject = localStorage.getItem("currentProject");
+
+  if (lider !== "true" || !senhaUsada || !currentProject) {
+    alert("Acesso negado! Apenas líderes podem acessar.");
+    window.location.href = "index.html";
+  }
+
+  // 🔹 Confirma no Firestore se a senha ainda é válida e é líder
+  db.collection("senhas")
+    .where("senha", "==", senhaUsada)
+    .limit(1)
+    .onSnapshot(snapshot => {
+      if (snapshot.empty) {
+        alert("Sua sessão foi encerrada.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const dados = snapshot.docs[0].data();
+      if (!dados.lider || String(dados.projeto) !== String(currentProject)) {
+        alert("Acesso negado ao painel.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      // 🔹 Carrega apenas membros do mesmo projeto
+      carregarMembrosDoProjeto(dados.projeto);
     });
-  });
+
+  function carregarMembrosDoProjeto(projetoNum) {
+    const lista = document.getElementById("listaMembros");
+    db.collection("senhas")
+      .where("projeto", "==", projetoNum)
+      .onSnapshot(snapshot => {
+        lista.innerHTML = "";
+        if (snapshot.empty) {
+          lista.innerHTML = "<p>Nenhum membro encontrado para este projeto.</p>";
+          return;
+        }
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "membro";
+          div.innerHTML = `
+            <span>${data.senha}</span>
+            <span>${data.lider ? "👑 Líder" : "👤 Membro"}</span>
+          `;
+          lista.appendChild(div);
+        });
+      });
+  }
 </script>
 
 </body>
