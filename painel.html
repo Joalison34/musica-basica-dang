@@ -19,8 +19,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
     }
-    #voltarBtn {
+    #voltarBtn, #addMembroBtn {
       background: #004d26;
       color: white;
       border: none;
@@ -29,20 +30,24 @@
       cursor: pointer;
       font-size: 14px;
       font-weight: bold;
+      margin: 2px;
     }
     #addMembroBtn {
       background: #007733;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
     }
     h1 {
-      margin: 0 auto;
+      margin: 0;
       font-size: 20px;
+      text-align: center;
+      flex: 1;
+    }
+    #searchInput {
+      width: 100%;
+      padding: 6px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
     }
     .container {
       padding: 20px;
@@ -55,9 +60,46 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      transition: background 0.3s ease;
     }
-    .membro span {
-      font-weight: bold;
+    .membro.alerta {
+      background: #ff9800;
+    }
+    .membro-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .membro-acoes {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .removeBtn {
+      background: #c62828;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .toggleLiderBtn {
+      background: #1976d2;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    #logsSeguranca {
+      background: #222;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 12px;
     }
   </style>
 </head>
@@ -67,16 +109,21 @@
   <button id="voltarBtn">⬅ Voltar</button>
   <h1>Painel de Membros</h1>
   <button id="addMembroBtn">➕ Adicionar Membro</button>
+  <input type="text" id="searchInput" placeholder="🔍 Buscar membro...">
 </header>
 
 <div class="container" id="listaMembros">
   <p>Carregando membros...</p>
 </div>
 
+<div class="container" id="logsSeguranca">
+  <strong>📜 Logs de segurança:</strong>
+  <div id="listaLogs"></div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script>
-  // 🔹 Configuração Firebase
   const firebaseConfig = { 
     apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
     authDomain: "funzer.firebaseapp.com",
@@ -85,12 +132,10 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // 🔹 Botão voltar para Projetos (Mobile).html
   document.getElementById("voltarBtn").onclick = () => {
     window.location.href = "Projetos (Mobile).html";
   };
 
-  // 🔹 Dados de sessão
   const lider = localStorage.getItem("lider");
   const senhaUsada = localStorage.getItem("senhaUsada");
   const currentProject = localStorage.getItem("currentProject");
@@ -100,7 +145,6 @@
     window.location.href = "Projetos (Mobile).html";
   }
 
-  // 🔹 Confirma no Firestore se a senha ainda é válida e é líder
   db.collection("senhas")
     .where("senha", "==", senhaUsada)
     .limit(1)
@@ -110,25 +154,21 @@
         window.location.href = "Projetos (Mobile).html";
         return;
       }
-
       const dados = snapshot.docs[0].data();
       if (!dados.lider || String(dados.projeto) !== String(currentProject)) {
         alert("Acesso negado ao painel.");
         window.location.href = "Projetos (Mobile).html";
         return;
       }
-
-      // 🔹 Carrega apenas membros do mesmo projeto
       carregarMembrosDoProjeto(dados.projeto);
-
-      // 🔹 Evento para adicionar membro
       document.getElementById("addMembroBtn").onclick = () => {
         const novaSenha = prompt("Digite a nova senha do membro:");
         if (!novaSenha) return;
         db.collection("senhas").add({
           senha: novaSenha,
           projeto: dados.projeto,
-          lider: false
+          lider: false,
+          ultimaEdicao: null
         }).then(() => {
           alert("Membro adicionado com sucesso!");
         });
@@ -140,23 +180,75 @@
     db.collection("senhas")
       .where("projeto", "==", projetoNum)
       .onSnapshot(snapshot => {
-        lista.innerHTML = "";
-        if (snapshot.empty) {
-          lista.innerHTML = "<p>Nenhum membro encontrado para este projeto.</p>";
-          return;
-        }
+        let membros = [];
         snapshot.forEach(doc => {
-          const data = doc.data();
-          const div = document.createElement("div");
-          div.className = "membro";
-          div.innerHTML = `
-            <span>${data.senha}</span>
-            <span>${data.lider ? "👑 Líder" : "👤 Membro"}</span>
-          `;
-          lista.appendChild(div);
+          membros.push({ id: doc.id, ...doc.data() });
         });
+
+        // Ordena online primeiro
+        membros.sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1));
+
+        lista.innerHTML = "";
+        membros.forEach(data => {
+          const ultimaEdicao = data.ultimaEdicao 
+            ? new Date(data.ultimaEdicao.toDate()).toLocaleString("pt-BR") 
+            : "Nunca editou";
+
+          db.collection("locks").doc("projeto" + projetoNum).get().then(lockDoc => {
+            const editandoAgora = lockDoc.exists && lockDoc.data().locked && data.lider === false ? "🟢 Editando agora" : "⚪ Offline";
+            const alertaClasse = editandoAgora.includes("🟢") ? "alerta" : "";
+
+            const div = document.createElement("div");
+            div.className = `membro ${alertaClasse}`;
+            div.innerHTML = `
+              <div class="membro-info">
+                <span>${data.senha} ${data.lider ? "👑" : "👤"}</span>
+                <small>Status: ${editandoAgora}</small>
+                <small>Última edição: ${ultimaEdicao}</small>
+              </div>
+              <div class="membro-acoes">
+                ${!data.lider ? `<button class="removeBtn" onclick="removerMembro('${data.id}')">Remover</button>` : ""}
+                ${!data.lider ? `<button class="toggleLiderBtn" onclick="tornarLider('${data.id}', true)">Promover a Líder</button>` : `<button class="toggleLiderBtn" onclick="tornarLider('${data.id}', false)">Rebaixar para Membro</button>`}
+              </div>
+            `;
+            lista.appendChild(div);
+          });
+        });
+
+        // Busca/Filtro
+        document.getElementById("searchInput").oninput = function() {
+          const filtro = this.value.toLowerCase();
+          document.querySelectorAll(".membro").forEach(div => {
+            div.style.display = div.innerText.toLowerCase().includes(filtro) ? "flex" : "none";
+          });
+        };
       });
   }
+
+  function removerMembro(id) {
+    if (confirm("Deseja remover este membro?")) {
+      db.collection("senhas").doc(id).delete().then(() => {
+        alert("Membro removido com sucesso!");
+      });
+    }
+  }
+
+  function tornarLider(id, liderStatus) {
+    db.collection("senhas").doc(id).update({ lider: liderStatus }).then(() => {
+      alert(liderStatus ? "Membro promovido a líder!" : "Líder rebaixado para membro!");
+    });
+  }
+
+  // Logs de segurança simulados (você pode integrar a lógica real do login)
+  const logsDiv = document.getElementById("listaLogs");
+  db.collection("logsSeguranca").orderBy("data", "desc").limit(10).onSnapshot(snapshot => {
+    logsDiv.innerHTML = "";
+    snapshot.forEach(doc => {
+      const log = doc.data();
+      const dataFmt = new Date(log.data.toDate()).toLocaleString("pt-BR");
+      logsDiv.innerHTML += `<div>❌ ${log.msg} - <small>${dataFmt}</small></div>`;
+    });
+  });
 </script>
 
 </body>
