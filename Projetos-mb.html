@@ -445,17 +445,17 @@ document.getElementById('passwordsKeyBtn').onclick = () => {
   checkEditingLock(currentProject).then(isLocked => {
     if (isLocked) {
       alert("Alguém já está editando este projeto.");
-    } else {
-      setEditingLock(currentProject, true);
-      isEditing = true;
-      localStorage.setItem("isEditing", "true");
-      localStorage.setItem("currentProject", currentProject);
-      localStorage.setItem("senhaUsada", senha);
-      document.getElementById("logoutEditBtn").style.display = "inline-block";
-      carregarProjetos();
-      mostrarBotaoMembrosSeLider();
+      // continua permitindo edição
     }
-  });
+    setEditingLock(currentProject, true);
+    isEditing = true;
+    localStorage.setItem("isEditing", "true");
+    localStorage.setItem("currentProject", currentProject);
+    localStorage.setItem("senhaUsada", senha);
+    document.getElementById("logoutEditBtn").style.display = "inline-block";
+    carregarProjetos();
+    mostrarBotaoMembrosSeLider();
+});
 }
    else {
           alert("Senha inválida.");
