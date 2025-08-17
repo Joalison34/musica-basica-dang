@@ -90,14 +90,12 @@
     window.location.href = "Projetos.html";
   };
 
-  // 🔑 dados salvos no Projetos.html
+  // 🔑 Dados vindos do Projetos.html
   const liderLocal = localStorage.getItem("lider");
   const senhaUsada = localStorage.getItem("senhaUsada");
   const currentProject = localStorage.getItem("currentProject");
-  const currentClass = localStorage.getItem("currentClass");
 
-  // bloqueio inicial
-  if (liderLocal !== "true" || !senhaUsada || !currentProject || !currentClass) {
+  if (liderLocal !== "true" || !senhaUsada || !currentProject) {
     alert("Acesso negado! Apenas líderes podem acessar.");
     window.location.href = "Projetos.html";
   }
@@ -111,22 +109,20 @@
         window.location.href = "Projetos.html";
         return;
       }
+
       const dados = snapshot.docs[0].data();
 
-      // ✅ verificação forte: líder + projeto + classe + senha
-      if (
-        dados.lider !== true ||
-        String(dados.projeto) !== String(currentProject) ||
-        dados.classe !== currentClass ||
-        dados.senha !== senhaUsada
-      ) {
+      // ✅ Verificação: só entra se for líder do projeto correto
+      if (dados.lider !== true || String(dados.projeto) !== String(currentProject)) {
         alert("Acesso negado ao painel.");
         window.location.href = "Projetos.html";
         return;
       }
 
-      // tudo certo → carrega membros
-      carregarMembrosDoProjeto(dados.projeto, dados.classe);
+      const classeAtual = dados.classe; // 🔥 descobre a classe direto do Firestore
+
+      // Carrega membros da mesma classe + mesmo projeto
+      carregarMembrosDoProjeto(dados.projeto, classeAtual);
 
       document.getElementById("addMembroBtn").onclick = () => {
         const novaSenha = prompt("Digite a nova senha do membro:");
@@ -134,7 +130,7 @@
         db.collection("senhas").add({
           senha: novaSenha,
           projeto: dados.projeto,
-          classe: dados.classe,
+          classe: classeAtual,
           lider: false,
           ultimaEdicao: null
         }).then(() => {
@@ -158,7 +154,9 @@
         membros.sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1));
 
         lista.innerHTML = "";
-        db.collection("locks").doc("projeto" + projetoNum + "_" + classeAtual).get().then(lockDoc => {
+
+        // 🔥 Busca locks do mesmo jeito que o Projetos.html (sem classe no ID)
+        db.collection("locks").doc("projeto" + projetoNum).get().then(lockDoc => {
           let editorId = null;
           if (lockDoc.exists && lockDoc.data().locked) {
             editorId = lockDoc.data().userId;
