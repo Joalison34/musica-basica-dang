@@ -124,17 +124,17 @@
   const db = firebase.firestore();
 
   document.getElementById("voltarBtn").onclick = () => {
-    window.location.href = "Projetos (Projetos.html";
+    window.location.href = "Projetos.html";
   };
 
   const lider = localStorage.getItem("lider");
   const senhaUsada = localStorage.getItem("senhaUsada");
   const currentProject = localStorage.getItem("currentProject");
-  const currentClass = localStorage.getItem("currentClass"); // ✅ pega classe salva
+  const currentClass = localStorage.getItem("currentClass"); // ✅ agora salvo no Projetos.html
 
   if (lider !== "true" || !senhaUsada || !currentProject || !currentClass) {
     alert("Acesso negado! Apenas líderes podem acessar.");
-    window.location.href = "Projetos (Mobile).html";
+    window.location.href = "Projetos.html";
   }
 
   db.collection("senhas")
@@ -151,7 +151,7 @@
       // ✅ valida líder + projeto + classe
       if (!dados.lider || String(dados.projeto) !== String(currentProject) || dados.classe !== currentClass) {
         alert("Acesso negado ao painel.");
-        window.location.href = "Projetos (Mobile).html";
+        window.location.href = "Projetos.html";
         return;
       }
 
@@ -163,7 +163,7 @@
         db.collection("senhas").add({
           senha: novaSenha,
           projeto: dados.projeto,
-          classe: dados.classe, // ✅ salva também a classe
+          classe: dados.classe,
           lider: false,
           ultimaEdicao: null
         }).then(() => {
@@ -176,8 +176,8 @@
     const lista = document.getElementById("listaMembros");
     db.collection("senhas")
       .where("projeto", "==", projetoNum)
-      .where("classe", "==", classeAtual) // ✅ filtra apenas da classe correta
-      .where("lider", "==", false) // Apenas membros comuns
+      .where("classe", "==", classeAtual) // ✅ agora funciona
+      .where("lider", "==", false)
       .onSnapshot(snapshot => {
         let membros = [];
         snapshot.forEach(doc => {
