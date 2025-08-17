@@ -32,65 +32,28 @@
       font-weight: bold;
       margin: 2px;
     }
-    #addMembroBtn {
-      background: #007733;
-    }
-    h1 {
-      margin: 0;
-      font-size: 20px;
-      text-align: center;
-      flex: 1;
-    }
+    #addMembroBtn { background: #007733; }
+    h1 { margin: 0; font-size: 20px; text-align: center; flex: 1; }
     #searchInput {
-      width: 100%;
-      padding: 6px;
-      margin-top: 5px;
-      border-radius: 6px;
-      border: none;
-      font-size: 14px;
+      width: 100%; padding: 6px; margin-top: 5px;
+      border-radius: 6px; border: none; font-size: 14px;
     }
-    .container {
-      padding: 20px;
-    }
+    .container { padding: 20px; }
     .membro {
-      background: #006400;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      transition: background 0.3s ease;
+      background: #006400; padding: 15px; border-radius: 10px;
+      margin-bottom: 10px; display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; transition: background 0.3s ease;
     }
-    .membro.alerta {
-      background: #ff9800;
-    }
-    .membro-info {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .membro-acoes {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    .membro.alerta { background: #ff9800; }
+    .membro-info { display: flex; flex-direction: column; gap: 4px; }
+    .membro-acoes { display: flex; flex-direction: column; gap: 6px; }
     .removeBtn {
-      background: #c62828;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
+      background: #c62828; color: white; border: none;
+      padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
     }
     #logsSeguranca {
-      background: #222;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 20px;
-      font-size: 12px;
+      background: #222; padding: 10px; border-radius: 8px;
+      margin-top: 20px; font-size: 12px;
     }
   </style>
 </head>
@@ -127,12 +90,14 @@
     window.location.href = "Projetos.html";
   };
 
-  const lider = localStorage.getItem("lider");
+  // 🔑 dados salvos no Projetos.html
+  const liderLocal = localStorage.getItem("lider");
   const senhaUsada = localStorage.getItem("senhaUsada");
   const currentProject = localStorage.getItem("currentProject");
-  const currentClass = localStorage.getItem("currentClass"); // ✅ agora salvo no Projetos.html
+  const currentClass = localStorage.getItem("currentClass");
 
-  if (lider !== "true" || !senhaUsada || !currentProject || !currentClass) {
+  // bloqueio inicial
+  if (liderLocal !== "true" || !senhaUsada || !currentProject || !currentClass) {
     alert("Acesso negado! Apenas líderes podem acessar.");
     window.location.href = "Projetos.html";
   }
@@ -148,13 +113,19 @@
       }
       const dados = snapshot.docs[0].data();
 
-      // ✅ valida líder + projeto + classe
-      if (!dados.lider || String(dados.projeto) !== String(currentProject) || dados.classe !== currentClass) {
+      // ✅ verificação forte: líder + projeto + classe + senha
+      if (
+        dados.lider !== true ||
+        String(dados.projeto) !== String(currentProject) ||
+        dados.classe !== currentClass ||
+        dados.senha !== senhaUsada
+      ) {
         alert("Acesso negado ao painel.");
         window.location.href = "Projetos.html";
         return;
       }
 
+      // tudo certo → carrega membros
       carregarMembrosDoProjeto(dados.projeto, dados.classe);
 
       document.getElementById("addMembroBtn").onclick = () => {
@@ -176,7 +147,7 @@
     const lista = document.getElementById("listaMembros");
     db.collection("senhas")
       .where("projeto", "==", projetoNum)
-      .where("classe", "==", classeAtual) // ✅ agora funciona
+      .where("classe", "==", classeAtual)
       .where("lider", "==", false)
       .onSnapshot(snapshot => {
         let membros = [];
