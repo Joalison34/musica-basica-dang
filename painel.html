@@ -119,7 +119,7 @@
         return;
       }
 
-      const classeAtual = dados.classe; // 🔥 descobre a classe direto do Firestore
+      const classeAtual = dados.classe;
 
       // Carrega membros da mesma classe + mesmo projeto
       carregarMembrosDoProjeto(dados.projeto, classeAtual);
@@ -143,6 +143,8 @@
 
   function carregarMembrosDoProjeto(projetoNum, classeAtual) {
     const lista = document.getElementById("listaMembros");
+
+    // 🔥 Ouve alterações dos membros
     db.collection("senhas")
       .where("projeto", "==", projetoNum)
       .where("classe", "==", classeAtual)
@@ -155,10 +157,8 @@
 
         membros.sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1));
 
-        lista.innerHTML = "";
-
-        // 🔥 Busca locks do mesmo jeito que o Projetos.html (sem classe no ID)
-        db.collection("locks").doc("projeto" + projetoNum).get().then(lockDoc => {
+        // 🔥 Ouve alterações do lock também em tempo real
+        db.collection("locks").doc("projeto" + projetoNum).onSnapshot(lockDoc => {
           let editorId = null;
           let editorNome = null;
           let isLider = false;
@@ -168,6 +168,8 @@
             isLider = lockDoc.data().isLider;
           }
 
+          lista.innerHTML = "";
+
           membros.forEach(data => {
             const ultimaEdicao = data.ultimaEdicao 
               ? new Date(data.ultimaEdicao.toDate()).toLocaleString("pt-BR") 
@@ -176,7 +178,7 @@
             let editandoAgora = "⚪ Offline";
             if (editorId && editorId === data.id) {
               const papel = isLider ? "líder" : "membro";
-              editandoAgora = `🟢 ${editorNome || data.nome || data.senha} (${papel}) está editando`;
+              editandoAgora = `🟢 ${editorNome || data.nome || data.senha} (${papel}) está editando agora`;
             }
 
             const alertaClasse = editandoAgora.includes("🟢") ? "alerta" : "";
@@ -196,13 +198,6 @@
             lista.appendChild(div);
           });
         });
-
-        document.getElementById("searchInput").oninput = function() {
-          const filtro = this.value.toLowerCase();
-          document.querySelectorAll(".membro").forEach(div => {
-            div.style.display = div.innerText.toLowerCase().includes(filtro) ? "flex" : "none";
-          });
-        };
       });
   }
 
@@ -226,4 +221,5 @@
 </script>
 
 </body>
-</html>
+  </html>
+  
