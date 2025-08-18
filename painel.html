@@ -50,6 +50,11 @@
       background: #c62828; color: white; border: none;
       padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
     }
+    .editBtn {
+      background: #ff9800; color: white; border: none;
+      padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    }
+    .editBtn:hover { background: #e68900; }
     #logsEdicao {
       background: #222; padding: 10px; border-radius: 8px;
       margin-top: 20px; font-size: 13px; line-height: 1.5;
@@ -151,7 +156,7 @@
         });
       };
 
-      // 🔥 Logs históricos de edição (rústicos e fortes)
+      // 🔥 Logs históricos de edição
       const logsDiv = document.getElementById("listaLogs");
       db.collection("logsEdicao")
         .where("projeto", "==", Number(currentProject))
@@ -205,6 +210,7 @@
             </div>
             <div class="membro-acoes">
               <button class="removeBtn" onclick="removerMembro('${data.id}')">Remover</button>
+              <button class="editBtn" onclick="alterarSenha('${data.id}')">Alterar Senha</button>
             </div>
           `;
           lista.appendChild(div);
@@ -213,7 +219,8 @@
         document.getElementById("searchInput").oninput = function() {
           const filtro = this.value.toLowerCase();
           document.querySelectorAll(".membro").forEach(div => {
-            div.style.display = div.innerText.toLowerCase().includes(filtro) ? "flex" : "none";
+            const nome = div.querySelector(".membro-info span").innerText.toLowerCase();
+            div.style.display = nome.includes(filtro) ? "flex" : "none";
           });
         };
       });
@@ -225,6 +232,18 @@
         alert("Membro removido com sucesso!");
       });
     }
+  }
+
+  function alterarSenha(id) {
+    const novaSenha = prompt("Digite a nova senha para este membro:");
+    if (!novaSenha) return;
+    db.collection("senhas").doc(id).update({
+      senha: novaSenha
+    }).then(() => {
+      alert("Senha alterada com sucesso!");
+    }).catch(err => {
+      alert("Erro ao alterar senha: " + err.message);
+    });
   }
 </script>
 
