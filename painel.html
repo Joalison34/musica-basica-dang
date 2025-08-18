@@ -44,16 +44,20 @@
       margin-bottom: 10px; display: flex; justify-content: space-between;
       align-items: center; flex-wrap: wrap; transition: background 0.3s ease;
     }
-    .membro.alerta { background: #ff9800; }
     .membro-info { display: flex; flex-direction: column; gap: 4px; }
     .membro-acoes { display: flex; flex-direction: column; gap: 6px; }
     .removeBtn {
       background: #c62828; color: white; border: none;
       padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
     }
-    #logsSeguranca {
+    #logsEdicao {
       background: #222; padding: 10px; border-radius: 8px;
-      margin-top: 20px; font-size: 12px;
+      margin-top: 20px; font-size: 13px; line-height: 1.5;
+      max-height: 300px; overflow-y: auto;
+    }
+    #logsEdicao div {
+      padding: 4px 0;
+      border-bottom: 1px solid #444;
     }
   </style>
 </head>
@@ -70,8 +74,8 @@
   <p>Carregando membros...</p>
 </div>
 
-<div class="container" id="logsSeguranca">
-  <strong>📜 Logs de segurança:</strong>
+<div class="container" id="logsEdicao">
+  <strong>📜 Histórico de edições:</strong>
   <div id="listaLogs"></div>
 </div>
 
@@ -121,7 +125,7 @@
 
       const classeAtual = dados.classe;
 
-      // Carrega membros da mesma classe + mesmo projeto
+      // Carrega lista de membros (sem mexer em locks)
       carregarMembrosDoProjeto(dados.projeto, classeAtual);
 
       document.getElementById("addMembroBtn").onclick = () => {
@@ -139,12 +143,25 @@
           alert("Membro adicionado com sucesso!");
         });
       };
+
+      // 🔥 Logs históricos de edição (baseados em logsEdicao)
+      const logsDiv = document.getElementById("listaLogs");
+      db.collection("logsEdicao")
+        .where("projeto", "==", Number(currentProject))
+        .orderBy("timestamp", "desc")
+        .limit(30)
+        .onSnapshot(snapshot => {
+          logsDiv.innerHTML = "";
+          snapshot.forEach(doc => {
+            const log = doc.data();
+            const dataFmt = log.timestamp ? new Date(log.timestamp.toDate()).toLocaleString("pt-BR") : "(sem data)";
+            logsDiv.innerHTML += `<div>📝 ${log.userNome} (${log.papel}) ${log.acao} em ${dataFmt}</div>`;
+          });
+        });
     });
 
   function carregarMembrosDoProjeto(projetoNum, classeAtual) {
     const lista = document.getElementById("listaMembros");
-
-    // 🔥 Ouve alterações dos membros
     db.collection("senhas")
       .where("projeto", "==", projetoNum)
       .where("classe", "==", classeAtual)
@@ -155,49 +172,33 @@
           membros.push({ id: doc.id, ...doc.data() });
         });
 
-        membros.sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1));
+        lista.innerHTML = "";
 
-        // 🔥 Ouve alterações do lock também em tempo real
-        db.collection("locks").doc("projeto" + projetoNum).onSnapshot(lockDoc => {
-          let editorId = null;
-          let editorNome = null;
-          let isLider = false;
-          if (lockDoc.exists && lockDoc.data().locked) {
-            editorId = lockDoc.data().userId;
-            editorNome = lockDoc.data().userNome;
-            isLider = lockDoc.data().isLider;
-          }
+        membros.forEach(data => {
+          const ultimaEdicao = data.ultimaEdicao 
+            ? new Date(data.ultimaEdicao.toDate()).toLocaleString("pt-BR") 
+            : "Nunca editou";
 
-          lista.innerHTML = "";
-
-          membros.forEach(data => {
-            const ultimaEdicao = data.ultimaEdicao 
-              ? new Date(data.ultimaEdicao.toDate()).toLocaleString("pt-BR") 
-              : "Nunca editou";
-
-            let editandoAgora = "⚪ Offline";
-            if (editorId && editorId === data.id) {
-              const papel = isLider ? "líder" : "membro";
-              editandoAgora = `🟢 ${editorNome || data.nome || data.senha} (${papel}) está editando agora`;
-            }
-
-            const alertaClasse = editandoAgora.includes("🟢") ? "alerta" : "";
-
-            const div = document.createElement("div");
-            div.className = `membro ${alertaClasse}`;
-            div.innerHTML = `
-              <div class="membro-info">
-                <span>${data.nome || data.senha} 👤</span>
-                <small>Status: ${editandoAgora}</small>
-                <small>Última edição: ${ultimaEdicao}</small>
-              </div>
-              <div class="membro-acoes">
-                <button class="removeBtn" onclick="removerMembro('${data.id}')">Remover</button>
-              </div>
-            `;
-            lista.appendChild(div);
-          });
+          const div = document.createElement("div");
+          div.className = `membro`;
+          div.innerHTML = `
+            <div class="membro-info">
+              <span>${data.nome || data.senha} 👤</span>
+              <small>Última edição salva: ${ultimaEdicao}</small>
+            </div>
+            <div class="membro-acoes">
+              <button class="removeBtn" onclick="removerMembro('${data.id}')">Remover</button>
+            </div>
+          `;
+          lista.appendChild(div);
         });
+
+        document.getElementById("searchInput").oninput = function() {
+          const filtro = this.value.toLowerCase();
+          document.querySelectorAll(".membro").forEach(div => {
+            div.style.display = div.innerText.toLowerCase().includes(filtro) ? "flex" : "none";
+          });
+        };
       });
   }
 
@@ -208,18 +209,7 @@
       });
     }
   }
-
-  const logsDiv = document.getElementById("listaLogs");
-  db.collection("logsSeguranca").orderBy("data", "desc").limit(10).onSnapshot(snapshot => {
-    logsDiv.innerHTML = "";
-    snapshot.forEach(doc => {
-      const log = doc.data();
-      const dataFmt = new Date(log.data.toDate()).toLocaleString("pt-BR");
-      logsDiv.innerHTML += `<div>❌ ${log.msg} - <small>${dataFmt}</small></div>`;
-    });
-  });
 </script>
 
 </body>
-  </html>
-  
+</html>
