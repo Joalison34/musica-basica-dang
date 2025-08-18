@@ -55,10 +55,9 @@
       padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
     }
     .editBtn:hover { background: #e68900; }
-    #logsEdicao {
-      background: #222; padding: 10px; border-radius: 8px;
-      margin-top: 20px; font-size: 13px; line-height: 1.5;
-      max-height: 350px; overflow-y: auto;
+    #statusProjetos, #logsEdicao {
+      background: #222; padding: 12px; border-radius: 8px;
+      margin: 15px 20px; font-size: 13px; line-height: 1.5;
     }
     #logsEdicao div {
       padding: 6px 0;
@@ -82,12 +81,17 @@
   <input type="text" id="searchInput" placeholder="🔍 Buscar membro...">
 </header>
 
+<div class="container" id="statusProjetos">
+  <strong>📊 Status do projeto:</strong>
+  <div id="listaStatusProjetos"></div>
+</div>
+
 <div class="container" id="listaMembros">
   <p>Carregando membros...</p>
 </div>
 
 <div class="container" id="logsEdicao">
-  <strong>📜 Histórico de edições:</strong>
+  <strong>📜 Última sessão de edição:</strong>
   <div id="listaLogs"></div>
 </div>
 
@@ -128,7 +132,6 @@
 
       const dados = snapshot.docs[0].data();
 
-      // ✅ Verificação: só entra se for líder do projeto correto
       if (dados.lider !== true || String(dados.projeto) !== String(currentProject)) {
         alert("Acesso negado ao painel.");
         window.location.href = "Projetos.html";
@@ -137,51 +140,12 @@
 
       const classeAtual = dados.classe;
 
-      // Carrega lista de membros
       carregarMembrosDoProjeto(dados.projeto, classeAtual);
-
-      document.getElementById("addMembroBtn").onclick = () => {
-        const novaSenha = prompt("Digite a nova senha do membro:");
-        const novoNome = prompt("Digite o nome do membro:");
-        if (!novaSenha || !novoNome) return;
-        db.collection("senhas").add({
-          senha: novaSenha,
-          nome: novoNome,
-          projeto: dados.projeto,
-          classe: classeAtual,
-          lider: false,
-          ultimaEdicao: null
-        }).then(() => {
-          alert("Membro adicionado com sucesso!");
-        });
-      };
-
-      // 🔥 Logs históricos de edição
-      const logsDiv = document.getElementById("listaLogs");
-      db.collection("logsEdicao")
-        .where("projeto", "==", Number(currentProject))
-        .orderBy("timestamp", "desc")
-        .limit(50)
-        .onSnapshot(snapshot => {
-          logsDiv.innerHTML = "";
-          if (snapshot.empty) {
-            logsDiv.innerHTML = "<div>Nenhum log encontrado.</div>";
-            return;
-          }
-          snapshot.forEach(doc => {
-            const log = doc.data();
-            const dataFmt = log.timestamp ? new Date(log.timestamp.toDate()).toLocaleString("pt-BR") : "(sem data)";
-            logsDiv.innerHTML += `
-              <div>
-                📌 <strong>${log.userNome}</strong> (${log.papel}) 
-                <span>${log.acao}</span> 
-                no projeto ${log.projeto} 
-                <small>(${dataFmt})</small>
-              </div>`;
-          });
-        });
+      monitorarProjetos(dados.projeto);
+      monitorarLogs(dados.projeto);
     });
 
+  // 🔥 Funções principais
   function carregarMembrosDoProjeto(projetoNum, classeAtual) {
     const lista = document.getElementById("listaMembros");
     db.collection("senhas")
@@ -244,6 +208,59 @@
     }).catch(err => {
       alert("Erro ao alterar senha: " + err.message);
     });
+  }
+
+  // ✅ Monitorar edição em tempo real (locks)
+  let intervalHandle = null;
+  function monitorarProjetos(projetoNum) {
+    const statusDiv = document.getElementById("listaStatusProjetos");
+    db.collection("locks").doc("projeto" + projetoNum)
+      .onSnapshot(doc => {
+        statusDiv.innerHTML = "";
+        if (intervalHandle) clearInterval(intervalHandle);
+
+        if (doc.exists && doc.data().locked) {
+          const nome = doc.data().userNome || "Desconhecido";
+          const papel = doc.data().isLider ? "líder" : "membro";
+          const since = doc.data().since ? doc.data().since.toDate() : null;
+
+          if (since) {
+            function atualizarTempo() {
+              const diffMs = Date.now() - since.getTime();
+              const minutos = Math.floor(diffMs / 60000);
+              const segundos = Math.floor((diffMs % 60000) / 1000);
+              statusDiv.innerHTML = `<div>✏️ Projeto ${projetoNum}: <strong>${nome}</strong> (${papel}) está editando há ${minutos}m ${segundos}s.</div>`;
+            }
+            atualizarTempo();
+            intervalHandle = setInterval(atualizarTempo, 1000);
+          }
+        } else {
+          statusDiv.innerHTML = `<div>✅ Projeto ${projetoNum}: livre (ninguém editando).</div>`;
+        }
+      });
+  }
+
+  // ✅ Mostrar histórico da última sessão (logsEdicao)
+  function monitorarLogs(projetoNum) {
+    const logsDiv = document.getElementById("listaLogs");
+    db.collection("logsEdicao")
+      .doc("projeto" + projetoNum + "_sessao")
+      .onSnapshot(doc => {
+        logsDiv.innerHTML = "";
+        if (!doc.exists) {
+          logsDiv.innerHTML = "<div>Nenhum log encontrado.</div>";
+          return;
+        }
+        const log = doc.data();
+        const inicioFmt = log.inicio ? new Date(log.inicio.toDate()).toLocaleTimeString("pt-BR") : "(sem hora)";
+        const fimFmt = log.fim ? new Date(log.fim.toDate()).toLocaleTimeString("pt-BR") : null;
+
+        if (log.ativo) {
+          logsDiv.innerHTML = `<div>📌 ${log.userNome} (${log.papel}) iniciou edição às ${inicioFmt} — em andamento...</div>`;
+        } else {
+          logsDiv.innerHTML = `<div>📌 ${log.userNome} (${log.papel}) editou das ${inicioFmt} até ${fimFmt} (duração ${log.duracao})</div>`;
+        }
+      });
   }
 </script>
 
