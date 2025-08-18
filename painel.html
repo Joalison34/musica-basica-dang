@@ -53,11 +53,18 @@
     #logsEdicao {
       background: #222; padding: 10px; border-radius: 8px;
       margin-top: 20px; font-size: 13px; line-height: 1.5;
-      max-height: 300px; overflow-y: auto;
+      max-height: 350px; overflow-y: auto;
     }
     #logsEdicao div {
-      padding: 4px 0;
+      padding: 6px 0;
       border-bottom: 1px solid #444;
+    }
+    #logsEdicao strong {
+      color: #fff;
+    }
+    #logsEdicao span {
+      color: #4CAF50;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -125,7 +132,7 @@
 
       const classeAtual = dados.classe;
 
-      // Carrega lista de membros (sem mexer em locks)
+      // Carrega lista de membros
       carregarMembrosDoProjeto(dados.projeto, classeAtual);
 
       document.getElementById("addMembroBtn").onclick = () => {
@@ -144,18 +151,28 @@
         });
       };
 
-      // 🔥 Logs históricos de edição (baseados em logsEdicao)
+      // 🔥 Logs históricos de edição (rústicos e fortes)
       const logsDiv = document.getElementById("listaLogs");
       db.collection("logsEdicao")
         .where("projeto", "==", Number(currentProject))
         .orderBy("timestamp", "desc")
-        .limit(30)
+        .limit(50)
         .onSnapshot(snapshot => {
           logsDiv.innerHTML = "";
+          if (snapshot.empty) {
+            logsDiv.innerHTML = "<div>Nenhum log encontrado.</div>";
+            return;
+          }
           snapshot.forEach(doc => {
             const log = doc.data();
             const dataFmt = log.timestamp ? new Date(log.timestamp.toDate()).toLocaleString("pt-BR") : "(sem data)";
-            logsDiv.innerHTML += `<div>📝 ${log.userNome} (${log.papel}) ${log.acao} em ${dataFmt}</div>`;
+            logsDiv.innerHTML += `
+              <div>
+                📌 <strong>${log.userNome}</strong> (${log.papel}) 
+                <span>${log.acao}</span> 
+                no projeto ${log.projeto} 
+                <small>(${dataFmt})</small>
+              </div>`;
           });
         });
     });
