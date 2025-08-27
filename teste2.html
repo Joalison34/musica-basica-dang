@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Carrossel Animado 3-em-3</title>
+<style>
+  body { background:#111; color:white; font-family:Arial; margin:0; }
+  .overlay {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.9); display:none; justify-content:center; align-items:center; flex-direction:column;
+  }
+
+  .viewer {
+    position:relative;
+    width:80%;
+    height:70vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+  }
+
+  .media {
+    position:absolute;
+    max-width:60%;
+    max-height:70%;
+    border-radius:12px;
+    opacity:0;
+    transform:scale(0.7) translateX(0);
+    transition: all 0.6s ease;
+  }
+
+  .active {
+    opacity:1;
+    transform:scale(1) translateX(0);
+    z-index:3;
+  }
+
+  .left {
+    opacity:0.6;
+    transform:scale(0.8) translateX(-220px);
+    z-index:2;
+  }
+
+  .right {
+    opacity:0.6;
+    transform:scale(0.8) translateX(220px);
+    z-index:2;
+  }
+
+  .hidden {
+    opacity:0;
+    pointer-events:none;
+    z-index:1;
+  }
+
+  .controls { margin-top:20px; }
+  .controls button {
+    padding:10px 20px; margin:0 10px;
+    border:none; border-radius:8px;
+    cursor:pointer; font-weight:bold; font-size:16px;
+    background:#00ff99; color:#111;
+    transition: all 0.3s;
+  }
+  .controls button:hover { background:#00ffaa; transform:scale(1.1); }
+</style>
+</head>
+<body>
+<h1 style="text-align:center;">Carrossel 3-em-3 com Transição Suave</h1>
+
+<div class="gallery">
+  <img src="https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=600">
+  <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600">
+  <video src="https://player.vimeo.com/external/403580332.sd.mp4?s=14e0a6dbbafe9f5e6fcbf84cae&profile_id=164"></video>
+  <img src="https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?w=600">
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="viewer" id="viewer"></div>
+  <div class="controls">
+    <button onclick="prev()">⬅ PREV</button>
+    <button onclick="next()">NEXT ➡</button>
+    <button onclick="closeOverlay()">✖ FECHAR</button>
+  </div>
+</div>
+
+<script>
+const gallery = Array.from(document.querySelectorAll('.gallery img, .gallery video'));
+const overlay = document.getElementById('overlay');
+const viewer = document.getElementById('viewer');
+let currentIndex = 0;
+let slides = [];
+
+// Inicializa uma cópia dos elementos
+gallery.forEach((el,i)=>{
+  const clone = el.cloneNode(true);
+  if(clone.tagName==="VIDEO"){ clone.controls=true; }
+  clone.classList.add("media","hidden");
+  slides.push(clone);
+  viewer.appendChild(clone);
+});
+
+function updateClasses(){
+  slides.forEach((el,i)=>{
+    el.className="media hidden";
+    if(i===currentIndex){ 
+      el.className="media active"; 
+      if(el.tagName==="VIDEO"){ el.play(); } 
+    }
+    else if(i===(currentIndex-1+gallery.length)%gallery.length){ 
+      el.className="media left"; 
+      if(el.tagName==="VIDEO"){ el.pause(); el.currentTime=0; } 
+    }
+    else if(i===(currentIndex+1)%gallery.length){ 
+      el.className="media right"; 
+      if(el.tagName==="VIDEO"){ el.pause(); el.currentTime=0; } 
+    }
+  });
+}
+
+function openOverlay(i){
+  currentIndex=i;
+  updateClasses();
+  overlay.style.display="flex";
+}
+function closeOverlay(){
+  overlay.style.display="none";
+}
+function prev(){
+  currentIndex = (currentIndex - 1 + gallery.length) % gallery.length;
+  updateClasses();
+}
+function next(){
+  currentIndex = (currentIndex + 1) % gallery.length;
+  updateClasses();
+}
+
+gallery.forEach((el,i)=> el.onclick=()=> openOverlay(i));
+</script>
+</body>
+</html>
