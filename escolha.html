@@ -1,0 +1,311 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escolha seu Dispositivo</title>
+  <style>
+    /* Reset básico pra consistência */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Estilo do corpo com fundo sólido e centralização */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #1C2526; /* Cor sólida inspirada no Vaskiv.html */
+      overflow: hidden;
+    }
+
+    /* Container principal, responsivo e centralizado */
+    .container {
+      text-align: center;
+      padding: clamp(20px, 5vw, 40px); /* Ajuste dinâmico */
+      background: #1C2526; /* Sem gradiente, só fundo */
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+      position: relative;
+      z-index: 10;
+      min-width: 300px;
+      max-width: 90%;
+      animation: slideUp 1s ease-out;
+    }
+
+    /* Animação de entrada do container */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Estilo do título (sem animação de pulsar) */
+    h1 {
+      color: white;
+      font-size: clamp(1.5em, 5vw, 2.5em); /* Tamanho responsivo */
+      margin-bottom: clamp(15px, 3vw, 30px);
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+      position: relative;
+    }
+
+    /* Estilo dos botões com glitch aprimorado */
+    .button {
+      display: inline-block;
+      padding: clamp(10px, 2vw, 15px) clamp(20px, 4vw, 30px);
+      margin: clamp(5px, 1vw, 10px);
+      font-size: clamp(1em, 3vw, 1.2em);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      background: #182848;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+      z-index: 1;
+      cursor: pointer;
+    }
+
+    /* Camadas de glitch no botão */
+    .button::before, .button::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: #182848;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .button::before {
+      color: #4b6cb7;
+      transform: translate(2px, 2px);
+    }
+
+    .button::after {
+      color: #1C2526;
+      transform: translate(-2px, -2px);
+    }
+
+    .button:hover::before, .button:hover::after {
+      opacity: 0.8;
+      animation: glitch-text 0.3s infinite;
+    }
+
+    .button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 20px rgba(75, 108, 183, 0.7);
+      background: #4b6cb7;
+    }
+
+    @keyframes glitch-text {
+      0% { transform: translate(2px, 2px); }
+      50% { transform: translate(-2px, -2px); }
+      100% { transform: translate(2px, 2px); }
+    }
+
+    /* Partículas animadas (fumaça cósmica) */
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .particle {
+      position: absolute;
+      background: #182848;
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(75, 108, 183, 0.4);
+      filter: blur(5px);
+      animation: drift 15s infinite ease-in-out;
+      opacity: 0.3;
+    }
+
+    .particle:nth-child(1) { width: 20px; height: 20px; top: 10%; left: 15%; animation-duration: 14s; }
+    .particle:nth-child(2) { width: 25px; height: 25px; top: 25%; left: 65%; animation-duration: 16s; }
+    .particle:nth-child(3) { width: 15px; height: 15px; top: 40%; left: 30%; animation-duration: 12s; }
+    .particle:nth-child(4) { width: 22px; height: 22px; top: 60%; left: 80%; animation-duration: 15s; }
+    .particle:nth-child(5) { width: 18px; height: 18px; top: 15%; left: 45%; animation-duration: 13s; }
+
+    @keyframes drift {
+      0% { transform: translateY(0) translateX(0) scale(1); opacity: 0.2; }
+      50% { transform: translateY(-40vh) translateX(15px) scale(1.2); opacity: 0.5; }
+      100% { transform: translateY(-80vh) translateX(-15px) scale(1); opacity: 0.2; }
+    }
+
+    /* Reflexos de luz neon */
+    .neon-lights {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .neon {
+      position: absolute;
+      background: linear-gradient(45deg, #182848, #4b6cb7);
+      box-shadow: 0 0 20px rgba(75, 108, 183, 0.6);
+      animation: sweep 10s infinite ease-in-out;
+      opacity: 0;
+    }
+
+    .neon:nth-child(1) { width: 100px; height: 10px; top: 20%; left: -20%; transform: rotate(45deg); animation-duration: 8s; }
+    .neon:nth-child(2) { width: 120px; height: 8px; top: 50%; left: -30%; transform: rotate(-45deg); animation-duration: 12s; }
+    .neon:nth-child(3) { width: 80px; height: 12px; top: 70%; left: -10%; transform: rotate(30deg); animation-duration: 10s; }
+
+    @keyframes sweep {
+      0% { transform: translateX(0) rotate(var(--rotate)); opacity: 0; }
+      40% { opacity: 0.8; }
+      50% { opacity: 0.2; }
+      60% { opacity: 0.8; }
+      100% { transform: translateX(150vw) rotate(var(--rotate)); opacity: 0; }
+    }
+
+    /* Canvas para ondas de som */
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    /* Responsividade aprimorada */
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+        max-width: 95%;
+      }
+      h1 { font-size: 1.5em; margin-bottom: 15px; }
+      .button { font-size: 1em; padding: 10px 20px; margin: 5px; }
+      canvas { display: none; } /* Desativa canvas no mobile pra performance */
+    }
+
+    @media (min-width: 601px) {
+      .container { min-width: 400px; }
+      h1 { font-size: 2.5em; }
+      .button { font-size: 1.2em; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="soundWaves"></canvas>
+  <div class="neon-lights">
+    <div class="neon" style="--rotate: 45deg;"></div>
+    <div class="neon" style="--rotate: -45deg;"></div>
+    <div class="neon" style="--rotate: 30deg;"></div>
+  </div>
+  <div class="particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+  <div class="container">
+    <h1>Qual seu dispositivo?</h1>
+    <a href="celular.html" class="button" data-text="Celular">Celular</a>
+    <a href="windows.html" class="button" data-text="Windows">Windows</a>
+  </div>
+  <script>
+    // Script para as ondas de som dinâmicas
+    const canvas = document.getElementById('soundWaves');
+    const ctx = canvas.getContext('2d');
+
+    // Ajusta o tamanho do canvas
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Configuração das ondas
+    const waves = [];
+    for (let i = 0; i < 5; i++) {
+      waves.push({
+        y: canvas.height * (0.3 + i * 0.1),
+        amplitude: 20 + Math.random() * 30,
+        frequency: 0.01 + Math.random() * 0.02,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.05 + Math.random() * 0.1,
+        color: `rgba(75, 108, 183, ${0.3 + i * 0.05})`
+      });
+    }
+
+    // Animação das ondas
+    function drawWaves() {
+      if (window.innerWidth > 600) { // Só roda no desktop
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let time = performance.now() / 1000;
+        waves.forEach(wave => {
+          ctx.beginPath();
+          ctx.strokeStyle = wave.color;
+          ctx.lineWidth = 2;
+          for (let x = 0; x < canvas.width; x += 2) {
+            const y = wave.y + Math.sin(x * wave.frequency + wave.phase) * wave.amplitude;
+            ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+          wave.phase += wave.speed;
+        });
+      }
+      requestAnimationFrame(drawWaves);
+    }
+
+    drawWaves();
+  </script>
+</body>
+</html>
