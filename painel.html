@@ -107,7 +107,7 @@
   const db = firebase.firestore();
 
   document.getElementById("voltarBtn").onclick = () => {
-    window.location.href = "Projetos.html";
+    window.location.href = "Projeto3s.html";
   };
 
   // 🔑 Dados vindos do Projetos.html
@@ -117,7 +117,7 @@
 
   if (liderLocal !== "true" || !senhaUsada || !currentProject) {
     alert("Acesso negado! Apenas líderes podem acessar.");
-    window.location.href = "Projetos.html";
+    window.location.href = "Projeto3s.html";
   }
 
   db.collection("senhas")
@@ -126,7 +126,7 @@
     .onSnapshot(snapshot => {
       if (snapshot.empty) {
         alert("Sua sessão foi encerrada.");
-        window.location.href = "Projetos.html";
+        window.location.href = "Projeto3s.html";
         return;
       }
 
@@ -134,7 +134,7 @@
 
       if (dados.lider !== true || String(dados.projeto) !== String(currentProject)) {
         alert("Acesso negado ao painel.");
-        window.location.href = "Projetos.html";
+        window.location.href = "Projeto3s.html";
         return;
       }
 
