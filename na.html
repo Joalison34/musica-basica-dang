@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Colab Matemático</title>
+<style>
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f9f9fb;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: #fbbc04;
+    color: #202124;
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.2em;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  main {
+    max-width: 900px;
+    margin: 25px auto;
+    padding: 10px;
+  }
+
+  .cell {
+    background: white;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .code-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 90px;
+    font-family: "Courier New", monospace;
+    font-size: 0.95em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px;
+    background: #f5f5f5;
+    resize: vertical;
+  }
+
+  .cell-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  button {
+    background: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+
+  button:hover {
+    background: #155fc0;
+  }
+
+  .delete-btn {
+    background: #ea4335;
+  }
+
+  .delete-btn:hover {
+    background: #c62828;
+  }
+
+  .output {
+    background: #f1f3f4;
+    border-radius: 6px;
+    padding: 10px;
+    font-family: "Courier New", monospace;
+    color: #202124;
+    min-height: 25px;
+  }
+
+  .add-btn {
+    background: #34a853;
+    display: block;
+    margin: 20px auto;
+    font-size: 1em;
+    padding: 10px 20px;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 0.8em;
+    color: #666;
+    padding: 20px 0;
+  }
+
+  @media (max-width: 600px) {
+    main {
+      margin: 10px;
+    }
+    textarea {
+      min-height: 70px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>🧮 Mini Colab Matemático</header>
+
+<main id="main">
+  <!-- Primeira célula inicial -->
+  <div class="cell code-cell">
+    <textarea></textarea>
+    <div class="cell-actions">
+      <button onclick="executar(this)">▶ Executar</button>
+      <button class="delete-btn" onclick="removerCelula(this)">🗑 Excluir</button>
+    </div>
+    <div class="output"></div>
+  </div>
+</main>
+
+<button class="add-btn" onclick="novaCelula()">+ Nova célula</button>
+
+<footer>
+  Mini Colab Matemático — 100% HTML + JS
+</footer>
+
+<script>
+  function executar(botao) {
+    const cell = botao.closest('.cell');
+    const code = cell.querySelector('textarea').value;
+    const output = cell.querySelector('.output');
+    try {
+      const result = eval(code);
+      output.textContent = String(result);
+    } catch (e) {
+      output.textContent = "Erro: " + e.message;
+    }
+  }
+
+  function removerCelula(botao) {
+    const cell = botao.closest('.cell');
+    cell.remove();
+  }
+
+  function novaCelula() {
+    const main = document.getElementById('main');
+    const nova = document.createElement('div');
+    nova.className = 'cell code-cell';
+    nova.innerHTML = `
+      <textarea>// escreva seu código aqui</textarea>
+      <div class="cell-actions">
+        <button onclick="executar(this)">▶ Executar</button>
+        <button class="delete-btn" onclick="removerCelula(this)">🗑 Excluir</button>
+      </div>
+      <div class="output"></div>
+    `;
+    main.appendChild(nova);
+  }
+</script>
+
+</body>
+</html>
