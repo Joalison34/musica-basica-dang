@@ -1,0 +1,29 @@
+window.removerMembro = async (id, nome) => {
+  const overlay = document.createElement("div");
+  overlay.className = "logout-overlay";
+
+  const caixa = document.createElement("div");
+  caixa.className = "logout-caixa";
+
+  caixa.innerHTML = `
+    <h2>⚠️ Deseja realmente remover este membro?</h2>
+    <p>O membro <b>${nome}</b> será excluído permanentemente do grupo.</p>
+    <div class="logout-botoes">
+      <button class="botao-padrao vermelho" id="cancelarRemocao">Cancelar</button>
+      <button class="botao-padrao verde" id="confirmarRemocao">Remover</button>
+    </div>
+  `;
+
+  overlay.appendChild(caixa);
+  document.body.appendChild(overlay);
+
+  document.getElementById("cancelarRemocao").onclick = () => overlay.remove();
+
+  document.getElementById("confirmarRemocao").onclick = async () => {
+    await db.collection("senhas").doc(id).delete();
+    overlay.remove();
+    alert(`Membro ${nome} removido com sucesso!`);
+    carregarMembros();
+    };
+};
+};
