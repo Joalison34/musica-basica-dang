@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial – Aprenda a usar o site dos projet3s</title>
+<style>
+  
+  :root {
+    --bg: #f0f3f6; 
+    --text: #1f1f1f;
+    --sub: #555;
+    --accent: #000;
+  }
+  body {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    background:beige;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+  h1, h2 {
+    margin: 0;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-top: 2rem;
+  }
+  p {
+    line-height: 1.6;
+    color: var(--sub);
+  }
+  ul {
+    color: var(--sub);
+    line-height: 1.7;
+  }
+  section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 4rem 10%;
+    flex-wrap: wrap;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+  }
+  section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .content {
+    flex: 1 1 45%;
+  }
+  .video-box {
+    flex: 1 1 45%;
+    position: relative;
+  }
+  video {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    cursor: pointer;
+  }
+  .reverse {
+    flex-direction: row-reverse;
+  }
+  .intro {
+    text-align: center;
+    padding: 5rem 10%;
+  }
+  .intro ul {
+    list-style: disc;
+    text-align: left;
+    display: inline-block;
+    margin-top: 1.5rem;
+  }
+  /* ======= BOTÃO PLAY/PAUSE ======= */
+  .play-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.8);
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .play-btn:hover {
+    background: rgba(255,255,255,0.95);
+  }
+  .play-btn::before {
+    content: '▶';
+    font-size: 1.5rem;
+    color: var(--accent);
+  }
+  .playing .play-btn::before {
+    content: '❚❚';
+    font-size: 1.2rem;
+  }
+  /* ======= RESPONSIVO ======= */
+  @media (max-width: 768px) {
+    section {
+      flex-direction: column !important;
+      text-align: center;
+      padding: 3rem 5%;
+    }
+    .content, .video-box {
+      flex: 1 1 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>Aprenda a usar o site</h1>
+
+<!-- 1️⃣ RESUMO E TÓPICOS GERAIS -->
+<div class="intro">
+  <h2>Como vai funcionar:</h2>
+  <p>Todas as funções que tem atualmente no site:</p>
+  <ul>
+    <li>Como funcionam os comandos e acessos (Líder e Membro)</li>
+    <li>Funções principais do painel de edição</li>
+    <li>Edição de informações e mídias</li>
+    <li>Personalização de cores e som de fundo</li>
+    <li>Uso do painel de líderes e membros</li>
+    <li>Chat de feedbacks, ideias e correções</li>
+  </ul>
+</div>
+
+<!-- 2️⃣ FUNCIONAMENTO DOS COMANDOS -->
+<section>
+  <div class="content">
+    <h2>Como funcionam os comandos e acessos</h2>
+    <p>No geral, os comandos servem para acessar o painel de edição, painel de membros e o chat</p>
+    <p><strong>Líder:</strong> pode editar, gerenciar membros, adicionar ou remover e alterar senhas.</p>
+    <p><strong>Membro:</strong> pode editar e visualizar os outros membros.</p>
+    <p>Ambos podem usar o <strong>chat de feedbacks e ideias</strong> para sugerir melhorias ou relatar bugs do site, vídeo mostrando os comandos pra entrar no modo de edição e pro chat.</p>
+  </div>
+  <div class="video-box">
+    <video src="videos/comandos.mp4"></video>
+    <button class="play-btn"></button>
+  </div>
+</section>
+
+<!-- 3️⃣ FUNÇÕES DO PAINEL DE EDIÇÃO -->
+<section class="reverse">
+  <div class="content">
+    <h2>Funções do painel de edição</h2>
+    <p>O painel de edição é uma das partes mais importantes do site dos projetos. Ele permite modificar informações  tanto  visual quanto das infos do projeto.  
+    Abaixo vou mostrar como cada  função funciona e pra que servem </p>
+  </div>
+</section>
+
+
+<!-- 3.1 ADICIONAR E REMOVER INFORMAÇÕES -->
+<section>
+  <div class="content">
+    <h2>Como funciona a edição das informações</h2>
+    <p>Cada projeto vem como padrão (Grupo: , Classe: , Resumo: , Intenção:  e Finalidade:) mas pode ser alterado tanto pra adicionar novas infos quanto pra remover as que achar desnecessárias, podendo ter um maior controle do que quer no seu Projeto sem se limitar a um padrão</p>
+  </div>
+  <div class="video-box">
+    <video src="videos/adicionar-remover.mp4"></video>
+    <button class="play-btn"></button>
+  </div>
+</section>
+
+<!-- 3.2 INSERIR ATÉ 5 TIPOS DE MÍDIA -->
+<section class="reverse">
+  <div class="content">
+    <h2>Como funciona a adição de Mídia</h2>
+    <p>Você pode inserir imagens, vídeos e outros formatos para deixar o projeto mais completo.  
+    O limite é de até 5 tipos de mídia por projeto, garantindo organização e bom desempenho.</p>
+  </div>
+  <div class="video-box">
+    <video src="videos/midias.mp4"></video>
+    <button class="play-btn"></button>
+  </div>
+</section>
+
+<!-- 3.3 ALTERAR CORES -->
+<section>
+  <div class="content">
+    <h2>Como funciona a Alteração das cores de containers e textos de cada Projeto</h2>
+    <p>Cada projeto pode personalizar a cor de vários containers do site que se adaptam ao Projeto tanto quanto alteração da cor do texto das infos.</p>
+  </div>
+  <div class="video-box">
+    <video src="videos/cores.mp4"></video>
+    <button class="play-btn"></button>
+  </div>
+</section>
+
+<!-- 3.4 SOM DE FUNDO -->
+<section class="reverse">
+  <div class="content">
+    <h2>Adicionar som de fundo</h2>
+    <p>Cada Projeto poderá adicionar um som de fundo que se adapta a cada Projeto</p>
+  </div>
+  <div class="video-box">
+    <video src="videos/som.mp4"></video>
+    <button class="play-btn"></button>
+  </div>
+</section>
+
+<!-- 4️⃣ PAINEL DE LÍDERES E MEMBROS -->
+<section>
+  <div class="content">
+    <h2>Painel de líderes e membros</h2>
+    <p>O painel de líderes e membros é responsável pela organização do grupo.</p>
+    <p><strong>Líderes</strong> podem gerenciar senhas, adicionar ou remover membros, e acessar todas as edições.</p>
+    <p><strong>Membros</strong> podem editar seus projetos e visualizar quem participa do grupo.</p>
+  </div>
+  <div class="video-box">
+    <video src="videos/lideres-membros.mp4"></video>
+    <button class="play-btn"></button>
+  </div>
+</section>
+
+<!-- 5️⃣ CHAT DE FEEDBACKS E IDEIAS -->
+<section class="reverse">
+  <div class="content">
+    <h2>Chat de feedbacks e ideias</h2>
+    <p>O chat será para compartilhar ideias e relatar problemas no site.  
+    Também conectando todos os membros e líderes, facilitando a comunicação e as melhorias no site.</p>
+    <p>Use sempre o Chat para reportar erros e dar ideias de melhorias pro site.</p>
+  </div>
+  <div class="video-box">
+    <video src="videos/cores-som-chat.mp4"></video>
+    <button class="play-btn"></button>
+  </div>
+</section>
+
+<script>
+  // ======= ANIMAÇÃO DE ENTRADA =======
+  const sections = document.querySelectorAll('section, .intro');
+  const reveal = () => {
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top < window.innerHeight - 100) sec.classList.add('visible');
+    });
+  };
+  window.addEventListener('scroll', reveal);
+  reveal();
+
+  // ======= PLAY/PAUSE MANUAL =======
+  document.querySelectorAll('.video-box').forEach(box => {
+    const video = box.querySelector('video');
+    const btn = box.querySelector('.play-btn');
+    btn.addEventListener('click', () => {
+      if (video.paused) {
+        video.play();
+        box.classList.add('playing');
+      } else {
+        video.pause();
+        box.classList.remove('playing');
+      }
+    });
+    video.addEventListener('ended', () => box.classList.remove('playing'));
+  });
+</script>
+
+</body>
+</html>
