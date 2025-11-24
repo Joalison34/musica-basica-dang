@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Colab em Python</title>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+
+<style>
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f9f9fb;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: #fbbc04;
+    color: #202124;
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.2em;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  main {
+    max-width: 900px;
+    margin: 25px auto;
+    padding: 10px;
+  }
+
+  .cell {
+    background: white;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .label {
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #444;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 90px;
+    font-family: "Courier New", monospace;
+    font-size: 0.95em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px;
+    background: #f5f5f5;
+    resize: vertical;
+  }
+
+  .cell-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  button {
+    background: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+
+  button:hover {
+    background: #155fc0;
+  }
+
+  .delete-btn {
+    background: #ea4335;
+  }
+
+  .delete-btn:hover {
+    background: #c62828;
+  }
+
+  .output {
+    background: #f1f3f4;
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 10px;
+    font-family: "Courier New", monospace;
+    white-space: pre-wrap;
+    min-height: 25px;
+  }
+
+  .add-btn {
+    background: #34a853;
+    display: block;
+    margin: 20px auto;
+    font-size: 1em;
+    padding: 10px 20px;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 0.8em;
+    color: #666;
+    padding: 20px 0;
+  }
+
+  .example-block {
+    background: #fff3cd;
+    border-left: 4px solid #ffeb3b;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    font-family: "Courier New", monospace;
+  }
+</style>
+</head>
+<body>
+
+<header>🐍 Mini Colab Python</header>
+
+<main id="main">
+
+  <div class="example-block">
+    Exemplos rápidos:
+    <br><br>
+    <b>➡ Soma:</b> <code>2 + 2</code>
+    <br>
+    <b>➡ Multiplicação:</b> <code>2 * 2</code>
+    <br>
+    <b>➡ Divisão:</b> <code>10 / 2</code>
+  </div>
+
+  <div class="cell">
+    <div class="label">Código Python:</div>
+    <textarea></textarea>
+    <div class="cell-actions">
+      <button onclick="executarPython(this)">▶ Executar</button>
+      <button class="delete-btn" onclick="removerCelula(this)">🗑 Excluir</button>
+    </div>
+    <div class="output"></div>
+  </div>
+</main>
+
+<button class="add-btn" onclick="novaCelula()">+ Nova célula</button>
+
+<footer>
+  Mini Colab Python — estilo Google Colab
+</footer>
+
+<script>
+let pyodideReady = false;
+let pyodide;
+
+async function loadPyodideAndPackages() {
+  pyodide = await loadPyodide();
+  pyodideReady = true;
+}
+loadPyodideAndPackages();
+
+async function executarPython(botao) {
+  if (!pyodideReady) {
+    alert("Carregando interpretador Python… aguarde alguns segundos!");
+    return;
+  }
+
+  const cell = botao.closest('.cell');
+  const code = cell.querySelector('textarea').value;
+  const output = cell.querySelector('.output');
+
+  try {
+    let result = await pyodide.runPythonAsync(code);
+    output.textContent = result !== undefined ? result : "";
+  } catch (e) {
+    output.textContent = "Erro: " + e;
+  }
+}
+
+function removerCelula(botao) {
+  botao.closest('.cell').remove();
+}
+
+function novaCelula() {
+  const main = document.getElementById('main');
+  const nova = document.createElement('div');
+
+  nova.className = 'cell';
+  nova.innerHTML = `
+      <div class="label">Código Python:</div>
+      <textarea></textarea>
+      <div class="cell-actions">
+        <button onclick="executarPython(this)">▶ Executar</button>
+        <button class="delete-btn" onclick="removerCelula(this)">🗑 Excluir</button>
+      </div>
+      <div class="output"></div>
+  `;
+  
+  main.appendChild(nova);
+}
+</script>
+
+</body>
+</html>
