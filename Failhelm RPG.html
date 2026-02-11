@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gta 7 remaster plus</title>
+
+<style>
+body{
+  margin:0;
+  background:#0a0a0a;
+  color:#e6e6e6;
+  font-family:monospace;
+}
+#app{max-width:1200px;margin:auto;padding:10px;}
+.hidden{display:none;}
+.click{cursor:pointer;color:#9aff9a;}
+.click:hover{text-decoration:underline;}
+.selected{color:#00ff00;font-weight:bold;}
+
+#layout{
+  display:grid;
+  grid-template-columns:260px 1fr;
+  gap:10px;
+}
+#hud{
+  border-right:1px solid #333;
+  padding-right:10px;
+}
+#map,#scene{
+  white-space:pre;
+  font-size:14px;
+  line-height:1.15;
+}
+input,button{
+  background:#111;
+  color:#e6e6e6;
+  border:1px solid #444;
+  font-family:monospace;
+}
+.menu{
+  background:#111;
+  border:1px solid #444;
+  padding:5px;
+  margin-bottom:5px;
+}
+@media(max-width:800px){
+  #layout{grid-template-columns:1fr;}
+  #hud{border-right:none;border-bottom:1px solid #333;padding-bottom:10px;}
+}
+
+.settings{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  z-index:9999;
+  min-width:260px;
+}
+
+.settings input{
+  width:100%;
+}
+
+hr{
+  border:0;
+  border-top:1px solid #333;
+  margin:6px 0;
+}
+
+ .login-bg{
+  min-height:100vh;
+  background:black
+    center/cover no-repeat;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.login-panel{
+  background:rgba(0,0,0,0.85);
+  border:1px solid #555;
+  padding:30px;
+  min-width:260px;
+  text-align:center;
+  font-family:monospace;
+}
+
+.login-panel h1{
+  margin-bottom:20px;
+}
+
+.login-panel button{
+  width:100%;
+  margin:6px 0;
+}
+
+.login-footer{
+  margin-top:20px;
+  opacity:0.8;
+}
+
+#game {
+  position: relative;
+  z-index: 100; /* MAIOR que qualquer coisa */
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 20px #00ff00; }
+  50% { box-shadow: 0 0 40px #00ff00; }
+  100% { box-shadow: 0 0 20px #00ff00; }
+}
+
+.win-btn {
+    background: #0a0a0a;
+    color: #fff;
+    border: 2px solid;
+    padding: 10px 20px;
+    font-family: monospace;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 5px;
+}
+.win-btn.vila { border-color: #00ff00; }
+.win-btn.continuar { border-color: #ffff00; }
+.win-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px currentColor;
+}
+.win-btn.vila:hover { background: #003300; }
+.win-btn.continuar:hover { background: #333300; }
+
+</style>
+</head>
+
+<body>
+<div id="app">
+
+<div id="loginScreen" class="login-bg">
+
+  <div class="login-panel">
+
+    <!-- TELA INICIAL -->
+    <div id="loginStart">
+      <strong>GTA 7 REMASTER PLUS</strong><br><br>
+      <button onclick="showLoginChoice()">START</button>
+    </div>
+
+    <!-- ESCOLHA -->
+    <div id="loginChoice" class="hidden">
+      <p>Escolha como vai entrar</p>
+      <button onclick="showLogin()">Entrar</button>
+      <button onclick="showCreate()">Criar Conta</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="loginForm" class="hidden">
+      Nome:<br>
+      <input id="loginName"><br>
+      Senha:<br>
+      <input id="loginPass" type="password"><br><br>
+      <button onclick="login()">Entrar</button>
+      <button onclick="backToChoice()">Voltar</button>
+    </div>
+
+    <!-- CRIAR CONTA -->
+    <div id="createForm" class="hidden">
+      Nome:<br>
+      <input id="createName"><br>
+      Senha:<br>
+      <input id="createPass" type="password"><br><br>
+      <button onclick="createAccount()">Criar Conta</button>
+      <button onclick="backToChoice()">Voltar</button>
+    </div>
+
+    <!-- CONFIGURAÇÕES -->
+    <div class="login-footer">
+      <button onclick="openSettings()">Configurações</button>
+    </div>
+
+  </div>
+</div>
+
+
+<div id="game" class="hidden">
+<div id="layout">
+
+<div id="hud">
+<strong class="click" onclick="togglePlayerMenu()" id="hudName"></strong>
+
+<div id="playerMenu" class="menu hidden">
+<span class="click" onclick="openSettings()">Configurações</span><br>
+<hr>
+<span class="click" onclick="logout()">Logout</span>
+</div>
+
+
+<br>
+
+❤️ Vida:<br><span id="hudHp"></span><br><br>
+
+⭐ Level:<br><span id="hudLevel"></span><br>
+XP: <span id="hudXp"></span><br>
+Pontos: <span id="hudPoints"></span>
+[ <span class="click" onclick="openStatsPanel()">Estatísticas</span> ]
+<br><br>
+
+
+⚔️ Dano Base:<br><span id="hudDmg"></span><br><br>
+
+🪙 Ouro:<br><span id="hudGold"></span><br><br>
+
+🎒 <span class="click" onclick="toggleInv()">Inventário</span>
+<div id="inv" class="hidden"></div><br>
+
+📍 Local:<br><span id="hudLoc"></span>
+</div>
+
+<div>
+<div id="map"></div>
+<div id="scene"></div>
+</div>
+
+</div>
+</div>
+
+<div id="settings" class="menu hidden settings">
+<strong>Configurações</strong><br><br>
+
+Nome:<br>
+<input id="setName"><br><br>
+
+Senha da conta:<br>
+<input id="setPass" disabled><br><br>
+
+<button onclick="applySettings()">Salvar</button>
+<button onclick="closeSettings()">Fechar</button>
+</div>
+
+
+<script>
+
+function createAccount(){
+  let n = createName.value.trim();
+  let p = createPass.value;
+
+  if(!n || !p) return alert("Preencha tudo");
+
+  let allAccounts = JSON.parse(localStorage.getItem("ascii_accounts") || "{}");
+
+  if(allAccounts[n]) return alert("Conta já existe");
+
+  allAccounts[n] = {
+    pass: p,
+    data: {
+      name: n,
+      icon: "@",
+      level:1,xp:0,points:0,
+      gold:0,hp:30,maxHp:30,
+      baseDmg:3,
+      inventory:{},tools:{},
+      selectedTool:null,
+      location:"vila",
+      enemy:null
+    }
+  };
+
+  localStorage.setItem("ascii_accounts", JSON.stringify(allAccounts));
+
+  alert("Conta criada");
+  
+  // VOLTAR PARA TELA DE ESCOLHA após criar conta
+  backToChoice();
+}
+
+function login(){
+  let n = loginName.value.trim();
+  let p = loginPass.value;
+
+  console.log("Tentando login com:", n);
+
+  if(!n || !p) {
+    alert("Preencha nome e senha");
+    return;
+  }
+
+  let allAccounts = JSON.parse(localStorage.getItem("ascii_accounts") || "{}");
+  let acc = allAccounts[n];
+
+  if(!acc){
+    alert("Conta não encontrada");
+    return;
+  }
+
+  if(acc.pass !== p){
+    alert("Senha incorreta");
+    return;
+  }
+
+  // Garantir que os dados existam
+  if(!acc.data) {
+    acc.data = {
+      name: n,
+      icon: "@",
+      level:1,xp:0,points:0,
+      gold:0,hp:30,maxHp:30,
+      baseDmg:3,
+      inventory:{},tools:{},
+      selectedTool:null,
+      location:"vila",
+      enemy:null
+    };
+    allAccounts[n] = acc;
+    localStorage.setItem("ascii_accounts", JSON.stringify(allAccounts));
+  }
+
+  currentUser = n;
+  accounts = allAccounts;
+  state = JSON.parse(JSON.stringify(acc.data));
+
+  localStorage.setItem("ascii_current", n);
+
+  console.log("Login bem-sucedido:", n);
+  console.log("Estado:", state);
+
+  // LIMPAR TUDO do login
+  loginName.value = "";
+  loginPass.value = "";
+
+  // REMOVER COMPLETAMENTE a tela de login
+  let loginScreen = document.getElementById("loginScreen");
+  let game = document.getElementById("game");
+  
+  // Método 1: Remover completamente
+  loginScreen.style.display = "none";
+  loginScreen.style.visibility = "hidden";
+  loginScreen.style.opacity = "0";
+  
+  // Método 2: Adicionar hidden
+  loginScreen.classList.add("hidden");
+  
+  // Método 3: Forçar display none e visibility hidden
+  loginScreen.style.cssText = "display: none !important; visibility: hidden !important; opacity: 0 !important;";
+  
+  // MOSTRAR O JOGO COM TODA FORÇA
+  game.classList.remove("hidden");
+  game.style.display = "block";
+  game.style.visibility = "visible";
+  game.style.opacity = "1";
+  game.style.position = "relative";
+  game.style.zIndex = "100";
+  
+  // Focar no jogo
+  game.focus();
+  
+  render();
+  
+  // DEBUG: Verificar se realmente mostrou
+  console.log("loginScreen display:", loginScreen.style.display);
+  console.log("game display:", game.style.display);
+  console.log("game classList:", game.classList);
+}
+
+function loginDiv(){
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  render();
+}
+
+function showLoginChoice(){
+  loginStart.classList.add("hidden");
+  loginChoice.classList.remove("hidden");
+}
+
+function showLogin(){
+  loginChoice.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+}
+
+function showCreate(){
+  loginChoice.classList.add("hidden");
+  createForm.classList.remove("hidden");
+}
+
+function backToChoice(){
+  loginForm.classList.add("hidden");
+  createForm.classList.add("hidden");
+  loginChoice.classList.remove("hidden");
+}
+
+let accounts = {};
+let currentUser = null;
+
+let state={
+  name:"",
+  icon:"@",
+  level:1,
+  xp:0,
+  points:0,
+  gold:0,
+  hp:30,
+  maxHp:30,
+  baseDmg:3,
+  inventory:{},
+  tools:{},
+  selectedTool:null,
+  location:"vila",
+  enemy:null
+};
+
+    // ===== VERIFICAÇÃO DE LOGIN AO CARREGAR =====
+// Executar após o carregamento completo da página
+window.addEventListener('load', function() {
+    console.log("=== VERIFICAÇÃO DE LOGIN AO CARREGAR ===");
+    
+    // Verificar se já está logado quando a página carrega
+    let savedUser = localStorage.getItem("ascii_current");
+    console.log("Usuário salvo:", savedUser);
+    
+    if(savedUser) {
+        let allAccounts = JSON.parse(localStorage.getItem("ascii_accounts") || "{}");
+        console.log("Contas carregadas:", Object.keys(allAccounts));
+        
+        let acc = allAccounts[savedUser];
+        if(acc) {
+            console.log("Conta encontrada:", savedUser);
+            
+            currentUser = savedUser;
+            accounts = allAccounts;
+            
+            // Garantir que os dados existam
+            if(!acc.data) {
+                console.log("Criando dados para conta nova...");
+                acc.data = {
+                    name: savedUser,
+                    icon: "@",
+                    level: 1,
+                    xp: 0,
+                    points: 0,
+                    gold: 0,
+                    hp: 30,
+                    maxHp: 30,
+                    baseDmg: 3,
+                    inventory: {},
+                    tools: {},
+                    selectedTool: null,
+                    location: "vila",
+                    enemy: null
+                };
+                // Salvar de volta
+                allAccounts[savedUser] = acc;
+                localStorage.setItem("ascii_accounts", JSON.stringify(allAccounts));
+            }
+            
+            // Fazer uma cópia segura do estado
+            state = JSON.parse(JSON.stringify(acc.data));
+            
+            // Log para debug
+            console.log("Estado carregado:", state);
+            
+            // Ocultar tela de login COMPLETAMENTE
+            let loginScreen = document.getElementById("loginScreen");
+            let game = document.getElementById("game");
+            
+            if(loginScreen && game) {
+                // Esconder login completamente
+                loginScreen.classList.add("hidden");
+                loginScreen.style.display = "none";
+                
+                // Mostrar o jogo
+                game.classList.remove("hidden");
+                game.style.display = "block";
+                
+                // Renderizar o jogo (agora sim, todas as funções estão definidas)
+                if (typeof render === 'function') {
+                    render();
+                } else {
+                    console.error("Função render não encontrada!");
+                }
+                
+                console.log("Jogo mostrado com sucesso!");
+            } else {
+                console.error("Elementos não encontrados!");
+            }
+        } else {
+            console.log("Conta não encontrada no localStorage, limpando...");
+            localStorage.removeItem("ascii_current");
+        }
+    } else {
+        console.log("Nenhum usuário logado, mostrando tela de login...");
+    }
+});
+// ===== FIM DA VERIFICAÇÃO =====
+
+
+function openSettings(){
+  setName.value = state.name;
+  setPass.value = accounts[currentUser].pass;
+  settings.classList.remove("hidden");
+}
+
+function closeSettings(){
+  settings.classList.add("hidden");
+}
+
+function applySettings(){
+  let n = setName.value.trim();
+  if(!n) return alert("Nome inválido");
+
+  if(n !== currentUser && accounts[n]){
+    alert("Esse nome já existe");
+    return;
+  }
+
+  // renomear conta com segurança
+  if(n !== currentUser){
+    accounts[n] = accounts[currentUser];
+    delete accounts[currentUser];
+    currentUser = n;
+  }
+
+  state.name = n;
+
+  localStorage.setItem("ascii_current", currentUser);
+  localStorage.setItem("ascii_accounts", JSON.stringify(accounts));
+
+  closeSettings();
+  render();
+}
+
+function xpNeed(){return state.level*10;}
+function save(){
+  if(!currentUser) return;
+
+  let allAccounts = JSON.parse(localStorage.getItem("ascii_accounts") || "{}");
+
+  if(!allAccounts[currentUser]) return;
+
+  allAccounts[currentUser].data = state;
+
+  localStorage.setItem("ascii_accounts", JSON.stringify(allAccounts));
+}
+function load(){
+  let s = localStorage.getItem("ascii_rpg");
+  if(!s) return;
+
+  let old = JSON.parse(s);
+
+  // só copia o que EXISTE no sistema atual
+  state.name = old.name || "";
+  state.icon = old.icon || "@";
+  state.level = old.level || 1;
+  state.xp = old.xp || 0;
+  state.points = old.points || 0;
+  state.gold = old.gold || 0;
+  state.hp = old.hp || 30;
+  state.maxHp = old.maxHp || 30;
+  state.baseDmg = old.baseDmg || 3;
+  state.location = old.location || "vila";
+
+   // INVENTÁRIO: apenas itens simples (NUNCA ferramentas antigas)
+state.inventory = {};
+if(old.inventory && typeof old.inventory === "object"){
+  for(let k in old.inventory){
+
+    // remove qualquer resquício do sistema antigo de picareta
+    if(
+      k.includes("picareta") ||
+      k.includes("pick")
+    ) continue;
+
+    if(typeof old.inventory[k] === "number"){
+      state.inventory[k] = old.inventory[k];
+    }
+  }
+}
+
+
+  // FERRAMENTAS: só durabilidade
+  state.tools = {};
+  if(old.tools && typeof old.tools === "object"){
+    for(let id in old.tools){
+      let t = old.tools[id];
+      if(t && typeof t.dur === "number"){
+        state.tools[id] = {
+          name: t.name || "Picareta Inicial",
+          dur: Math.min(t.dur,30)
+        };
+      }
+    }
+  }
+
+  state.selectedTool = old.selectedTool || null;
+
+  // NUNCA carregar combate antigo
+  state.enemy = null;
+}
+
+function start(){
+  state.name=name.value||"Jonny";
+  state.icon=icon.value||"@";
+  save();
+  login.classList.add("hidden");
+  game.classList.remove("hidden");
+  render();
+}
+
+function logout(){
+  localStorage.removeItem("ascii_current");
+  location.reload();
+}
+
+function togglePlayerMenu(){
+  playerMenu.classList.toggle("hidden");
+}
+
+function toggleInv(){
+  inv.classList.toggle("hidden");
+
+  // SEMPRE atualizar o inventário ao abrir
+  atualizarInventario();
+}
+
+// NOVA FUNÇÃO QUE SÓ ATUALIZA O INVENTÁRIO
+function atualizarInventario() {
+  let invHtml = "";
+
+  // ITENS
+  for(let i in state.inventory){
+    if(i === "pao"){
+      invHtml += `🥖 <span class="click" onclick="openFoodPanel()">
+        Pão
+      </span> x${state.inventory[i]}<br>`;
+    }else{
+      // Apenas texto - sem click nos itens normais
+      invHtml += `${i} x${state.inventory[i]}<br>`;
+    }
+  }
+
+  // FERRAMENTAS
+  for(let id in state.tools){
+    let t = state.tools[id];
+    let bar = "█".repeat(Math.ceil(t.dur/3));
+    invHtml += `⛏ <span class="click ${state.selectedTool===id?'selected':''}"
+      onclick="selectTool('${id}')">${t.name}</span>
+      [${bar}] ${t.dur}/30<br>`;
+  }
+
+  inv.innerHTML = invHtml || "(vazio)";
+}
+
+
+function openFoodPanel(){
+  let curaPorPao = 2;
+  let falta = state.maxHp - state.hp;
+
+  if(falta <= 0){
+    scene.textContent = "Sua vida já está cheia.";
+    return;
+  }
+
+  let maxComer = Math.min(
+    state.inventory.pao,
+    Math.ceil(falta / curaPorPao)
+  );
+
+  let qtd = 1;
+
+  // cria overlay
+  let overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(0,0,0,0.7)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = 9999;
+
+  // painel
+  let panel = document.createElement("div");
+  panel.style.background = "#111";
+  panel.style.border = "1px solid #555";
+  panel.style.padding = "16px";
+  panel.style.minWidth = "260px";
+  panel.style.textAlign = "center";
+  panel.style.fontFamily = "monospace";
+
+  function renderPanel(msg=""){
+    panel.innerHTML = `
+<strong>Comer pão</strong>
+
+<br><br>
+Vida: ${state.hp} / ${state.maxHp}
+
+<br><br>
+Quantidade:
+<br><br>
+
+<span class="click" id="minus">-</span>
+  <select id="foodQty" style="
+  background:#000;
+  color:#fff;
+  border:1px solid #555;
+  font-family:monospace;
+">
+  ${Array.from({length:maxComer},(_,i)=>`
+    <option value="${i+1}" ${i+1===qtd?"selected":""}>
+      ${i+1}
+    </option>
+  `).join("")}
+</select>
+
+<span class="click" id="plus">+</span>
+
+<br><br>
+[ <span class="click" id="confirm">Comer</span> ]
+[ <span class="click" id="cancel">Cancelar</span> ]
+
+<br><br>
+${msg}
+`;
+
+    panel.querySelector("#minus").onclick = () => {
+      if(qtd > 0){
+        qtd--;
+        renderPanel();
+      }
+    };
+
+    panel.querySelector("#plus").onclick = () => {
+      if(qtd >= maxComer){
+        renderPanel("Sua vida já ficará cheia.");
+        return;
+      }
+      qtd++;
+      renderPanel();
+    };
+
+    panel.querySelector("#foodQty").oninput = (e) => {
+      let v = parseInt(e.target.value);
+      if(isNaN(v)) v = 1;
+      if(v < 1) v = 1;
+      if(v > maxComer) v = maxComer;
+      qtd = v;
+      e.target.value = qtd;
+    };
+
+    panel.querySelector("#confirm").onclick = () => {
+      state.inventory.pao -= qtd;
+      if(state.inventory.pao <= 0){
+        delete state.inventory.pao;
+      }
+
+      state.hp = Math.min(
+        state.hp + qtd * curaPorPao,
+        state.maxHp
+      );
+
+      document.body.removeChild(overlay);
+      save();
+
+      hudHp.textContent = state.hp + " / " + state.maxHp;
+
+     atualizarInventario();  
+      
+    };
+
+    panel.querySelector("#cancel").onclick = () => {
+      document.body.removeChild(overlay);
+      render();
+    };
+  }
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  renderPanel();
+}
+
+function render(){
+  hudName.textContent=state.name;
+  hudHp.textContent=state.hp+" / "+state.maxHp;
+  hudGold.textContent=state.gold;
+  hudLoc.textContent=state.location;
+  hudLevel.textContent=state.level;
+  hudXp.textContent=state.xp+" / "+xpNeed();
+  hudPoints.textContent=state.points;
+  hudDmg.textContent=state.baseDmg;
+
+  let invHtml="";
+
+  // ITENS
+  for(let i in state.inventory){
+    if(i === "pao"){
+      invHtml+=`🥖 <span class="click" onclick="openFoodPanel()">
+        Pão
+      </span> x${state.inventory[i]}<br>`;
+    }else{
+      invHtml+=`${i} x${state.inventory[i]}<br>`;
+    }
+  }
+
+  // FERRAMENTAS (NUNCA x1)
+  for(let id in state.tools){
+    let t=state.tools[id];
+    let bar="█".repeat(Math.ceil(t.dur/3));
+    invHtml+=`⛏ <span class="click ${state.selectedTool===id?'selected':''}"
+      onclick="selectTool('${id}')">${t.name}</span>
+      [${bar}] ${t.dur}/30<br>`;
+  }
+
+  inv.innerHTML=invHtml||"(vazio)";
+
+  // NOVA LÓGICA: Se estiver em combate, abre o painel automaticamente
+  if(state.location==="combate" && state.enemy){
+    // Não renderiza a cena normal de combate
+    // Em vez disso, abre o painel de combate
+    if(!document.getElementById("combatOverlay")) {
+      openCombatPanel(state.enemy.name, state.enemy.maxHp, state.enemy.dmg, true);
+    }
+    return; // Não renderiza as outras cenas
+  }
+
+  // Renderiza as outras localizações normalmente
+  if(state.location==="vila") vila();
+  if(state.location==="floresta") floresta();
+  if(state.location==="caverna") caverna();
+  if(state.location==="mina") mina();
+  if(state.location==="loja") loja();
+  if(state.location==="vendedor") vendedor();
+}
+  
+function openStatsPanel(){
+  let overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(0,0,0,0.75)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = 9999;
+
+  let panel = document.createElement("div");
+  panel.style.background = "#111";
+  panel.style.border = "1px solid #555";
+  panel.style.padding = "16px";
+  panel.style.width = "320px";
+  panel.style.fontFamily = "monospace";
+  panel.style.color = "#fff";
+
+  // pontos já investidos (derivados do estado)
+  let pontosVida = Math.floor((state.maxHp - 30) / 2);
+  let pontosDano = Math.floor((state.baseDmg - 3) / 1);
+
+  function renderPanel(msg=""){
+  panel.innerHTML = `
+<pre style="text-align:center;">
+┌──────────────┐
+│ Estatísticas │
+└──────────────┘
+</pre>
+
+<div style="text-align:center;">
+Pontos disponíveis: <b>${state.points}</b>
+</div>
+
+<br>
+
+ <div style="
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:10px;
+">
+
+  <div style="
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+  ">
+    <span style="min-width:70px;text-align:right;">❤️ Vida</span>
+    <span>${pontosVida}</span>
+    <span class="click" id="addHp">+</span>
+  </div>
+
+  <div style="
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+  ">
+    <span style="min-width:70px;text-align:right;">⚔️ Força</span>
+    <span>${pontosDano}</span>
+    <span class="click" id="addDmg">+</span>
+  </div>
+
+</div>
+
+<br>
+
+${msg ? `<div style="text-align:center;color:#faa;">${msg}</div><br>` : ""}
+
+<div style="text-align:center;">
+[ <span class="click" id="close">Fechar</span> ]
+</div>
+`;
+
+    panel.querySelector("#addHp").onclick = ()=>{
+      if(state.points <= 0){
+        renderPanel("Sem pontos disponíveis.");
+        return;
+      }
+      state.maxHp += 2;
+      state.hp += 2;
+      state.points--;
+      pontosVida++;
+      save();
+      renderPanel();
+      render();
+    };
+
+    panel.querySelector("#addDmg").onclick = ()=>{
+      if(state.points < 2){
+        renderPanel("Força custa 2 pontos.");
+        return;
+      }
+      state.baseDmg += 1;
+      state.points -= 2;
+      pontosDano++;
+      save();
+      renderPanel();
+      render();
+    };
+
+    panel.querySelector("#close").onclick = ()=>{
+      document.body.removeChild(overlay);
+      render();
+    };
+  }
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  renderPanel();
+}
+
+
+/* ===== STATS ===== */
+
+function addStat(t){
+  if(state.points<=0) return;
+  if(t==="hp"){
+    state.maxHp+=2;
+    state.hp+=2;
+    state.points--;
+  }
+  if(t==="dmg"){
+    if(state.points<2) return;
+    state.baseDmg+=1;
+    state.points-=2;
+  }
+  save();render();
+}
+
+
+/* ===== LOCAIS ===== */
+
+function vila(){
+map.innerHTML=`
+          🌲 🌲 🌲
+
+[ <span class="click" onclick="go('floresta')">Floresta</span> ]   [ <span class="click" onclick="go('loja')">Loja</span> ]
+
+          ${state.icon}
+
+[ <span class="click" onclick="go('caverna')">Caverna</span> ]   [ <span class="click" onclick="go('mina')">Mina</span> ]
+
+        [ <span class="click" onclick="go('vendedor')">Vendedor</span> ]
+`;
+scene.textContent="A vila está quieta demais...";
+}
+
+function floresta(){
+map.innerHTML=`
+🌲🌲🌲🌲🌲🌲🌲🌲🌲
+🌲   Floresta densa   🌲
+🌲🌲🌲🌲🌲🌲🌲🌲🌲
+
+        ${state.icon}
+
+[ <span class="click" onclick="go('vila')">Vila</span> ]
+`;
+scene.innerHTML=`
+A floresta está muito silenciosa...
+
+[ <span class="click" onclick="investigarFloresta()">Investigar</span> ]
+`;
+}
+
+function caverna(){
+map.innerHTML=`
+🪨🪨🪨🪨🪨🪨🪨
+🪨   Caverna fria   🪨
+🪨🪨🪨🪨🪨🪨🪨
+
+        ${state.icon}
+
+[ <span class="click" onclick="go('vila')">Vila</span> ]
+`;
+scene.innerHTML=`
+Escuto sons estranhos mais afundo
+
+[ <span class="click" onclick="investigarCaverna()">Investigar</span> ]
+`;
+}
+
+/* ===== MINA ===== */
+
+function mina(){
+map.innerHTML=`
+🪨🪨🪨🪨🪨🪨🪨
+🪨   Mina Escura   🪨
+🪨🪨🪨🪨🪨🪨🪨
+
+   🪨🪨🪨🪨🪨
+   🪨 <span class="click" onclick="mine()">Minerar</span> 🪨
+   🪨🪨🪨🪨🪨
+
+        ${state.icon}
+
+[ <span class="click" onclick="go('vila')">Saída</span> ]
+`;
+scene.textContent="As paredes estão cheias de minério.";
+}
+
+function loja(){
+  const itens = {
+    pao: {
+      nome: "Pão",
+      preco: 2,
+      tipo: "food",
+      max: Infinity
+    },
+    pick: {
+      nome: "Picareta Inicial",
+      preco: 20,
+      tipo: "tool",
+      max: 3
+    }
+  };
+
+  let carrinho = {
+    pao: 0,
+    pick: 0
+  };
+
+  let selecionado = "pao";
+
+  let overlay = document.createElement("div");
+  overlay.style.position="fixed";
+  overlay.style.top=0;
+  overlay.style.left=0;
+  overlay.style.width="100%";
+  overlay.style.height="100%";
+  overlay.style.background="rgba(0,0,0,0.75)";
+  overlay.style.display="flex";
+  overlay.style.alignItems="center";
+  overlay.style.justifyContent="center";
+  overlay.style.zIndex=9999;
+
+  let panel = document.createElement("div");
+  panel.style.background="#111";
+  panel.style.border="1px solid #555";
+  panel.style.padding="16px";
+  panel.style.width="340px";
+  panel.style.fontFamily="monospace";
+  panel.style.color="#fff";
+
+  function totalPicaretas(){
+    return Object.keys(state.tools).length;
+  }
+
+  function totalPreco(){
+    let t = 0;
+    for(let k in carrinho){
+      t += carrinho[k] * itens[k].preco;
+    }
+    return t;
+  }
+
+  function placa(){
+    return `
+<pre style="text-align:center;animation:vento 3s ease-in-out infinite;">
+┌──────────────┐
+│ Loja da Vila │
+└──────────────┘
+</pre>`;
+  }
+
+  function render(msg=""){
+    panel.innerHTML = `
+${placa()}
+
+<div>
+  <span class="click"
+    style="color:${selecionado==="pao"?"#6f6":"#fff"}"
+    onclick="selectItem('pao')">
+    🥖 Pão (${carrinho.pao})
+  </span>
+  <br>
+  <span class="click"
+    style="color:${selecionado==="pick"?"#6f6":"#fff"}"
+    onclick="selectItem('pick')">
+    ⛏ Picareta (${carrinho.pick})
+  </span>
+</div>
+
+<br>
+
+Quantidade:
+<br><br>
+
+<span class="click" id="menos">-</span>
+<select id="qtd" style="width:80px;text-align:center;">
+  ${(() => {
+    let max;
+
+if(selecionado === "pick"){
+  max = Math.min(
+    3 - totalPicaretas(),
+    Math.floor(state.gold / itens.pick.preco)
+  );
+}else{
+  max = Math.floor(state.gold / itens.pao.preco);
+}
+    let opts = "";
+    for(let i=0;i<=max;i++){
+      opts += `<option value="${i}" ${i===carrinho[selecionado]?"selected":""}>${i}</option>`;
+    }
+    return opts;
+  })()}
+</select>
+
+<span class="click" id="mais">+</span>
+
+<br><br>
+Preço total: ${totalPreco()} moedas
+
+<br><br>
+[ <span class="click" id="comprar">Comprar</span> ]
+[ <span class="click" id="sair">Sair</span> ]
+
+<br>
+${msg}
+`;
+
+    panel.querySelector("#menos").onclick = ()=>{
+      if(carrinho[selecionado] > 0){
+        carrinho[selecionado]--;
+        render();
+      }
+    };
+
+    panel.querySelector("#mais").onclick = ()=>{
+      if(selecionado==="pick"){
+        let limite = 3 - totalPicaretas();
+        if(carrinho.pick >= limite){
+          render("Máximo de 3 picaretas.");
+          return;
+        }
+      }
+      carrinho[selecionado]++;
+      render();
+    };
+
+    const inputQtd = panel.querySelector("#qtd");
+
+panel.querySelector("#qtd").onchange = (e)=>{
+  carrinho[selecionado] = parseInt(e.target.value);
+  render();
+};
+
+
+    panel.querySelector("#comprar").onclick = ()=>{
+      let total = totalPreco();
+      if(total > state.gold){
+        render("Ouro insuficiente.");
+        return; 
+      }
+
+      if(carrinho.pao > 0){
+        state.inventory.pao = (state.inventory.pao||0) + carrinho.pao;
+      }
+
+      if(carrinho.pick > 0){
+        for(let i=0;i<carrinho.pick;i++){
+          let id = "pick_"+Date.now()+Math.random();
+          state.tools[id] = {name:"Picareta Inicial",dur:30};
+        }
+      }
+
+      state.gold -= total;
+      save();
+      document.body.removeChild(overlay);
+
+      hudGold.textContent = state.gold;
+
+      atualizarInventario();
+
+     go("vila");
+
+     render();
+
+    };
+
+    panel.querySelector("#sair").onclick = ()=>{
+  document.body.removeChild(overlay);
+  go("vila");
+};
+
+  }
+
+  window.selectItem = (id)=>{
+    selecionado = id;
+    render();
+  };
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  render();
+}
+
+function vendedor(){
+  const precos = {
+    cobre: 1,
+    ferro: 5,
+    ouro: 20,
+    diamante: 250
+  };
+
+  let carrinho = {
+    cobre: 0,
+    ferro: 0,
+    ouro: 0,
+    diamante: 0
+  };
+
+  let selecionado = "cobre";
+
+  let overlay = document.createElement("div");
+  overlay.style.position="fixed";
+  overlay.style.top=0;
+  overlay.style.left=0;
+  overlay.style.width="100%";
+  overlay.style.height="100%";
+  overlay.style.background="rgba(0,0,0,0.75)";
+  overlay.style.display="flex";
+  overlay.style.alignItems="center";
+  overlay.style.justifyContent="center";
+  overlay.style.zIndex=9999;
+
+  let panel = document.createElement("div");
+  panel.style.background="#111";
+  panel.style.border="1px solid #555";
+  panel.style.padding="16px";
+  panel.style.width="340px";
+  panel.style.fontFamily="monospace";
+  panel.style.color="#fff";
+
+  function total(){
+    let t=0;
+    for(let k in carrinho){
+      t += carrinho[k] * precos[k];
+    }
+    return t;
+  }
+
+  function placa(){
+    return `
+<pre style="text-align:center;animation:vento 3s ease-in-out infinite;">
+┌────────────────┐
+│ Vendedor da Vila │
+└────────────────┘
+</pre>`;
+  }
+
+  function render(msg=""){
+    panel.innerHTML = `
+${placa()}
+
+<div>
+  ${Object.keys(precos).map(k=>{
+    let tem = state.inventory[k] || 0;
+    return `
+<span class="click"
+  style="color:${selecionado===k?"#6f6":"#fff"}"
+  onclick="selectSell('${k}')">
+  ${k} (${carrinho[k]}/${tem})
+</span><br>`;
+  }).join("")}
+</div>
+
+<br>
+
+Quantidade:
+<br><br>
+
+<span class="click" id="menos">-</span>
+<select id="qtd" style="width:80px;text-align:center;">
+  ${(() => {
+    let tem = state.inventory[selecionado] || 0;
+    let opts = "";
+    for(let i=0;i<=tem;i++){
+      opts += `<option value="${i}" ${i===carrinho[selecionado]?"selected":""}>${i}</option>`;
+    }
+    return opts;
+  })()}
+</select>
+
+<span class="click" id="mais">+</span>
+
+<br><br>
+Valor total: ${total()} moedas
+
+<br><br>
+[ <span class="click" id="vender">Vender</span> ]
+[ <span class="click" id="sair">Voltar</span> ]
+
+<br>
+${msg}
+`;
+
+    panel.querySelector("#menos").onclick=()=>{
+      if(carrinho[selecionado]>0){
+        carrinho[selecionado]--;
+        render();
+      }
+    };
+
+    panel.querySelector("#mais").onclick=()=>{
+      let tem = state.inventory[selecionado]||0;
+      if(carrinho[selecionado] >= tem){
+        render("Você não tem mais para vender.");
+        return;
+      }
+      carrinho[selecionado]++;
+      render();
+    };
+
+    panel.querySelector("#qtd").onchange = (e)=>{
+  carrinho[selecionado] = parseInt(e.target.value);
+  render();
+};
+   
+    panel.querySelector("#vender").onclick=()=>{
+      let ganho = total();
+      if(ganho<=0){
+        render("Nada selecionado.");
+        return;
+      }
+
+      for(let k in carrinho){
+        let q = carrinho[k];
+        if(q>0){
+          state.inventory[k]-=q;
+          if(state.inventory[k]<=0) delete state.inventory[k];
+        }
+      }
+
+      state.gold += ganho;
+      document.body.removeChild(overlay);
+      save();
+
+      hudGold.textContent = state.gold;
+
+      atualizarInventario();
+
+      go("vila");
+
+      render();
+    };
+
+    panel.querySelector("#sair").onclick=()=>{
+      document.body.removeChild(overlay);
+      go("vila");
+    };
+  }
+
+  window.selectSell=(k)=>{
+    selecionado=k;
+    render();
+  };
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  render();
+}
+
+
+/* ===== COMBATE ===== */
+
+function startCombat(name,hp,dmg){
+  state.enemy={name,hp,maxHp:hp,dmg};
+  state.location="combate";
+  save();render();
+}
+
+/* ===== NOVO PAINEL DE COMBATE ===== */
+
+function openCombatPanel(name, hp, dmg, isReload = false) {
+  // Se não for um recarregamento, iniciar novo combate
+  if(!isReload) {
+    startCombat(name, hp, dmg);
+  }
+  
+  // Se já existe um overlay de combate, não criar outro
+  if(document.getElementById("combatOverlay")) {
+    return;
+  }
+  
+  // Criar overlay para o painel de combate
+  let overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(0,0,0,0.85)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = 9999;
+  overlay.id = "combatOverlay";
+
+  // Painel principal
+  let panel = document.createElement("div");
+  panel.style.background = "#111";
+  panel.style.border = "1px solid #555";
+  panel.style.padding = "20px";
+  panel.style.width = "320px";
+  panel.style.fontFamily = "monospace";
+  panel.style.color = "#fff";
+  panel.style.textAlign = "center";
+
+  function updateCombatPanel(message = "") {
+    panel.innerHTML = `
+<pre style="text-align:center;margin-bottom:10px;">
+┌──────────────┐
+│    COMBATE   │
+└──────────────┘
+</pre>
+
+<strong>${state.enemy.name}</strong>
+❤️ Vida: ${state.enemy.hp}/${state.enemy.maxHp}
+⚔️ Dano: ${state.enemy.dmg}
+
+<hr style="border:0;border-top:1px solid #333;margin:10px 0;">
+
+<strong>${state.name}</strong>
+❤️ Vida: ${state.hp}/${state.maxHp}
+⚔️ Dano Base: ${state.baseDmg}
+
+<hr style="border:0;border-top:1px solid #333;margin:10px 0;">
+
+Escolha seu ataque:
+<br><br>
+[ <span class="click" onclick="combatAttack('soco')">Soco (${state.baseDmg} dmg)</span> ]
+${state.level >= 2 ? `<br>[ <span class="click" onclick="combatAttack('arrastao')">Arrastão (${state.baseDmg + 2} dmg)</span> ]` : ""}
+
+<br><br>
+[ <span class="click" onclick="fugirDoCombate()">Fugir</span> ]
+
+<br><br>
+${message ? `<div style="color:#faa;font-size:12px;">${message}</div>` : ""}
+`;
+  }
+
+  // Adicionar painel ao overlay e overlay ao body
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  
+  // Atualizar o painel inicialmente
+  updateCombatPanel();
+  
+  // Se for um recarregamento, mostra uma mensagem
+  if(isReload) {
+    updateCombatPanel("Combate retomado!");
+  }
+  
+  // Adicionar funções globais para os botões do painel
+    // Adicionar funções globais para os botões do painel
+  window.combatAttack = function(type) {
+  // Salvar dados do inimigo ANTES do ataque
+  let enemyName = state.enemy ? state.enemy.name : "";
+  let enemyMaxHp = state.enemy ? state.enemy.maxHp : 0;
+  let enemyDmg = state.enemy ? state.enemy.dmg : 0;
+  
+  // Atacar
+  let enemyDied = attack(type);
+  
+  if (enemyDied) {
+    // === INIMIGO DERROTADO - SOLUÇÃO BRUTA ===
+    
+    // 1. Fechar o painel de combate IMEDIATAMENTE
+    let combatOverlay = document.getElementById("combatOverlay");
+    if (combatOverlay) {
+      document.body.removeChild(combatOverlay);
+    }
+
+    let localAnterior = state.location === "combate" ? "floresta" : state.location;
+    localStorage.setItem("ultimo_local", localAnterior);
+    
+    // 2. Limpar o inimigo do estado
+    state.enemy = null;
+    state.location = "vila";
+    save();
+    
+         // 3. CRIAR TELA DE VITÓRIA COM BOTÕES
+    let winOverlay = document.createElement("div");
+    winOverlay.style.position = "fixed";
+    winOverlay.style.top = 0;
+    winOverlay.style.left = 0;
+    winOverlay.style.width = "100%";
+    winOverlay.style.height = "100%";
+    winOverlay.style.background = "rgba(0,0,0,0.9)";
+    winOverlay.style.display = "flex";
+    winOverlay.style.alignItems = "center";
+    winOverlay.style.justifyContent = "center";
+    winOverlay.style.zIndex = 99999;
+    winOverlay.id = "winOverlay";
+    
+    let winPanel = document.createElement("div");
+    winPanel.style.background = "#0a0a0a";
+    winPanel.style.border = "2px solid #00ff00";
+    winPanel.style.padding = "30px";
+    winPanel.style.borderRadius = "10px";
+    winPanel.style.textAlign = "center";
+    winPanel.style.fontFamily = "monospace";
+    winPanel.style.color = "#fff";
+    winPanel.style.boxShadow = "0 0 20px #00ff00";
+    winPanel.style.animation = "pulse 2s infinite";
+    
+    winPanel.innerHTML = `
+  <div style="font-size:48px; margin-bottom:20px;"></div>
+  <div style="font-size:24px; margin-bottom:30px;">Você derrotou ${enemyName}</div>
+  <div style="font-size:18px; margin-bottom:10px;">✨ +${enemyName === "Goblin" ? 15 : enemyName === "Rato Gigante" ? 8 : 6} XP</div>
+  <div style="font-size:18px; margin-bottom:30px;">💰 +${enemyName === "Goblin" ? 12 : enemyName === "Rato Gigante" ? 5 : 4} moedas</div>
+  <div style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
+    <button class="win-btn vila" onclick="voltarVila()">🏠 Voltar pra vila</button>
+    <button class="win-btn continuar" onclick="continuarInvestigacao()">🔍 Continuar investigando</button>
+  </div>
+`;
+    
+    winOverlay.appendChild(winPanel);
+    document.body.appendChild(winOverlay);
+    
+    
+    // 5. Renderizar
+    render();
+    
+  } else if (state.hp <= 0) {
+    // JOGADOR MORREU
+    let combatOverlay = document.getElementById("combatOverlay");
+    if (combatOverlay) {
+      document.body.removeChild(combatOverlay);
+    }
+    
+    alert("💀 VOCÊ MORREU! 💀");
+
+    let contas = JSON.parse(localStorage.getItem("ascii_accounts") || "{}");
+    delete contas[currentUser];
+    localStorage.setItem("ascii_accounts", JSON.stringify(contas));
+
+    logout();
+    
+  } else if (state.enemy) {
+    // Apenas atualizar o painel de combate
+    let damageDealt = state.baseDmg + (type === "arrastao" ? 2 : 0);
+    let combatOverlay = document.getElementById("combatOverlay");
+    
+    if (combatOverlay) {
+      // Atualizar o painel existente
+      let panel = combatOverlay.firstChild;
+      if (panel) {
+        panel.innerHTML = `
+<pre style="text-align:center;margin-bottom:10px;">
+┌──────────────┐
+│    COMBATE   │
+└──────────────┘
+</pre>
+
+<strong>${state.enemy.name}</strong>
+❤️ Vida: ${state.enemy.hp}/${state.enemy.maxHp}
+⚔️ Dano: ${state.enemy.dmg}
+
+<hr style="border:0;border-top:1px solid #333;margin:10px 0;">
+
+<strong>${state.name}</strong>
+❤️ Vida: ${state.hp}/${state.maxHp}
+⚔️ Dano Base: ${state.baseDmg}
+
+<hr style="border:0;border-top:1px solid #333;margin:10px 0;">
+
+Escolha seu ataque:
+<br><br>
+[ <span class="click" onclick="combatAttack('soco')">Soco (${state.baseDmg} dmg)</span> ]
+${state.level >= 2 ? `<br>[ <span class="click" onclick="combatAttack('arrastao')">Arrastão (${state.baseDmg + 2} dmg)</span> ]` : ""}
+
+<br><br>
+[ <span class="click" onclick="fugirDoCombate()">Fugir</span> ]
+
+<br><br>
+<div style="color:#faa;font-size:12px;">
+⚔️ Você atacou com ${type === 'soco' ? 'Soco' : 'Arrastão'}!
+Dano: ${damageDealt}
+${enemyName} contra-atacou! (-${enemyDmg})
+</div>
+`;
+      }
+    }
+  }
+};
+  
+  window.fugirDoCombate = function() {
+    document.body.removeChild(overlay);
+    state.enemy = null;
+    state.location = "vila";
+    save();
+    render();
+  };
+}
+
+
+function attack(type){
+  let dmg = state.baseDmg + (type === "arrastao" ? 2 : 0);
+  state.enemy.hp -= dmg;
+  
+  console.log(`Ataque: causou ${dmg} de dano, inimigo agora tem ${state.enemy.hp} de vida`);
+
+  if(state.enemy.hp <= 0){
+    // INIMIGO MORREU - GANHAR RECOMPENSAS DIFERENTES POR MONSTRO
+    if (state.enemy.name === "Goblin") {
+      state.gold += 12;
+      gainXP(15);
+    } else if (state.enemy.name === "Rato Gigante") {
+      state.gold += 5;
+      gainXP(8);
+    } else {
+      // Fallback pra qualquer outro monstro
+      state.gold += 4;
+      gainXP(6);
+    }
+    
+    // Atualizar HUD imediatamente
+    hudGold.textContent = state.gold;
+    hudHp.textContent = state.hp + " / " + state.maxHp;
+    hudLevel.textContent = state.level;
+    hudXp.textContent = state.xp + " / " + xpNeed();
+    hudPoints.textContent = state.points;
+    
+    return true; // Inimigo morreu
+  } else {
+    // Inimigo contra-ataca
+    state.hp -= state.enemy.dmg;
+    save();
+    
+    if(state.hp <= 0){
+      state.hp = 0;
+      save();
+      return false; // Jogador morreu
+    }
+    
+    save();
+    return false; // Inimigo não morreu
+  }
+}
+
+function gainXP(x){
+  state.xp+=x;
+  while(state.xp>=xpNeed()){
+    state.xp-=xpNeed();
+    state.level++;
+    state.points+=2;
+  }
+}
+
+/* ===== MINERAÇÃO ===== */
+
+function buyBread(){
+  if(state.gold<2) return;
+  state.gold-=2;
+  state.inventory.pao=(state.inventory.pao||0)+1;
+  save();render();
+}
+
+function buyPick(){
+  if(state.gold<20) return;
+
+  let total=Object.keys(state.tools).length;
+  if(total>=3){
+    alert("Máximo de 3 picaretas.");
+    return;
+  }
+
+  state.gold-=20;
+  let id="pick_"+Date.now();
+
+  state.tools[id]={
+    name:"Picareta Inicial",
+    dur:30
+  };
+  save();render();
+}
+
+function selectTool(id){
+  state.selectedTool=id;
+  save();render();
+}
+
+function mine(){
+  if(!state.selectedTool){
+    scene.textContent="Selecione uma picareta.";
+    return;
+  }
+  let t=state.tools[state.selectedTool];
+  if(!t) return;
+
+  t.dur--;
+  if(t.dur<=0){
+    delete state.tools[state.selectedTool];
+    state.selectedTool=null;
+    save();render();
+    return;
+  }
+
+  let r=Math.random()*100;
+  let m=r<0.2?"diamante":r<1.2?"ouro":r<16.2?"ferro":"cobre";
+  state.inventory[m]=(state.inventory[m]||0)+1;
+  save();render();
+}
+
+function sell(i,v){
+  if(!state.inventory[i]) return;
+  state.inventory[i]--;
+  if(state.inventory[i]<=0) delete state.inventory[i];
+  state.gold+=v;
+  save();render();
+}
+
+function go(l){
+  state.location=l;
+  save();render();
+}
+
+// força atualização visual do preço sem recriar painel
+function forceUpdateTotal(panel, tipo){
+  let el = panel.querySelector(".totalValor");
+  if(!el) return;
+
+  if(tipo === "loja"){
+    el.innerText = "Preço total: " + totalPreco() + " moedas";
+  }
+
+  if(tipo === "vendedor"){
+    el.innerText = "Valor total: " + total() + " moedas";
+  }
+}
+
+// Debug helper
+console.log("Script carregado!");
+console.log("Elementos encontrados:");
+console.log("loginScreen:", document.getElementById("loginScreen"));
+console.log("game:", document.getElementById("game"));
+console.log("loginForm:", document.getElementById("loginForm"));
+
+// Teste rápido para ver se o localStorage está funcionando
+localStorage.setItem("teste_login", "funcionando");
+console.log("Teste localStorage:", localStorage.getItem("teste_login"));
+
+// Teste manual - execute isso no console do navegador
+window.testeLogin = function() {
+  console.log("=== TESTE DE LOGIN ===");
+  console.log("loginScreen:", document.getElementById("loginScreen"));
+  console.log("game:", document.getElementById("game"));
+  console.log("loginScreen hidden?", document.getElementById("loginScreen").classList.contains("hidden"));
+  console.log("game hidden?", document.getElementById("game").classList.contains("hidden"));
+  
+  // Teste rápido - criar conta de teste
+  let testAcc = {
+    pass: "123",
+    data: {
+      name: "teste",
+      icon: "@",
+      level:1,xp:0,points:0,
+      gold:0,hp:30,maxHp:30,
+      baseDmg:3,
+      inventory:{},tools:{},
+      selectedTool:null,
+      location:"vila",
+      enemy:null
+    }
+  };
+  
+  let accounts = JSON.parse(localStorage.getItem("ascii_accounts") || "{}");
+  accounts["teste"] = testAcc;
+  localStorage.setItem("ascii_accounts", JSON.stringify(accounts));
+  
+  console.log("Conta 'teste' criada com senha '123'");
+  console.log("Agora tente fazer login com: teste / 123");
+};
+
+// Executar teste automaticamente
+setTimeout(function() {
+  console.log("=== INICIANDO TESTE AUTOMÁTICO ===");
+  testeLogin();
+}, 1000);
+
+// ===== FUNÇÕES DE VITÓRIA =====
+function voltarVila() {
+    let overlay = document.getElementById("winOverlay");
+    if (overlay) document.body.removeChild(overlay);
+    state.location = "vila";
+    save();
+    render();
+}
+
+function continuarInvestigacao() {
+    let overlay = document.getElementById("winOverlay");
+    if (overlay) document.body.removeChild(overlay);
+    
+    let local = localStorage.getItem("ultimo_local") || "floresta";
+    state.location = local;
+    save();
+    render();
+
+    if (local === "floresta") {
+        investigarFloresta();
+    } else if (local === "caverna") {
+        investigarCaverna();
+    }
+}
+
+// ===== INVESTIGAÇÃO COM PORCENTAGEM =====
+function investigarFloresta() {
+    let rand = Math.random() * 100; // 0 a 100
+    
+    if (rand < 60) {
+        // 60% - Rato Gigante
+        openCombatPanel('Rato Gigante', 10, 2);
+    } else {
+        // 40% - Goblin
+        openCombatPanel('Goblin', 20, 3);
+    }
+}
+
+function investigarCaverna() {
+    let rand = Math.random() * 100;
+    
+    if (rand < 60) {
+        // 60% - Rato Gigante
+        openCombatPanel('Rato Gigante', 10, 2);
+    } else {
+        // 40% - Goblin
+        openCombatPanel('Goblin', 20, 4);
+    }
+}
+
+</script>
+</body>
+</html>
