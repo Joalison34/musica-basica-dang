@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>BloxStore BR - Loja com Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            padding-bottom: 80px;
+        }
+
+        header {
+            background: #020617;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #22c55e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .auth-area {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .auth-area button {
+            background: #3b82f6;
+            border: none;
+            padding: 8px 20px;
+            color: white;
+            cursor: pointer;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            width: auto;
+            margin: 0;
+        }
+
+        .auth-area button:last-child {
+            background: #22c55e;
+        }
+
+        .user-info-header {
+            background: #1e293b;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .logout-btn-header {
+            background: #ef4444;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .menu {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            background: #020617;
+            padding: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #334155;
+        }
+
+        .menu a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: 0.3s;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            background: #1e293b;
+        }
+
+        .menu a:hover {
+            background: #22c55e;
+        }
+
+        .container {
+            padding: 15px;
+            max-width: 100%;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 18px;
+            margin: 12px 0;
+            border-radius: 16px;
+            border: 1px solid #334155;
+        }
+
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            font-size: 20px;
+            font-weight: bold;
+            color: #22c55e;
+        }
+
+        .quantidade-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: none;
+            background: #0f172a;
+            color: white;
+            font-size: 16px;
+        }
+
+        button {
+            background: #22c55e;
+            border: none;
+            padding: 14px;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #16a34a;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-secondary {
+            background: #3b82f6;
+        }
+
+        .whatsapp {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #25d366;
+            padding: 14px;
+            border-radius: 50%;
+            text-decoration: none;
+            color: white;
+            font-size: 22px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 999;
+        }
+
+        .modal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .modal-content input, .modal-content textarea, .modal-content select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            border: none;
+            background: #0f172a;
+            color: white;
+            font-size: 15px;
+        }
+
+        .pix-info {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .pix-key {
+            background: #22c55e;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .button-group button {
+            margin-top: 0;
+            flex: 1;
+        }
+
+        .ticket-item, .product-item {
+            background: #0f172a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 12px;
+            border-left: 4px solid #22c55e;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .ticket-item:hover {
+            transform: translateX(5px);
+            background: #1e293b;
+        }
+
+        .entregue {
+            border-left-color: #ef4444;
+            opacity: 0.7;
+        }
+
+        /* CHAT STYLES */
+        .chat-container {
+            background: #0f172a;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .chat-header {
+            background: #1e293b;
+            padding: 15px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message-cliente {
+            background: #3b82f6;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-dono {
+            background: #334155;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-system {
+            background: #f59e0b;
+            align-self: center;
+            font-size: 12px;
+            text-align: center;
+            max-width: 90%;
+        }
+
+        .message-info {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .chat-input-area {
+            background: #1e293b;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #334155;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            background: #0f172a;
+            color: white;
+        }
+
+        .chat-input-area button {
+            width: auto;
+            padding: 12px 20px;
+            margin: 0;
+        }
+
+        .voltar-chat {
+            background: #3b82f6;
+            margin-bottom: 15px;
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .copy-btn {
+            background: #3b82f6;
+            margin-top: 10px;
+            padding: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-aguardando { background: #f59e0b; color: #000; }
+        .status-pago { background: #22c55e; }
+        .status-entregue { background: #ef4444; }
+
+        @media (max-width: 480px) {
+            .card h3 {
+                font-size: 16px;
+            }
+            
+            button {
+                padding: 12px;
+                font-size: 14px;
+            }
+            
+            .menu a {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">🔥 BloxStore BR</div>
+    <div id="authArea" class="auth-area"></div>
+</header>
+
+<div class="menu">
+    <a onclick="window.mostrarProdutos()">🏪 Produtos</a>
+    <a onclick="window.mostrarMeusTickets()">🎫 Meus Tickets</a>
+</div>
+
+<div class="container" id="mainContainer"></div>
+
+<a class="whatsapp" href="https://wa.me/5513992012731" target="_blank">💬</a>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // ========= CONFIGURAÇÕES =========
+    const firebaseConfig = {
+        apiKey: "AIzaSyAfJZVeKznju7J-KYTE-oSz6pRfbF6mBdQ",
+        authDomain: "funzer.firebaseapp.com",
+        projectId: "funzer",
+        storageBucket: "funzer.firebasestorage.app",
+        messagingSenderId: "723068647417",
+        appId: "1:723068647417:web:7ae58205191b0099a1ef28"
+    };
+
+    const PIX_KEY = "650e46ea-c365-4efa-bd79-8a9354b0cdf7";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let usuarioAtual = null;
+    let isDono = false;
+    let pendingPurchase = null;
+    let currentTicketId = null;
+    let unsubscribeChat = null;
+
+    // ========= FUNÇÕES DE AUTENTICAÇÃO =========
+    function atualizarHeaderAuth() {
+        const authArea = document.getElementById('authArea');
+        if (usuarioAtual) {
+            authArea.innerHTML = `
+                <div class="user-info-header">
+                    👤 ${usuarioAtual.nome} ${isDono ? '👑' : ''}
+                    <span class="logout-btn-header" onclick="window.logout()">Sair</span>
+                </div>
+            `;
+        } else {
+            authArea.innerHTML = `
+                <button onclick="window.mostrarModalLogin()">Entrar</button>
+                <button onclick="window.mostrarModalCadastro()">Criar Conta</button>
+            `;
+        }
+    }
+
+    window.mostrarModalLogin = function() {
+        const modalHtml = `
+            <div class="modal" id="loginModal">
+                <div class="modal-content">
+                    <h2>🔐 Entrar na Conta</h2>
+                    <input type="text" id="loginNome" placeholder="Seu nome">
+                    <input type="password" id="loginSenha" placeholder="Sua senha">
+                    <button onclick="window.fazerLogin()">Entrar</button>
+                    <button onclick="window.fecharModal()" class="btn-danger">Cancelar</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    window.mostrarModalCadastro = function() {
+        const modalHtml = `
+            <div class="modal" id="loginModal">
+                <div class="modal-content">
+                    <h2>📝 Criar Conta</h2>
+                    <input type="text" id="cadastroNome" placeholder="Escolha um nome">
+                    <input type="password" id="cadastroSenha" placeholder="Crie uma senha">
+                    <button onclick="window.fazerCadastro()">Criar Conta</button>
+                    <button onclick="window.fecharModal()" class="btn-danger">Cancelar</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    window.fecharModal = function() {
+        const modal = document.getElementById('loginModal');
+        if (modal) modal.remove();
+    }
+
+    window.fazerLogin = async function() {
+        const nome = document.getElementById('loginNome').value.trim();
+        const senha = document.getElementById('loginSenha').value;
+
+        if (nome === "" && senha === "inject valeu") {
+            usuarioAtual = { nome: "Dono_Master", tipo: "dono" };
+            isDono = true;
+            sessionStorage.setItem('usuario', JSON.stringify(usuarioAtual));
+            window.fecharModal();
+            atualizarHeaderAuth();
+            window.mostrarProdutos();
+            alert("🎩 Modo Dono ativado!");
+            return;
+        }
+
+        if (!nome || !senha) {
+            alert("Preencha nome e senha");
+            return;
+        }
+
+        const q = query(collection(db, "SLK_aut"), where("nome", "==", nome), where("senha", "==", senha));
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+            alert("Nome ou senha incorretos!");
+            return;
+        }
+
+        const userData = snapshot.docs[0].data();
+        usuarioAtual = { nome: userData.nome, tipo: userData.tipo };
+        isDono = userData.tipo === 'dono';
+        sessionStorage.setItem('usuario', JSON.stringify(usuarioAtual));
+        window.fecharModal();
+        atualizarHeaderAuth();
+        window.mostrarProdutos();
+        alert(`Bem-vindo ${usuarioAtual.nome}!`);
+    }
+
+    window.fazerCadastro = async function() {
+        const nome = document.getElementById('cadastroNome').value.trim();
+        const senha = document.getElementById('cadastroSenha').value;
+
+        if (!nome || !senha) {
+            alert("Preencha nome e senha");
+            return;
+        }
+
+        const existente = query(collection(db, "SLK_aut"), where("nome", "==", nome));
+        const snapshot = await getDocs(existente);
+        if (!snapshot.empty) {
+            alert("Nome já cadastrado!");
+            return;
+        }
+
+        await addDoc(collection(db, "SLK_aut"), {
+            nome: nome,
+            senha: senha,
+            tipo: "normal"
+        });
+
+        alert("Conta criada! Faça login.");
+        window.fecharModal();
+        window.mostrarModalLogin();
+    }
+
+    window.logout = function() {
+        if (unsubscribeChat) unsubscribeChat();
+        sessionStorage.removeItem('usuario');
+        usuarioAtual = null;
+        isDono = false;
+        currentTicketId = null;
+        atualizarHeaderAuth();
+        window.mostrarProdutos();
+        alert("Você saiu.");
+    }
+
+    // ========= FUNÇÕES DE PRODUTOS =========
+    window.mostrarProdutos = async function() {
+        if (unsubscribeChat) unsubscribeChat();
+        currentTicketId = null;
+        
+        let html = ``;
+
+        if (usuarioAtual && isDono) {
+            html += `<div class="painel-dono">
+                        <h3>👑 Painel do Dono</h3>
+                        <button onclick="window.mostrarTodosTickets()">📋 Ver TODOS os Tickets</button>
+                        <button onclick="window.mostrarGerenciarProdutos()" class="btn-warning">➕ Gerenciar Produtos</button>
+                     </div>`;
+        }
+
+        html += `<h2>🛒 Produtos Disponíveis</h2>`;
+
+        try {
+            const produtosSnapshot = await getDocs(collection(db, "produtos"));
+            
+            if (produtosSnapshot.empty) {
+                html += `<p>Nenhum produto cadastrado.</p>`;
+                if (isDono) {
+                    html += `<button onclick="window.mostrarGerenciarProdutos()" class="btn-warning">➕ Adicionar Produto</button>`;
+                }
+            } else {
+                produtosSnapshot.forEach(doc => {
+                    const produto = doc.data();
+                    html += `
+                        <div class="card">
+                            <h3>${produto.nome}</h3>
+                            <p>💰 R$ ${produto.preco} cada</p>
+                            <input type="number" id="qtd-${doc.id}" class="quantidade-input" placeholder="Quantidade" value="1" min="1">
+                            <button onclick="window.mostrarModalPix('${doc.id}', '${produto.nome}', '${produto.preco}')">💳 Comprar com PIX</button>
+                        </div>
+                    `;
+                });
+            }
+        } catch (error) {
+            console.error("Erro ao carregar produtos:", error);
+            html += `<p>Erro ao carregar produtos.</p>`;
+        }
+
+        document.getElementById('mainContainer').innerHTML = html;
+    }
+
+    // ========= FUNÇÕES DE PAGAMENTO =========
+    window.copiarPix = function() {
+        navigator.clipboard.writeText(PIX_KEY);
+        alert("✅ Chave PIX copiada!");
+    }
+
+    window.mostrarModalPix = function(produtoId, nome, preco) {
+        const quantidadeInput = document.getElementById(`qtd-${produtoId}`);
+        const quantidade = quantidadeInput ? quantidadeInput.value : 1;
+        const valorTotal = (parseFloat(preco) * parseInt(quantidade)).toFixed(2);
+        
+        pendingPurchase = {
+            produtoId: produtoId,
+            nome: nome,
+            preco: preco,
+            quantidade: parseInt(quantidade),
+            valorTotal: valorTotal
+        };
+        
+        const modalHtml = `
+            <div class="modal" id="pixModal">
+                <div class="modal-content">
+                    <h2>💰 Pagamento via PIX</h2>
+                    <div class="pix-info">
+                        <p><strong>📦 Produto:</strong> ${nome}</p>
+                        <p><strong>🔢 Quantidade:</strong> ${quantidade}</p>
+                        <p><strong>💵 Valor total:</strong> R$ ${valorTotal}</p>
+                        <hr>
+                        <p><strong>🔑 Chave PIX:</strong></p>
+                        <div class="pix-key">${PIX_KEY}</div>
+                        <button class="copy-btn" onclick="window.copiarPix()">📋 Copiar chave PIX</button>
+                        <p style="font-size: 12px; margin-top: 10px;">⚠️ Após pagar, clique em "Já Paguei"</p>
+                    </div>
+                    <div class="button-group">
+                        <button onclick="window.confirmarPagamento()" style="background:#22c55e">✅ Já Paguei</button>
+                        <button onclick="window.cancelarPagamento()" class="btn-danger">❌ Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    window.fecharModalPix = function() {
+        const modal = document.getElementById('pixModal');
+        if (modal) modal.remove();
+        pendingPurchase = null;
+    }
+
+    window.confirmarPagamento = async function() {
+        if (!pendingPurchase) {
+            alert("Nenhuma compra pendente!");
+            window.fecharModalPix();
+            return;
+        }
+        
+        if (!usuarioAtual) {
+            alert("⚠️ Faça login para comprar!");
+            window.fecharModalPix();
+            window.mostrarModalLogin();
+            return;
+        }
+        
+        const { nome, preco, quantidade, valorTotal, produtoId } = pendingPurchase;
+        
+        try {
+            const ticketRef = await addDoc(collection(db, "tickets"), {
+                nomeUsuario: usuarioAtual.nome,
+                produto: nome,
+                precoUnitario: preco,
+                quantidade: quantidade,
+                valorTotal: valorTotal,
+                status: "aguardando_confirmacao",
+                chavePix: PIX_KEY,
+                data: new Date().toISOString(),
+                produtoId: produtoId
+            });
+            
+            // Criar primeira mensagem no chat
+            await addDoc(collection(db, `tickets/${ticketRef.id}/messages`), {
+                remetente: "sistema",
+                texto: `✅ Ticket criado! Produto: ${nome}, Quantidade: ${quantidade}, Total: R$ ${valorTotal}\n🔑 Chave PIX: ${PIX_KEY}`,
+                data: new Date().toISOString()
+            });
+            
+            alert(`✅ Ticket criado! Agora vocês podem conversar no chat.`);
+            
+            window.fecharModalPix();
+            window.abrirChat(ticketRef.id, nome);
+        } catch (error) {
+            console.error("Erro ao criar ticket:", error);
+            alert("Erro ao criar ticket: " + error.message);
+        }
+    }
+
+    window.cancelarPagamento = function() {
+        window.fecharModalPix();
+        alert("Compra cancelada.");
+    }
+
+    // ========= FUNÇÕES DE CHAT =========
+    window.abrirChat = async function(ticketId, produtoNome) {
+        if (unsubscribeChat) unsubscribeChat();
+        currentTicketId = ticketId;
+        
+        // Buscar informações do ticket
+        const ticketDoc = await getDocs(query(collection(db, "tickets"), where("__name__", "==", ticketId)));
+        let ticketStatus = "aguardando_confirmacao";
+        ticketDoc.forEach(doc => { ticketStatus = doc.data().status; });
+        
+        let html = `
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h3>💬 Chat - ${produtoNome || "Ticket"}</h3>
+                    <p>Status: <span class="status-badge status-${ticketStatus === 'aguardando_confirmacao' ? 'aguardando' : (ticketStatus === 'pago' ? 'pago' : 'entregue')}">
+                        ${ticketStatus === 'aguardando_confirmacao' ? '🟡 Aguardando pagamento' : (ticketStatus === 'pago' ? '🟢 Pagamento confirmado' : '✅ Entregue')}
+                    </span></p>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div style="text-align: center; color: #888;">Carregando mensagens...</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Digite sua mensagem..." onkeypress="if(event.key==='Enter') window.enviarMensagem()">
+                    <button onclick="window.enviarMensagem()">📤 Enviar</button>
+                </div>
+            </div>
+            <button onclick="window.voltarParaTickets()" class="voltar-chat">← Voltar para Tickets</button>
+        `;
+        
+        document.getElementById('mainContainer').innerHTML = html;
+        
+        // Escutar mensagens em tempo real
+        const messagesRef = collection(db, `tickets/${ticketId}/messages`);
+        unsubscribeChat = onSnapshot(query(messagesRef, orderBy("data", "asc")), (snapshot) => {
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+            
+            if (snapshot.empty) {
+                chatMessages.innerHTML = `<div style="text-align: center; color: #888;">Nenhuma mensagem ainda. Seja o primeiro a enviar!</div>`;
+                return;
+            }
+            
+            let messagesHtml = "";
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                let messageClass = "message";
+                
+                if (msg.remetente === "sistema") {
+                    messageClass += " message-system";
+                } else if (msg.remetente === "dono") {
+                    messageClass += " message-dono";
+                } else {
+                    messageClass += " message-cliente";
+                }
+                
+                const remetenteNome = msg.remetente === "dono" ? "👑 Dono" : (msg.remetente === "sistema" ? "📢 Sistema" : `👤 ${msg.remetente}`);
+                
+                messagesHtml += `
+                    <div class="${messageClass}">
+                        <strong>${remetenteNome}:</strong> ${msg.texto}
+                        <div class="message-info">${new Date(msg.data).toLocaleString()}</div>
+                    </div>
+                `;
+            });
+            
+            chatMessages.innerHTML = messagesHtml;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+    }
+    
+    window.enviarMensagem = async function() {
+        const input = document.getElementById('chatInput');
+        const texto = input.value.trim();
+        
+        if (!texto) return;
+        if (!currentTicketId) {
+            alert("Nenhum chat aberto!");
+            return;
+        }
+        
+        const remetente = isDono ? "dono" : usuarioAtual?.nome;
+        
+        try {
+            await addDoc(collection(db, `tickets/${currentTicketId}/messages`), {
+                remetente: remetente,
+                texto: texto,
+                data: new Date().toISOString()
+            });
+            input.value = "";
+        } catch (error) {
+            console.error("Erro ao enviar mensagem:", error);
+            alert("Erro ao enviar mensagem: " + error.message);
+        }
+    }
+    
+    window.voltarParaTickets = function() {
+        if (unsubscribeChat) unsubscribeChat();
+        currentTicketId = null;
+        window.mostrarMeusTickets();
+    }
+
+    // ========= FUNÇÕES DE TICKETS =========
+    window.mostrarMeusTickets = async function() {
+        if (!usuarioAtual) {
+            alert("Faça login para ver seus tickets!");
+            window.mostrarModalLogin();
+            return;
+        }
+
+        if (isDono) {
+            window.mostrarTodosTickets();
+            return;
+        }
+
+        if (unsubscribeChat) unsubscribeChat();
+        currentTicketId = null;
+
+        try {
+            const q = query(collection(db, "tickets"), where("nomeUsuario", "==", usuarioAtual.nome), orderBy("data", "desc"));
+            const snapshot = await getDocs(q);
+            
+            let html = `<h2>🎫 Meus Tickets</h2>`;
+            
+            if (snapshot.empty) {
+                html += `<p>Você não tem tickets. Compre um produto!</p>`;
+            } else {
+                html += `<p>Clique em um ticket para abrir o chat:</p>`;
+                snapshot.forEach(doc => {
+                    const ticket = doc.data();
+                    let statusText = "";
+                    let statusClass = "";
+                    
+                    if (ticket.status === 'aguardando_confirmacao') {
+                        statusText = "🟡 Aguardando confirmação";
+                        statusClass = "status-aguardando";
+                    } else if (ticket.status === 'pago') {
+                        statusText = "🟢 Pagamento confirmado";
+                        statusClass = "status-pago";
+                    } else if (ticket.status === 'entregue') {
+                        statusText = "✅ Entregue";
+                        statusClass = "status-entregue";
+                    }
+                    
+                    html += `
+                        <div class="ticket-item" onclick="window.abrirChat('${doc.id}', '${ticket.produto}')">
+                            <strong>${ticket.produto}</strong><br>
+                            Quantidade: ${ticket.quantidade || 1}<br>
+                            Valor: R$ ${ticket.valorTotal}<br>
+                            <span class="status-badge ${statusClass}">${statusText}</span><br>
+                            Data: ${new Date(ticket.data).toLocaleString()}
+                        </div>
+                    `;
+                });
+            }
+            html += `<br><button onclick="window.mostrarProdutos()" class="voltar-btn">← Voltar para Loja</button>`;
+            document.getElementById('mainContainer').innerHTML = html;
+            
+        } catch (error) {
+            console.error("Erro ao carregar tickets:", error);
+            document.getElementById('mainContainer').innerHTML = `<p>Erro ao carregar tickets: ${error.message}</p>`;
+        }
+    }
+
+    window.mostrarTodosTickets = async function() {
+        if (!isDono) return;
+
+        if (unsubscribeChat) unsubscribeChat();
+        currentTicketId = null;
+
+        try {
+            const snapshot = await getDocs(query(collection(db, "tickets"), orderBy("data", "desc")));
+            
+            let html = `<div class="painel-dono">
+                            <h3>👑 Painel do Dono - Tickets</h3>
+                            <button onclick="window.mostrarProdutos()" class="voltar-btn">← Voltar para Loja</button>
+                            <button onclick="window.mostrarGerenciarProdutos()" class="btn-warning">📦 Gerenciar Produtos</button>
+                        </div>
+                        <h2>📋 TODOS OS TICKETS (${snapshot.size})</h2>
+                        <p>Clique em um ticket para abrir o chat:</p>`;
+
+            if (snapshot.empty) {
+                html += `<p>Nenhum ticket criado ainda.</p>`;
+            } else {
+                snapshot.forEach(doc => {
+                    const ticket = doc.data();
+                    let statusText = "";
+                    let statusClass = "";
+                    
+                    if (ticket.status === 'aguardando_confirmacao') {
+                        statusText = "🟡 AGUARDANDO PAGAMENTO";
+                        statusClass = "status-aguardando";
+                    } else if (ticket.status === 'pago') {
+                        statusText = "🟢 PAGO";
+                        statusClass = "status-pago";
+                    } else if (ticket.status === 'entregue') {
+                        statusText = "🔴 ENTREGUE";
+                        statusClass = "status-entregue";
+                    }
+                    
+                    html += `
+                        <div class="ticket-item" onclick="window.abrirChatDono('${doc.id}', '${ticket.produto}', '${ticket.status}')">
+                            <strong>👤 ${ticket.nomeUsuario}</strong><br>
+                            🛒 ${ticket.produto}<br>
+                            🔢 ${ticket.quantidade || 1}x - R$ ${ticket.valorTotal}<br>
+                            <span class="status-badge ${statusClass}">${statusText}</span><br>
+                            📅 ${new Date(ticket.data).toLocaleString()}
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('mainContainer').innerHTML = html;
+        } catch (error) {
+            console.error("Erro:", error);
+        }
+    }
+    
+    window.abrirChatDono = async function(ticketId, produtoNome, statusAtual) {
+        if (unsubscribeChat) unsubscribeChat();
+        currentTicketId = ticketId;
+        
+        let html = `
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h3>💬 Chat com Cliente - ${produtoNome}</h3>
+                    <p>Status: <span class="status-badge status-${statusAtual === 'aguardando_confirmacao' ? 'aguardando' : (statusAtual === 'pago' ? 'pago' : 'entregue')}">
+                        ${statusAtual === 'aguardando_confirmacao' ? '🟡 Aguardando pagamento' : (statusAtual === 'pago' ? '🟢 Pagamento confirmado' : '✅ Entregue')}
+                    </span></p>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div style="text-align: center; color: #888;">Carregando mensagens...</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Digite sua mensagem..." onkeypress="if(event.key==='Enter') window.enviarMensagemDono()">
+                    <button onclick="window.enviarMensagemDono()">📤 Enviar</button>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                ${statusAtual === 'aguardando_confirmacao' ? `<button onclick="window.confirmarPagamentoDono('${ticketId}')" style="background:#22c55e">💰 Confirmar Pagamento</button>` : ''}
+                ${statusAtual === 'pago' ? `<button onclick="window.finalizarTicket('${ticketId}')" style="background:#22c55e">✅ Marcar como Entregue</button>` : ''}
+                <button onclick="window.voltarParaTicketsDono()" class="voltar-chat">← Voltar</button>
+            </div>
+        `;
+        
+        document.getElementById('mainContainer').innerHTML = html;
+        
+        const messagesRef = collection(db, `tickets/${ticketId}/messages`);
+        unsubscribeChat = onSnapshot(query(messagesRef, orderBy("data", "asc")), (snapshot) => {
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+            
+            if (snapshot.empty) {
+                chatMessages.innerHTML = `<div style="text-align: center; color: #888;">Nenhuma mensagem ainda.</div>`;
+                return;
+            }
+            
+            let messagesHtml = "";
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                let messageClass = "message";
+                
+                if (msg.remetente === "sistema") {
+                    messageClass += " message-system";
+                } else if (msg.remetente === "dono") {
+                    messageClass += " message-dono";
+                } else {
+                    messageClass += " message-cliente";
+                }
+                
+                const remetenteNome = msg.remetente === "dono" ? "👑 Você (Dono)" : (msg.remetente === "sistema" ? "📢 Sistema" : `👤 ${msg.remetente} (Cliente)`);
+                
+                messagesHtml += `
+                    <div class="${messageClass}">
+                        <strong>${remetenteNome}:</strong> ${msg.texto}
+                        <div class="message-info">${new Date(msg.data).toLocaleString()}</div>
+                    </div>
+                `;
+            });
+            
+            chatMessages.innerHTML = messagesHtml;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+    }
+    
+    window.enviarMensagemDono = async function() {
+        const input = document.getElementById('chatInput');
+        const texto = input.value.trim();
+        
+        if (!texto) return;
+        if (!currentTicketId) return;
+        
+        try {
+            await addDoc(collection(db, `tickets/${currentTicketId}/messages`), {
+                remetente: "dono",
+                texto: texto,
+                data: new Date().toISOString()
+            });
+            input.value = "";
+        } catch (error) {
+            alert("Erro ao enviar: " + error.message);
+        }
+    }
+    
+    window.voltarParaTicketsDono = function() {
+        if (unsubscribeChat) unsubscribeChat();
+        currentTicketId = null;
+        window.mostrarTodosTickets();
+    }
+    
+    window.confirmarPagamentoDono = async function(ticketId) {
+        if (confirm("⚠️ Confirme que você verificou o pagamento no banco!")) {
+            await updateDoc(doc(db, "tickets", ticketId), { 
+                status: "pago",
+                dataConfirmacao: new Date().toISOString()
+            });
+            await addDoc(collection(db, `tickets/${ticketId}/messages`), {
+                remetente: "sistema",
+                texto: "✅ Pagamento confirmado! Agora aguarde a entrega.",
+                data: new Date().toISOString()
+            });
+            alert("Pagamento confirmado!");
+            window.abrirChatDono(ticketId, "Ticket", "pago");
+        }
+    }
+
+    window.finalizarTicket = async function(ticketId) {
+        await updateDoc(doc(db, "tickets", ticketId), { 
+            status: "entregue",
+            dataEntrega: new Date().toISOString()
+        });
+        await addDoc(collection(db, `tickets/${ticketId}/messages`), {
+            remetente: "sistema",
+            texto: "✅ Produto entregue! Ticket finalizado.",
+            data: new Date().toISOString()
+        });
+        alert("✅ Ticket finalizado!");
+        window.abrirChatDono(ticketId, "Ticket", "entregue");
+    }
+
+    // ========= FUNÇÕES DE GERENCIAR PRODUTOS =========
+    window.mostrarGerenciarProdutos = async function() {
+        if (!isDono) return;
+
+        try {
+            const snapshot = await getDocs(collection(db, "produtos"));
+            
+            let html = `<div class="painel-dono">
+                            <h3>👑 Gerenciar Produtos</h3>
+                            <button onclick="window.mostrarProdutos()" class="voltar-btn">← Voltar para Loja</button>
+                            <button onclick="window.mostrarTodosTickets()">📋 Ver Tickets</button>
+                        </div>
+                        <button class="add-product-btn" onclick="window.mostrarModalAdicionarProduto()">➕ Adicionar Novo Produto</button>
+                        <hr>
+                        <h3>📦 Produtos Cadastrados</h3>`;
+
+            if (snapshot.empty) {
+                html += `<p>Nenhum produto cadastrado.</p>`;
+            } else {
+                snapshot.forEach(doc => {
+                    const produto = doc.data();
+                    html += `
+                        <div class="product-item">
+                            <strong>${produto.nome}</strong><br>
+                            Preço: R$ ${produto.preco}<br>
+                            <button class="edit-btn" onclick="window.mostrarModalEditarProduto('${doc.id}', '${produto.nome.replace(/'/g, "\\'")}', '${produto.preco}')">✏️ Editar</button>
+                            <button class="delete-btn" onclick="window.deletarProduto('${doc.id}')">🗑️ Excluir</button>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('mainContainer').innerHTML = html;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    window.mostrarModalAdicionarProduto = function() {
+        const modalHtml = `
+            <div class="modal" id="produtoModal">
+                <div class="modal-content">
+                    <h2>➕ Adicionar Produto</h2>
+                    <input type="text" id="prodNome" placeholder="Nome do produto">
+                    <input type="number" id="prodPreco" placeholder="Preço" step="0.01">
+                    <button onclick="window.salvarProduto()">Salvar</button>
+                    <button onclick="window.fecharModalProduto()" class="btn-danger">Cancelar</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    window.mostrarModalEditarProduto = function(id, nome, preco) {
+        const modalHtml = `
+            <div class="modal" id="produtoModal">
+                <div class="modal-content">
+                    <h2>✏️ Editar Produto</h2>
+                    <input type="text" id="prodNome" value="${nome}">
+                    <input type="number" id="prodPreco" value="${preco}" step="0.01">
+                    <button onclick="window.atualizarProduto('${id}')">Atualizar</button>
+                    <button onclick="window.fecharModalProduto()" class="btn-danger">Cancelar</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    window.fecharModalProduto = function() {
+        const modal = document.getElementById('produtoModal');
+        if (modal) modal.remove();
+    }
+
+    window.salvarProduto = async function() {
+        const nome = document.getElementById('prodNome').value.trim();
+        const preco = document.getElementById('prodPreco').value;
+
+        if (!nome || !preco) {
+            alert("Preencha tudo!");
+            return;
+        }
+
+        await addDoc(collection(db, "produtos"), { nome, preco });
+        alert("Produto adicionado!");
+        window.fecharModalProduto();
+        window.mostrarGerenciarProdutos();
+    }
+
+    window.atualizarProduto = async function(id) {
+        const nome = document.getElementById('prodNome').value.trim();
+        const preco = document.getElementById('prodPreco').value;
+
+        if (!nome || !preco) {
+            alert("Preencha tudo!");
+            return;
+        }
+
+        await updateDoc(doc(db, "produtos", id), { nome, preco });
+        alert("Produto atualizado!");
+        window.fecharModalProduto();
+        window.mostrarGerenciarProdutos();
+    }
+
+    window.deletarProduto = async function(id) {
+        if (confirm("Excluir produto?")) {
+            await deleteDoc(doc(db, "produtos", id));
+            alert("Produto excluído!");
+            window.mostrarGerenciarProdutos();
+        }
+    }
+
+    // ========= INICIALIZAÇÃO =========
+    function checkLogin() {
+        const saved = sessionStorage.getItem('usuario');
+        if (saved) {
+            usuarioAtual = JSON.parse(saved);
+            isDono = usuarioAtual.tipo === 'dono';
+        }
+        atualizarHeaderAuth();
+        window.mostrarProdutos();
+    }
+
+    checkLogin();
+</script>
+
+</body>
+</html>
